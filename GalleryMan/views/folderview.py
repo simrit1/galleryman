@@ -597,7 +597,7 @@ class imagesFolder:
         
         
         # Create new x and y positions according to the height being used by the pinned folders
-        x , y = 40 , 570 + ((card_height + padding) * (height - 1))
+        x , y = 40 , 580 + ((card_height + padding) * (height - 1))
         
         for i in self.allFolders:
             self.an.addAnimation(Animation.movingAnimation(Animation , i , QPoint(x , y) , 100))
@@ -612,7 +612,7 @@ class imagesFolder:
         
         # Check if the msg exists
         try:
-            self.an.addAnimation(Animation.movingAnimation(Animation , self.msg , QPoint(100 , self.folderStartValue + 340) , 100))
+            self.an.addAnimation(Animation.movingAnimation(Animation , self.msg , QPoint(100 , self.folderStartValue + 380) , 100))
         except:
             pass
                         

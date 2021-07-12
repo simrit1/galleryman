@@ -1,0 +1,288 @@
+from PIL import Image
+
+from GalleryMan.themes.filters import Filters
+import json
+from GalleryMan.themes.autumn import *
+
+from GalleryMan.assets.cropper import ImageCropper
+from GalleryMan.assets.QtHelpers import QCustomButton, Thrower
+from PyQt5.QtCore import QParallelAnimationGroup, QPropertyAnimation, QRect
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QGraphicsOpacityEffect, QHBoxLayout, QLabel, QVBoxLayout
+from GalleryMan.assets.QtImageProcessor import ImageProcessor
+
+class Animation:
+    def fade(self, widget , start=1 , end=0):
+        self.effect = QGraphicsOpacityEffect()
+        
+        widget.setGraphicsEffect(self.effect)
+
+        self.animation = QPropertyAnimation(self.effect, b"opacity")
+        
+        self.animation.setDuration(200)
+        
+        self.animation.setStartValue(start)
+        
+        self.animation.setEndValue(end)
+        
+        return self.animation
+
+    def unfade(self, widget , start=0 , end=1):
+        self.effect = QGraphicsOpacityEffect()
+        
+        widget.setGraphicsEffect(self.effect)
+
+        self.animation = QPropertyAnimation(self.effect, b"opacity")
+        
+        self.animation.setDuration(200)
+        
+        self.animation.setStartValue(start)
+        
+        self.animation.setEndValue(end)
+        
+        return self.animation
+
+
+
+class Cropper:    
+    def __init__(self , main_window, name , out_wiget , config , callback) -> None:
+        self.main_window = main_window
+        self.name = name
+        self.out_widget = out_wiget
+        self.config = config
+        self.callback = callback
+        self.layout = QHBoxLayout()
+        
+    def create(self):
+        self.buttons_layout = QVBoxLayout()
+        
+        self.back = QCustomButton(" " , self.main_window).create()
+        
+        self.buttons_layout.addWidget(self.back)
+        
+        label = QLabel(self.main_window)
+        
+        label.setGeometry(QRect(0 , 0 , 1980 , 1080))
+                                
+        self.crop = ImageCropper(label , self.name , self.out_widget , self.callback)
+        
+        self.crop.closed.connect(label.hide)
+                
+        self.crop.setGeometry(QRect(0 , 0 , 1980 , 1080))
+        
+        self.crop.show()
+                                
+        self.layout.addWidget(self.crop)
+                
+        label.setLayout(self.layout)
+        
+        label.show()
+        
+        return self.buttons_layout
+
+class PaletteView:
+    def __init__(self, main_window, image, out_widget , config , callback) -> None:
+        self.processors = ImageProcessor()
+        
+        self.callback = callback
+        
+        self.processors.add_image(image)
+        
+        self.config = config
+        
+        self.sliderView = QLabel(main_window)
+        
+        self.unblur = QParallelAnimationGroup()
+        
+        self.out_widget = out_widget
+        
+        self.animation = Animation()
+        
+        self.special_buttons = QHBoxLayout()
+        
+        self.main_window = main_window
+
+    def create(self):
+        lay = QVBoxLayout()
+
+        self.sliderView.setLayout(lay)
+        
+        i = 0
+        
+        choose = json.loads(self.config.get("singleFolder" , "filter-icons"))
+        
+        func = [lambda : self.blur() , lambda : self.sharp() , lambda : self.increaseBrightness(), lambda : self.increaseContrast() , lambda : self.increaseExposure() , lambda : self.callback()]
+        
+        for icon , color , font_size , family in choose:
+            button = QCustomButton(icon , self.main_window).create()
+            
+            button.setStyleSheet("""
+                color: {};
+                font-size: {}px;
+                font-family: {};
+            """.format(color , font_size , family))
+            
+            button.clicked.connect(func[i])
+            
+            i += 1
+            
+            self.unblur.addAnimation(self.animation.unfade(button))
+            
+            self.special_buttons.addWidget(button)
+
+
+        self.sliderView.show()
+
+        return self.special_buttons
+
+    def blur(self):
+        self.out_widget.setPixmap(QPixmap.fromImage(self.processors.blur()))
+        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+
+    def sharp(self):        
+        self.out_widget.setPixmap(QPixmap.fromImage(self.processors.sharpen()))
+        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+        
+    def increaseBrightness(self):
+        self.out_widget.setPixmap(QPixmap.fromImage(self.processors.increaseBrightness()))
+        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+        
+    def increaseContrast(self):
+        self.out_widget.setPixmap(QPixmap.fromImage(self.processors.increaseContrast()))
+        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+        
+    def increaseExposure(self):
+        self.out_widget.setPixmap(QPixmap.fromImage(self.processors.increaseExposure()))
+        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+
+class FilterView:
+    def __init__(self, main_window, image, out_widget , icons , callback) -> None:
+        self.image = image
+        self.unblur = QParallelAnimationGroup()
+        self.icons = icons
+        self.out_widget = out_widget
+        self.animation = Animation()
+        self.imageProcessor = Filters(Image.open(self.image).convert("RGBA"))
+        self.special_buttons = QHBoxLayout()
+        self.special_buttons.setSpacing(20)
+        self.callback = callback
+        self.main_window = main_window
+
+    def create(self):
+        # 3. Blur Image
+        func = [
+            lambda : self.shady(),
+            lambda : self.sepia(),
+            lambda : self.cherry(),
+            lambda : self.underwater(),
+            lambda : self.purple(),
+            lambda : self.pink(),
+            lambda : self.dark(),
+            lambda : self.clear(),
+            lambda : self.realistic(),
+            lambda : self.cool_filter(),
+            lambda : self.callback()
+        ]
+        
+        i = 0
+        
+        for icon , icon_color , icon_font_size , icon_font_family , help_msg in self.icons:
+            self.button = QCustomButton("{}\n{}".format(icon , help_msg), self.main_window).create()
+            
+            self.button.setStyleSheet("color: {}; font-family: {}; font-size: {}px;".format(icon_color , icon_font_family , icon_font_size))
+            
+            # Add the function
+            self.button.clicked.connect(func[i])
+
+            # Add the widget
+            self.special_buttons.addWidget(self.button)
+
+            self.unblur.addAnimation(self.animation.unfade(self.button))
+            
+            i += 1
+
+        
+        return self.special_buttons
+
+    def shady(self):        
+        image = ImageQt.ImageQt(self.imageProcessor.shady())
+
+        self.out_widget.setPixmap(QPixmap.fromImage(image))
+        
+        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+        
+    def sepia(self):
+        image = ImageQt.ImageQt(self.imageProcessor.sepia())
+
+        self.out_widget.setPixmap(QPixmap.fromImage(image))
+        
+        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+
+    def cherry(self):
+        image = ImageQt.ImageQt(self.imageProcessor.cherry())
+
+        self.out_widget.setPixmap(QPixmap.fromImage(image))
+        
+        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+
+    def underwater(self):
+        image = ImageQt.ImageQt(self.imageProcessor.underwater())
+
+        self.out_widget.setPixmap(QPixmap.fromImage(image))
+        
+        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+
+    def purple(self):
+        image = ImageQt.ImageQt(self.imageProcessor.purple())
+
+        self.out_widget.setPixmap(QPixmap.fromImage(image))
+        
+        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+
+    def pink(self):
+        image = ImageQt.ImageQt(self.imageProcessor.pink())
+
+        self.out_widget.setPixmap(QPixmap.fromImage(image))
+        
+        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+
+    def dark(self):
+        image = ImageQt.ImageQt(self.imageProcessor.dark())
+
+        self.out_widget.setPixmap(QPixmap.fromImage(image))
+        
+        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+
+    def clear(self):
+        image = ImageQt.ImageQt(self.imageProcessor.clear())
+
+        self.out_widget.setPixmap(QPixmap.fromImage(image))
+        
+        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+        
+    def realistic(self):
+        image = ImageQt.ImageQt(self.imageProcessor.realistic())
+
+        self.out_widget.setPixmap(QPixmap.fromImage(image))
+        
+        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+    
+    def cool_filter(self):
+        new_image = ImageQt.ImageQt(self.imageProcessor.cool())
+
+        self.out_widget.setPixmap(QPixmap.fromImage(new_image))
+        
+        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+        
+    def clear_filter(self):
+        Animation.fade(Animation , self.out_widget , end=0.4).start()
+        
+        image = ImageQt.ImageQt(self.imageProcessor.clear())
+
+        # self.out_widget.setPixmap(QPixmap.fromImage(image)) 
+        
+        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+        
+        # opacity.setOpacity(1)
+        
+        # self.out_widget.setGraphicsEffect(opacity)

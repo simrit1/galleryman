@@ -1,9 +1,6 @@
-import cgitb
 from configparser import ConfigParser
-cgitb.enable(format = 'text')
-
 # Import All The Required Modules
-import json, os
+import json, os , gc
 from functools import partial
 from GalleryMan.assets.QtHelpers import QContinueButton
 from PyQt5.QtCore import (
@@ -79,9 +76,7 @@ class FirstPage:
         self.original_window_size = 0
 
         self.window               = window 
-        
-        # self.window.setMaximumHeight(970)
-        
+    
         application.resizeEvent   = self.responser
         
         self.frame                = QLabel()
@@ -132,7 +127,6 @@ class FirstPage:
 
         self.next.setCursor(QCursor(Qt.PointingHandCursor))
 
-        # self.box.addWidget(self.next , alignment=Qt.AlignCenter)
 
         self.next.setStyleSheet(
             """
@@ -143,7 +137,9 @@ class FirstPage:
             }
         """
         )
-
+                
+        self.scrollarea.setGeometry(self.application.geometry())
+        
         self.next.clicked.connect(self.go_to_next)
 
     def go_to_next(self):
@@ -250,6 +246,8 @@ class FirstPage:
         self.scrollarea.verticalScrollBar().setEnabled(True)
         
         self.scrollarea.verticalScrollBar().show()
+        
+        done = {}
     
         for dir in self.dirs:            
             if (dir[0] != "." or dir == "..") and os.path.isdir(os.path.expanduser("~") + '/' + dir):
@@ -276,6 +274,10 @@ class FirstPage:
                 else:
                     text = "  " + dir
                 
+                files , total_folders = self.get_info("{}/{}".format(os.path.expanduser("~") , dir))
+                
+                text += " ({} images | {} folders | {}Kb)".format(files , total_folders , 1980)
+                                
                 name.setText(text)
 
                 name.doubleClicked.connect(
@@ -324,7 +326,20 @@ class FirstPage:
         self.more_text.hide()
         
         self.scrollarea.verticalScrollBar().setValue(0)
-
+        
+        # Remove all the unused variables 
+        self.directories.deleteLater()
+        
+        self.header_text.deleteLater()
+        
+        self.header_text.deleteLater()
+        
+        self.continue_to_next.deleteLater()
+        
+        self.more_text.deleteLater()
+        
+        gc.collect()
+        
         imagesFolder(self.window , self.application , self.scrollarea , self.config).start(self.header_text)
 
     def update_dirs(self, directory):
@@ -332,6 +347,8 @@ class FirstPage:
             self.new_dirs.hide()
         except:
             pass
+        
+        self.scrollarea.verticalScrollBar().setValue(0)
 
         self.directories.hide()
 
@@ -353,9 +370,26 @@ class FirstPage:
 
             name.setFlat(True)
 
-            name.setStyleSheet("font-size: 20px")
-
-            name.setText("   " + dir)
+            name.setStyleSheet("font-size: 20px; font-family: SauceCodePro Nerd Font")
+            
+            if("download" in dir.lower()):
+                text = "  " + dir
+            elif("desktop" in dir.lower()):
+                text = "  " + dir
+            elif("google" in dir.lower() and "drive" in dir.lower()):
+                text = "  " + dir
+            elif("picture" in dir.lower()):
+                text = "  " + dir
+            elif(os.path.islink(dir)):
+                text = "  " + dir
+            else:
+                text = "  " + dir
+            
+            files , total_folders = self.get_info("{}/{}".format(directory , dir))
+            
+            text += " ({} images | {} folders | {}Kb)".format(files , total_folders , 1980)
+        
+            name.setText(text)
 
             if os.path.normpath(directory + "/" + dir) in self.scans:
                 self.opacity = QGraphicsOpacityEffect()
@@ -448,6 +482,8 @@ class FirstPage:
         width = point.width()
 
         height = point.height()
+        
+        self.window.setGeometry(self.application.geometry())
 
         self.header_text.setGeometry(0, (height // 2) - 100, width, 100)
 
@@ -456,7 +492,7 @@ class FirstPage:
         if self.isdir_open:
             self.header_text.setGeometry(0, 10, width, 100)
 
-            self.directories.setGeometry((width // 2) - 100, 200, 400 , self.directories.height())
+            self.directories.setGeometry((width // 2) - 200, 200, 700 , self.directories.height())
             
             self.more_text.setFixedWidth(width)
             
@@ -483,3 +519,21 @@ class FirstPage:
 
     def finished(self):
         self.frame.setLayout(self.main_layout)
+        
+    def get_info(self , dir):
+        files = 0
+        
+        sub_folders = 0
+        
+        for i in self.generator(dir):                        
+            files += i[-3:] in ['png' , 'svg' , 'jpeg' , 'jpg']
+            
+            if(os.path.isdir("{}/{}".format(dir , i))):                
+                sub_folders += 1
+                
+        return [files , sub_folders]
+        
+    def generator(self , dir):
+        for i in os.listdir(dir):
+            yield i
+        

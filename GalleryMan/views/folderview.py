@@ -822,6 +822,8 @@ class imagesFolder:
             self.window,
             dir,
             self.config,
+            self.scroll,
+            self.main_window,
             self.label_to_change,
             self.images,
             self.folderHeaderText,

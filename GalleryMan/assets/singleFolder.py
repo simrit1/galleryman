@@ -1,12 +1,13 @@
-from PIL.Image import new, open
-from PIL import ImageChops
+from PIL.Image import open
+import functools
+import gc
 from configparser import ConfigParser
 import json
 from random import randint
 from GalleryMan.utils.readers import change_with_config, read_file
 from GalleryMan.assets.QtHelpers import Animation, PopUpMessage, QCustomButton
 from PyQt5.QtCore import QAbstractAnimation, QParallelAnimationGroup, QPoint, QPropertyAnimation, QRect, QVariant, QVariantAnimation, pyqtSignal, pyqtSlot
-from PyQt5.QtGui import QCursor, QKeySequence, QPixmap, QTransform
+from PyQt5.QtGui import QCursor, QImage, QKeySequence, QPixmap, QTransform
 from PyQt5.QtCore import Qt 
 from PyQt5.QtWidgets import QGraphicsOpacityEffect, QHBoxLayout, QLabel, QLineEdit, QShortcut, QSlider
 import os
@@ -116,7 +117,7 @@ class singleFolderView:
         except:
             pass
         
-        for i in [self.labelArea , self.back , self.name]:
+        for i in [self.labelArea, self.name]:
             opacity = QGraphicsOpacityEffect()
             
             try:
@@ -162,18 +163,22 @@ class singleFolderView:
     def remove(self):
         self.labelArea.hide()
         
-        self.back.hide()
-    
+        self.animation = self.main_window = self.labelArea = self.name = None
+        
+        del self.animation , self.main_window , self.labelArea , self.name   
+        
+        gc.collect()
+            
     def start(self):        
-        self.back = QCustomButton(text="" , window=self.window).create()
+        # self.back = QCustomButton(text="" , window=self.window).create()
         
-        self.back.setShortcut("Alt+Left")
+        # self.back.setShortcut("Alt+Left")
         
-        self.back.move(QPoint(10 , 40))
+        # self.back.move(QPoint(10 , 40))
         
-        self.back.show()
+        # self.back.show()
         
-        self.back.clicked.connect(self.remove_self)
+        # self.back.clicked.connect(self.remove_self)
                 
         self.labelArea = QLabel(self.window)
         
@@ -183,7 +188,7 @@ class singleFolderView:
         
         x , y = 40 , 100
         
-        width = self.window.width()
+        width = self.window.size().width()
         
         card_width = int(self.config.get("singleFolder" , "card-width"))
         
@@ -195,76 +200,59 @@ class singleFolderView:
         
         color_mode = json.loads(self.config.get("singleFolder" , "card-mode"))
         
-        index = 0
-                
-        for i in os.listdir(self.directory):
-            need_func = False
+        self.index = 0        
+                 
+        dirs = os.listdir(self.directory) * 10
+                     
+        print(len(dirs))             
+                                            
+        for i in dirs:
+            if(os.path.isdir("{}/{}".format(self.directory , i)) or i[-3:] not in ['png' , 'svg' , 'jpg' , 'jpeg']): continue
             
-            if(os.path.isdir("{}/{}".format(self.directory , i))):
-                image = self.get_first("{}/{}".format(self.directory , i))
-                
-                if(image == None): continue
-                
-                cover_image = QPixmap(image)
-                                
-                need_func = True
-            else:
-                
-                if(i[-3:].lower() not in ["png" , "jpeg" , "jpg"]): continue
-                
-                cover_image = QPixmap("{}/{}".format(self.directory , i))
-                            
             if(color_mode == "single"):
-                index = 0
+                self.index = 0
             elif(color_mode == "random"):
-                index = randint(0 , len(colors) - 1)
+                self.index = randint(0 , len(colors) - 1)
             else:
-                index = (index + 1) % len(colors)
+                self.index = (self.index + 1) % len(colors)
             
             image = CustomLabel(self.labelArea)
             
             image.setGeometry(QRect(x , y , card_width , card_height))
             
             x += card_width + card_padding
-            
-            image.setPixmap(cover_image)
+                                    
+            pixmap = QPixmap("{}/{}".format(self.directory , i)).scaled(card_width , card_height)
+                        
+            image.setPixmap(pixmap)
             
             image.setCursor(QCursor(Qt.PointingHandCursor))
             
             image.setScaledContents(True)
-            
-            from functools import partial
                     
             image.setStyleSheet('border: {}px solid {}'.format(
                 self.config.get("singleFolder" , "card-borderWidth"),
-                colors[index]
+                colors[self.index]
             ))
-            
                         
             image.show()
-            
-            if(x > width - card_width - 40):
-                x = 40
-                
-                y += card_height + card_padding
                 
             self.folders.append(image)
             
-            if(need_func):                
-                image.clicked.connect(partial(self.switch_to_next , "{}/{}".format(self.directory , i)))
+            image.clicked.connect(functools.partial(self.show_image , "{}/{}".format(self.directory , i)))
+            
+            if(width < x):                
+                x = 40
                 
-            else:
-                image.clicked.connect(partial(self.show_image , "{}/{}".format(self.directory , i)))            
-    
-    def switch_to_next(self , new_dir):
-        # self.directory 
+                y += card_height + card_padding  
+                
+
+        # del x , y , colors , color_mode , card_width , card_height , card_padding , self.back , image , self.index , width , self.folders
         
-        self.directory = new_dir 
+        print("YES!")
         
-        
-        self.labelArea.hide()
-        
-        self.start()
+        gc.collect()
+                        
     
     def show_image(self , name):            
         
@@ -319,7 +307,10 @@ class singleFolderView:
         
         self.buttons.setGeometry(QRect(400 , 310 , 1000 , 1000))
         
+        self.buttons.setStyleSheet("background-color: transparent")
+        
         layout = QHBoxLayout()
+        
         
         # Set fixed spacing between the elements
         layout.setSpacing(1)
@@ -331,15 +322,7 @@ class singleFolderView:
         # 
         
         icons = json.loads(self.config.get("singleFolder" , "editorButtons-icons"))
-
-        # # 2. Rotate Image
-        # rotate = QCustomButton(icons[0], None , True).create()
-
-        # # Add The Function On Click
-        # rotate.clicked.connect(self.rotate_image)
-
-        # # Add The Button
-        # layout.addWidget(rotate)
+        
         i = 0
         
         functions = [self.rotate_image , lambda : self.switch_to_cropper(self.name) , lambda : self.switch_to_filters(self.name) , lambda : self.switch_to_palette(self.name) , lambda : self.save_edited(name) , lambda : self.closeEditor()]
@@ -365,6 +348,12 @@ class singleFolderView:
         
         self.name = 'GalleryMan/assets/processed_image.png'
         
+        del icons , icon , icon_color , icon_family , icon_font_size  , self.pixmap 
+        
+        self.new_layout = layout
+        
+        gc.collect()
+        
     def save_edited(self , dir):
         parent = dir[:dir.rindex('/')]
         
@@ -377,15 +366,24 @@ class singleFolderView:
         
         self.popup.new_msg(self.window , "Image saved as {}".format(name) , 200)
         
+        parent = name = None
+        
+        del parent , name
+        
         self.closeEditor()
+        
+        gc.collect()
     
     def closeEditor(self):
-        
         self.anim = Animation.fadingAnimation(Animation , self.main_window , 250)
         
         self.anim.start()
         
         self.anim.finished.connect(lambda : self.main_window.hide())
+        
+        self.main_window = self.image = self.geometry = self.pixmap = self.buttons = self.anim = None
+        
+        del self.main_window , self.image , self.geometry , self.pixmap , self.buttons , self.anim
         
     
     def rotate_image(self):
@@ -407,6 +405,8 @@ class singleFolderView:
             width + padding + input_width + padding ,
             1000
         ))
+        
+        self.new_label.setStyleSheet("background-color: transparent;")
         
         self.new_label.show()
         
@@ -492,6 +492,10 @@ class singleFolderView:
         
         self.shortcut.activated.connect(self.removecropper)
         
+        del self.new_label , width , input_width , padding 
+        
+        gc.collect()
+        
     def removecropper(self):
         self.shortcut.setKey(QKeySequence())
         
@@ -560,6 +564,8 @@ class singleFolderView:
         
         self.new_label.setGeometry(QRect(200 , 310 , 1400 , 1000))
         
+        self.new_label.setStyleSheet("background-color: transparent;")
+        
         self.new_label.show()
         
         buttons = FilterView(self.window , name , self.image , json.loads(self.config.get("singleFolder" , "filters-colorIcons")) , self.callback).create()
@@ -574,6 +580,8 @@ class singleFolderView:
         self.new_label.setGeometry(self.buttons.geometry())
         
         self.new_label.show()
+        
+        self.new_label.setStyleSheet("background-color: transparent")
         
         buttons = PaletteView(self.main_window , name , self.image , self.config , self.callback).create()
         
@@ -602,7 +610,7 @@ class singleFolderView:
         
         self.main_window.show()
         
-    def responser(self , _):
+    def responser(self , _):        
         self.width = self.main_window.size().width()
         
         card_width = int(self.config.get("singleFolder" , "card-width"))

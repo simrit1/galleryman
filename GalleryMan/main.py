@@ -1,7 +1,9 @@
 # Import all the required modules
 import argparse
 import sys
+from PyQt5 import QtCore
 from PyQt5.QtCore import QPoint, QRect, QSize , Qt
+from PyQt5.QtGui import QKeyEvent
 from GalleryMan.views.firstPage import FirstPage
 from GalleryMan.utils.readers import read_file , change_with_config
 from GalleryMan.views.folderview import imagesFolder
@@ -31,9 +33,11 @@ class Main:
     def createApp(self):
         app = QApplication([])
 
-        window = QMainWindow()
+        self.window = QMainWindow()
         
-        central = QWidget(window)
+        self.window.keyPressEvent = self.keyHandler
+        
+        central = QWidget(self.window)
         
         layout = QVBoxLayout(central)
         
@@ -43,7 +47,7 @@ class Main:
         
         contents = QWidget()
         
-        contents.setGeometry(window.geometry())
+        contents.setGeometry(self.window.geometry())
                 
         scrollArea.setWidget(contents)
         
@@ -57,18 +61,18 @@ class Main:
     
         layout = QHBoxLayout(contents)
         
-        window.setCentralWidget(central)
+        self.window.setCentralWidget(central)
         
         stylesheet , config = change_with_config(read_file('GalleryMan/sass/styles.txt'))
             
         status = read_file('GalleryMan/galleryman.status')
         
         if(status == 'NOT REGISTERED'):
-            ui = FirstPage(contents , window , scrollArea , config)
+            ui = FirstPage(contents , self.window , scrollArea , config)
             
             ui.start()
         else:
-            ui = imagesFolder(contents , window , scrollArea , config)
+            ui = imagesFolder(contents , self.window , scrollArea , config)
             
             label = QLabel(contents)
             
@@ -82,11 +86,19 @@ class Main:
             
             ui.start(label)
                         
-        window.setStyleSheet(stylesheet)
+        self.window.setStyleSheet(stylesheet)
 
-        window.show()
+        self.window.show()
 
         sys.exit(app.exec_())
+        
+    def keyHandler(self , event: QKeyEvent):
+        if(event.key() == QtCore.Qt.Key_F11):
+            if(self.window.isFullScreen()):
+                self.window.showNormal()
+            else:
+                self.window.showFullScreen()
+
 
 
 def main():

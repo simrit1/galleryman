@@ -111,6 +111,8 @@ class imagesFolder:
             self.folders_added_to_file = json.loads(f.read())
 
         self.allFolders = []
+        
+        self.dirs = os.listdir(os.path.expanduser("~"))
 
         self.label_to_change = QLabel(text="Albums", parent=self.window)
 
@@ -129,7 +131,7 @@ class imagesFolder:
         self.window.setGeometry(0, 0, 1900, 1000)
 
         # Pinned Albums Header Text
-        self.pinned = QLabel(self.window)
+        self.pinned = QLabel(self.images)
 
         # Set Stylesheet
         self.pinned.setStyleSheet(
@@ -157,7 +159,7 @@ class imagesFolder:
         self.pinned.show()
 
         # Now, Folder's Header Text
-        self.folderHeaderText = QLabel(self.window)
+        self.folderHeaderText = QLabel(self.images)
 
         # Change StyleSheet
         self.folderHeaderText.setStyleSheet(
@@ -186,9 +188,6 @@ class imagesFolder:
 
         # Get all the prevented directory selected during the startup
         self.prevented_dirs = json.loads(open("GalleryMan/data/scan_dirs.txt").read())
-
-        # Get all the dirs in the home directory
-        self.dirs = os.listdir(os.path.expanduser("~"))
 
         # Create x and y variables which will determine the position of the folder's card
         x, y = 40, self.folderStartValue
@@ -219,9 +218,12 @@ class imagesFolder:
         self.keybindings = json.loads(
             self.config.get("folderPage", "folderPage-keybindings")
         )
+        
+        self.no = 0
 
         # Iterate through all the dirs
-        for i in self.dirs * 10:
+        for i in self.dirs:
+                    
             # Create a complete path of the folder
             curr = "{}/{}".format(os.path.expanduser("~"), i)
 
@@ -248,6 +250,7 @@ class imagesFolder:
 
                 # Check if adding of the card was successful or not
                 if res:
+                    self.no += 1
                     # If it was successful, increase the value of the position variables, and yes, keep in mind about the width of the window
                     if not curr in self.currPinned:
                         x += width + padding
@@ -263,7 +266,15 @@ class imagesFolder:
                             px = 40
 
                             py += height + padding
-
+               
+        perline = (self.main_window.size().width() - 100) // width
+        
+        self.width = self.label_to_change.height() + self.pinned.height() + ((width + padding) * self.no // perline) - padding
+        
+        self.window.setFixedHeight(self.width)
+        
+        self.images.setFixedHeight(self.width)
+        
         # Display the desired message if no cards are there under the folder's header
         if self.allFolders == []:
             self.showMessage()
@@ -613,7 +624,7 @@ class imagesFolder:
         self.folderStartValue = 580
 
         # Check how many cards can fit in one line
-        self.per_line = max((self.main_window.width() - 200) // card_width, 1)
+        self.per_line = max((self.main_window.width() - 100) // card_width, 1)
 
         # Check if the folders and pinned folders are render, otherwise, it will not worth setting up the new postion (most probably give me an error).
         try:
@@ -627,7 +638,7 @@ class imagesFolder:
         height = ceil(len(self.folders_pinned) / self.per_line)
 
         # Set the folder's start value according to the height
-        self.folderStartValue = (card_height + padding) * height
+        self.folderStartValue = ((card_height + padding) * height) + padding
 
         # New x and y positions
         x, y = 40, 220
@@ -644,7 +655,7 @@ class imagesFolder:
             # Update x and y positions
             x += card_width + padding
 
-            if x > self.main_window.width() - 270:
+            if x > self.main_window.width() - 250:
                 x = 40
 
                 y += card_height + padding
@@ -655,7 +666,7 @@ class imagesFolder:
                 Animation.movingAnimation(
                     Animation,
                     self.folderHeaderText,
-                    QPoint(40, self.folderStartValue + 300),
+                    QPoint(40, self.folderStartValue + 200),
                     100,
                 )
             )
@@ -688,6 +699,14 @@ class imagesFolder:
             )
         except:
             pass
+        
+        perline = (self.main_window.size().width() - 100) // card_width
+        
+        self.width = self.label_to_change.height() + self.pinned.height() + ((card_width + padding) * self.no // perline) - padding
+        
+        self.window.setFixedHeight(self.width)
+        
+        self.images.setFixedHeight(self.width)
         
         self.label_to_change.setFixedWidth(self.main_window.size().width())
         

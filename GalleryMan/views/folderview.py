@@ -30,7 +30,9 @@ class imagesFolder:
         self.isshown = False
 
         self.scroll = scroll
-
+        
+        self.scroll.horizontalScrollBar().setValue(0)
+        
         self.window = window
 
         self.config = config

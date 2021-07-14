@@ -247,7 +247,7 @@ class FirstPage:
         
         self.scrollarea.verticalScrollBar().show()
         
-        done = {}
+        self.scrollarea.verticalScrollBar().setContentsMargins(0 , 0 , 0 , 20)
     
         for dir in self.dirs:            
             if (dir[0] != "." or dir == "..") and os.path.isdir(os.path.expanduser("~") + '/' + dir):
@@ -309,8 +309,6 @@ class FirstPage:
         
         self.directories.show()
         
-        # self.layout.addWidget(self.scroll)
-
     def transfer_control(self):
         with open("GalleryMan/data/scan_dirs.txt", "w") as file:
             file.write(json.dumps(list(self.scans)))
@@ -325,18 +323,17 @@ class FirstPage:
 
         self.more_text.hide()
         
+        try:
+            self.new_dirs.hide()
+            
+            del self.new_dirs
+        except:
+            pass
+        
         self.scrollarea.verticalScrollBar().setValue(0)
         
         # Remove all the unused variables 
-        self.directories.deleteLater()
-        
-        self.header_text.deleteLater()
-        
-        self.header_text.deleteLater()
-        
-        self.continue_to_next.deleteLater()
-        
-        self.more_text.deleteLater()
+        del self.directories , self.continue_to_next , self.more_text
         
         gc.collect()
         

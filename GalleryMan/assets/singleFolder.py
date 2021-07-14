@@ -11,6 +11,7 @@ from PyQt5.QtCore import (
     QPoint,
     QPropertyAnimation,
     QRect,
+    QThread,
     QVariant,
     QVariantAnimation,
     pyqtSignal,
@@ -24,6 +25,7 @@ from PyQt5.QtWidgets import (
     QLabel,
     QLineEdit,
     QMainWindow,
+    QPushButton,
     QScrollArea,
     QShortcut,
     QSlider,
@@ -153,7 +155,7 @@ class singleFolderView:
         except:
             pass
 
-        for i in [self.labelArea, self.name]:
+        for i in [self.labelArea, self.name , self.go_back]:
             opacity = QGraphicsOpacityEffect()
 
             try:
@@ -194,21 +196,25 @@ class singleFolderView:
         gc.collect()
 
     def start(self):
+        self.go_back = QCustomButton(text="" , window=self.window).create()
+        
+        self.go_back.setGeometry(40 , 40 , 20 , 30)
+        
+        self.go_back.show()
+        
+        self.go_back.setShortcut("Alt+Left")
+        
+        self.go_back.clicked.connect(self.remove_self)
+        
         self.labelArea = QLabel(self.window)
 
         self.labelArea.show()
 
         self.labelArea.setGeometry(QRect(0, 100, 1980, 1080))
 
-        x, y = 40, 100
-
-        width = self.window.size().width()
-
         card_width = int(self.config.get("singleFolder", "card-width"))
 
         card_height = int(self.config.get("singleFolder", "card-height"))
-
-        card_padding = int(self.config.get("singleFolder", "card-padding"))
 
         colors = json.loads(self.config.get("singleFolder", "card-color"))
 
@@ -216,9 +222,15 @@ class singleFolderView:
 
         self.index = 0
 
-        dirs = os.listdir(self.directory)
+        from pathlib import Path
 
+        dirs = Path(self.directory).rglob("*.png")
+              
+        self.application.setCursor(Qt.BusyCursor)
+        
         for i in dirs:
+            i = str(i)
+            
             if os.path.isdir("{}/{}".format(self.directory, i)) or i[-3:] not in [
                 "png",
                 "svg",
@@ -226,7 +238,7 @@ class singleFolderView:
                 "jpeg",
             ]:
                 continue
-
+                        
             if color_mode == "single":
                 self.index = 0
             elif color_mode == "random":
@@ -236,12 +248,11 @@ class singleFolderView:
 
             image = CustomLabel(self.labelArea)
 
-            image.setGeometry(QRect(x, y, card_width, card_height))
+            image.setGeometry(QRect(0, 0, card_width, card_height))
 
-            x += card_width + card_padding
-
-            pixmap = QPixmap("{}/{}".format(self.directory, i)).scaled(
-                card_width, card_height
+            pixmap = QPixmap(i).scaled(
+                card_width, card_height,
+                transformMode=Qt.SmoothTransformation
             )
 
             image.setPixmap(pixmap)
@@ -254,20 +265,19 @@ class singleFolderView:
                     colors[self.index],
                 )
             )
-
+            
             image.show()
-
+            
             self.folders.append(image)
 
             image.clicked.connect(
-                functools.partial(self.show_image, "{}/{}".format(self.directory, i))
+                functools.partial(self.show_image, i)
             )
-
-            if width < x:
-                x = 40
-
-                y += card_height + card_padding
-                
+                             
+        self.responser(None) 
+        
+        self.application.setCursor(Qt.ArrowCursor)       
+        
         gc.collect()
 
     def show_image(self, name):
@@ -671,7 +681,7 @@ class singleFolderView:
 
             self.animations.addAnimation(ani)
 
-            if x > self.width - card_width:
+            if x > self.width - card_width - 75:
                 x = 40
 
                 y += card_height + card_padding

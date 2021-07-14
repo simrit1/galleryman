@@ -196,15 +196,30 @@ class singleFolderView:
         gc.collect()
 
     def start(self):
-        self.go_back = QCustomButton(text="" , window=self.window).create()
+        self.go_back = QCustomButton(text=self.config.get("singleFolder" , "back-buttonText")[1:-1] , window=self.window).create()
         
-        self.go_back.setGeometry(40 , 40 , 20 , 30)
+        self.go_back.setStyleSheet("""
+            font-size: {}px;
+            font-family: {};    
+            color: {};                 
+        """.format(
+            self.config.get("singleFolder" , "back-buttonFontSize"),
+            self.config.get("singleFolder" , "back-buttonFontFamily"),
+            self.config.get("singleFolder" , "back-buttonColor")
+        ))        
         
-        self.go_back.show()
+        self.go_back.setGeometry(QRect(
+            int(self.config.get("singleFolder" , "back-buttonTopPadding")),
+            int(self.config.get("singleFolder" , "back-buttonLeftPadding")),
+            int(self.config.get("singleFolder" , "back-buttonWidth")),
+            int(self.config.get("singleFolder" , "back-buttonHeight")),
+        ))
         
         self.go_back.setShortcut("Alt+Left")
         
         self.go_back.clicked.connect(self.remove_self)
+        
+        self.go_back.show()
         
         self.labelArea = QLabel(self.window)
 

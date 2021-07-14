@@ -141,8 +141,12 @@ class FirstPage:
         self.scrollarea.setGeometry(self.application.geometry())
         
         self.next.clicked.connect(self.go_to_next)
+        
+        self.responser(None)
 
     def go_to_next(self):
+        self.scrollarea.show()
+                
         self.dirs = [".."] + sorted(os.listdir(os.path.expanduser("~")))[3:]
         
         self.window.setMinimumHeight(14 * len(self.dirs))
@@ -176,7 +180,9 @@ class FirstPage:
         self.header_text.setText("Choose The Directories Which Should Not Be Scanned")
 
         self.header_text.setStyleSheet("font-size: 35px")
-
+        
+        self.header_text.setParent(self.window)
+        
         self.more_text = QLabel(
             text="(Preventing Directories Which Doesn't Contain Images Makes The App Faster)",
             parent=self.window,
@@ -275,8 +281,9 @@ class FirstPage:
                     text = "  " + dir
                 
                 files , total_folders = self.get_info("{}/{}".format(os.path.expanduser("~") , dir))
+
                 
-                text += " ({} images | {} folders | {}Kb)".format(files , total_folders , 1980)
+                text += " ({} images | {} folders | {}Kb)".format(files , total_folders , os.path.getsize("{}/{}".format(os.path.expanduser("~") , dir)))
                                 
                 name.setText(text)
 
@@ -475,16 +482,16 @@ class FirstPage:
             
             exit()
 
-    def update_sizes(self, point: QSize):
+    def update_sizes(self, point: QRect):     
         width = point.width()
 
         height = point.height()
         
         self.window.setGeometry(self.application.geometry())
 
-        self.header_text.setGeometry(0, (height // 2) - 100, width, 100)
+        self.header_text.setGeometry(0, (height // 2) - 170, width, 100)
 
-        self.next.setGeometry(QRect(0, height // 2, width, 100))
+        self.next.setGeometry(QRect(0, height // 2 - 60 , width, 100))
 
         if self.isdir_open:
             self.header_text.setGeometry(0, 10, width, 100)

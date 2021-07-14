@@ -221,7 +221,7 @@ class imagesFolder:
         )
 
         # Iterate through all the dirs
-        for i in self.dirs:
+        for i in self.dirs * 10:
             # Create a complete path of the folder
             curr = "{}/{}".format(os.path.expanduser("~"), i)
 
@@ -417,11 +417,8 @@ class imagesFolder:
         # Move a little bit aside for showing the border
         imageArea.move(QPoint(int(border), int(border)))
 
-        imageArea.setPixmap(QPixmap(image))
-
-        # Prevent overflowing of the pixmap
-        imageArea.setScaledContents(True)
-
+        imageArea.setPixmap(QPixmap(image).scaled(width - (int(border) * 2) , height - 52 , transformMode=Qt.SmoothTransformation))
+        
         # A Label to show the name of the directory
         folderName = QLabel(label)
 
@@ -691,7 +688,10 @@ class imagesFolder:
             )
         except:
             pass
-
+        
+        self.label_to_change.setFixedWidth(self.main_window.size().width())
+        
+        self.label_to_change.setAlignment(Qt.AlignCenter)
         # Start the animation
         self.an.start()
 

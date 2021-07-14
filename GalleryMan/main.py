@@ -45,7 +45,7 @@ class Main:
                 
         layout.addWidget(scrollArea)
         
-        contents = QWidget()
+        contents = QLabel()
         
         contents.setGeometry(self.window.geometry())
                 

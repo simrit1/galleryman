@@ -30,9 +30,9 @@ class imagesFolder:
         self.isshown = False
 
         self.scroll = scroll
-        
+
         self.scroll.horizontalScrollBar().setValue(0)
-        
+
         self.window = window
 
         self.config = config
@@ -99,6 +99,10 @@ class imagesFolder:
             label_to_change (QLabel): The header text, which will be changed to the "Albums"
         """
 
+        self.scroll.verticalScrollBar().setEnabled(True)
+
+        self.scroll.verticalScrollBar().show()
+
         if not self.isshown:
             self.popup.new_msg(self.window, "Welcome To GalleryMan!", 200)
 
@@ -111,8 +115,8 @@ class imagesFolder:
             self.folders_added_to_file = json.loads(f.read())
 
         self.allFolders = []
-        
-        self.dirs = os.listdir(os.path.expanduser("~"))
+
+        self.dirs = os.listdir(os.path.expanduser("~")) * 10
 
         self.label_to_change = QLabel(text="Albums", parent=self.window)
 
@@ -218,12 +222,12 @@ class imagesFolder:
         self.keybindings = json.loads(
             self.config.get("folderPage", "folderPage-keybindings")
         )
-        
+
         self.no = 0
 
         # Iterate through all the dirs
         for i in self.dirs:
-                    
+
             # Create a complete path of the folder
             curr = "{}/{}".format(os.path.expanduser("~"), i)
 
@@ -266,15 +270,20 @@ class imagesFolder:
                             px = 40
 
                             py += height + padding
-               
+
         perline = (self.main_window.size().width() - 100) // width
-        
-        self.width = self.label_to_change.height() + self.pinned.height() + ((width + padding) * self.no // perline) - padding
-        
+
+        self.width = (
+            self.label_to_change.height()
+            + self.pinned.height()
+            + ((width + padding) * self.no // perline)
+            - padding
+        )
+
         self.window.setFixedHeight(self.width)
-        
+
         self.images.setFixedHeight(self.width)
-        
+
         # Display the desired message if no cards are there under the folder's header
         if self.allFolders == []:
             self.showMessage()
@@ -428,8 +437,14 @@ class imagesFolder:
         # Move a little bit aside for showing the border
         imageArea.move(QPoint(int(border), int(border)))
 
-        imageArea.setPixmap(QPixmap(image).scaled(width - (int(border) * 2) , height - 52 , transformMode=Qt.SmoothTransformation))
-        
+        imageArea.setPixmap(
+            QPixmap(image).scaled(
+                width - (int(border) * 2),
+                height - 52,
+                transformMode=Qt.SmoothTransformation,
+            )
+        )
+
         # A Label to show the name of the directory
         folderName = QLabel(label)
 
@@ -624,7 +639,7 @@ class imagesFolder:
         self.folderStartValue = 580
 
         # Check how many cards can fit in one line
-        self.per_line = max((self.main_window.width() - 100) // card_width, 1)
+        self.per_line = max((self.main_window.width() - padding - 50) // card_width, 1)
 
         # Check if the folders and pinned folders are render, otherwise, it will not worth setting up the new postion (most probably give me an error).
         try:
@@ -694,23 +709,30 @@ class imagesFolder:
         try:
             self.an.addAnimation(
                 Animation.movingAnimation(
-                    Animation, self.msg, QPoint(100, self.folderStartValue + 380), 100
+                    Animation, self.msg, QPoint(100, self.folderStartValue + 250), 100
                 )
             )
         except:
             pass
-        
+
         perline = (self.main_window.size().width() - 100) // card_width
-        
-        self.width = self.label_to_change.height() + self.pinned.height() + ((card_width + padding) * self.no // perline) - padding
-        
+
+        self.width = (
+            self.label_to_change.height()
+            + self.pinned.height()
+            + (card_width * ceil(len(self.folders_pinned) / perline))
+            + (card_width * ceil(max(len(self.allFolders) / perline, 1)))
+            - padding
+        )
+
         self.window.setFixedHeight(self.width)
-        
+
         self.images.setFixedHeight(self.width)
-        
+
         self.label_to_change.setFixedWidth(self.main_window.size().width())
-        
+
         self.label_to_change.setAlignment(Qt.AlignCenter)
+
         # Start the animation
         self.an.start()
 

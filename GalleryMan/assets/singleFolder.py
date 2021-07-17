@@ -1,4 +1,5 @@
 # Importing all the required modules
+from math import ceil
 from PIL.Image import open
 import functools, gc, json
 from configparser import ConfigParser
@@ -29,6 +30,7 @@ from PyQt5.QtWidgets import (
     QScrollArea,
     QShortcut,
     QSlider,
+    QVBoxLayout,
     QWidget,
 )
 import os
@@ -304,6 +306,7 @@ class singleFolderView:
         Args:
             self.name (str): The file location
         """
+        
         #  ___________________________
         # |                           |
         # | Center Pixmap Adjustments |
@@ -311,7 +314,7 @@ class singleFolderView:
         #
 
         # Center Area (Main)
-        self.main_window = QLabel(self.window)
+        self.main_window = QLabel(self.application)
 
         # Set Geometry
         self.main_window.setGeometry(QRect(0, 100, 1980, 1000))
@@ -319,15 +322,16 @@ class singleFolderView:
         # QLabel for image
         self.image = QRotateLabel(self.main_window)
 
-        self.geometry = json.loads(
-            self.config.get("singleFolder", "editor-imageDimension")
+        self.dimension = json.loads(
+            self.config.get("singleFolder", "editor-imagePadding")
         )
-
+        
         self.geometry = [
-            max(self.geometry[0], 0),
-            max(self.geometry[1], 0),
-            *self.geometry[2:],
+            *self.dimension[:2],
+            self.application.size().width() - self.dimension[0] - self.dimension[2],
+            self.application.size().height() - self.dimension[1] - self.dimension[3],
         ]
+        
 
         # Set The Geometry
         self.image.setGeometry(QRect(*self.geometry))
@@ -341,21 +345,33 @@ class singleFolderView:
 
         self.image.set_pixmap(self.pixmap)
 
-        self.image.setCursor(QCursor(Qt.PointingHandCursor))
-
         # Again, Scaled Contents are cool :)
         self.image.setScaledContents(self.scaled)
-
-        self.buttons = QLabel(self.main_window)
-
-        self.buttons.setGeometry(QRect(400, 310, 1000, 1000))
-
-        self.buttons.setStyleSheet("background-color: transparent")
-
-        layout = QHBoxLayout()
-
+        
+        self.central = QLabel(self.application)
+    
+        self.central.setGeometry(QRect(450 , 850 , 1010 , 140))
+        
+        self.central.show()
+        
+        layout = QVBoxLayout(self.central)
+        
+        self.scrollArea = QScrollArea(self.central)
+                
+        layout.addWidget(self.scrollArea)
+        
+        self.buttons = QWidget()
+        
+        self.buttons.setGeometry(QRect(0 , 850 , 900 , 100))
+                
+        self.scrollArea.setWidget(self.buttons)
+    
+        second_layout = QHBoxLayout(self.buttons)
+        
+        self.buttons.setLayout(second_layout)
+        
         # Set fixed spacing between the elements
-        layout.setSpacing(1)
+        second_layout.setSpacing(1)
 
         #  ___________________________
         # |                           |
@@ -391,17 +407,22 @@ class singleFolderView:
 
             i += 1
 
-            layout.addWidget(item)
+            second_layout.addWidget(item)
 
-        self.temp(layout)
+        
+        self.buttons.show()
 
         self.name = "GalleryMan/assets/processed_image.png"
 
         del icons, icon, icon_color, icon_family, icon_font_size, self.pixmap
 
-        self.new_layout = layout
+        self.new_layout = second_layout
 
         gc.collect()
+        
+        self.main_window.show()
+        
+        self.responser(None)
 
     def save_edited(self, dir):
         parent = dir[: dir.rindex("/")]
@@ -433,10 +454,10 @@ class singleFolderView:
 
     def rotate_image(self):
         self.buttons.hide()
-
+        
         self.image.set_pixmap(QPixmap("GalleryMan/assets/processed_image.png"))
 
-        self.new_label = QLabel(self.main_window)
+        self.new_label = QWidget(self.application)
 
         width = int(self.config.get("singleFolder", "slider-width"))
 
@@ -449,13 +470,15 @@ class singleFolderView:
                 int(self.config.get("singleFolder", "item-leftPadding")),
                 310,
                 width + padding + input_width + padding,
-                1000,
+                100,
             )
         )
+        
+        self.scrollArea.takeWidget()
+        
+        self.scrollArea.setWidget(self.new_label)
 
         self.new_label.setStyleSheet("background-color: transparent;")
-
-        self.new_label.show()
 
         self.layout = QHBoxLayout()
 
@@ -597,7 +620,7 @@ class singleFolderView:
 
         self.textBox.setText(str(deg))
 
-    def switch_to_cropper(self, name):
+    def switch_to_cropper(self, name):        
         Cropper(self.window, name, self.image, self.config, self.callback_2).create()
 
         # self.image.show()
@@ -610,13 +633,15 @@ class singleFolderView:
     def switch_to_filters(self, name):
         self.buttons.hide()
 
-        self.new_label = QLabel(self.main_window)
+        self.new_label = QWidget(self.application)
+        
+        self.new_label.setGeometry(QRect(0 , 850 , 2000 , 100))
+        
+        self.scrollArea.takeWidget()
+                
+        self.scrollArea.setWidget(self.new_label)
 
-        self.new_label.setGeometry(QRect(200, 310, 1400, 1000))
-
-        self.new_label.setStyleSheet("background-color: transparent;")
-
-        self.new_label.show()
+        # self.new_label.setStyleSheet("background-color: transparent;")
 
         buttons = FilterView(
             self.window,
@@ -627,6 +652,10 @@ class singleFolderView:
         ).create()
 
         self.new_label.setLayout(buttons)
+        
+        self.new_label.show()
+        
+        self.responser(None)
 
     def switch_to_palette(self, name):
         self.buttons.hide()
@@ -663,16 +692,9 @@ class singleFolderView:
 
         self.ani.finished.connect(finish)
 
-    def temp(self, layout):
-        self.buttons.setLayout(layout)
-
-        self.buttons.show()
-
-        self.main_window.show()
-
     def responser(self, _):
         self.width = self.application.size().width()
-
+        
         card_width = int(self.config.get("singleFolder", "card-width"))
 
         card_height = int(self.config.get("singleFolder", "card-height"))
@@ -696,11 +718,64 @@ class singleFolderView:
 
             self.animations.addAnimation(ani)
 
-            if x > self.width - card_width - 75:
+            if x > self.width - card_width:
                 x = 40
 
                 y += card_height + card_padding
-
+            
+        self.perline = (self.width - card_width) // card_width
+        
+        
+        try:
+            self.new_width = (50 / 100) * self.width
+            
+            self.central.setGeometry(QRect(
+                self.new_width // 2,
+                self.central.y(),
+                self.new_width, 
+                self.central.height()
+            ))
+        
+        except:
+            pass
+        
+        try:
+            self.new_width = (50 / 100) * self.width
+            
+            self.new_label.setGeometry(QRect(
+                self.new_width // 2,
+                self.new_label.y(),
+                self.new_width, 
+                self.new_label.height()
+            ))
+            
+            self.scrollArea.show()
+            
+            self.new_label.show()
+        except:
+            
+            pass
+        
+        self.width = 300 + card_height * ceil(len(self.folders) / max(self.perline , 1))
+        
+        self.window.setFixedHeight(self.width)
+        
+        self.labelArea.setFixedHeight(self.width)
+        
+        try:        
+            self.geometry = [
+                *self.dimension[:2],
+                self.application.size().width() - self.dimension[0] - self.dimension[2],
+                self.application.size().height() - self.dimension[1] - self.dimension[3],
+            ]
+            
+            # Set The Geometry
+            self.image.setGeometry(QRect(*self.geometry))
+        
+        except:
+            
+            pass
+        
         self.animations.start()
 
     def get_first(self, dir: str) -> str:

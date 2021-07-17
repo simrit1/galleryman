@@ -116,7 +116,7 @@ class imagesFolder:
 
         self.allFolders = []
 
-        self.dirs = os.listdir(os.path.expanduser("~")) * 10
+        self.dirs = os.listdir(os.path.expanduser("~"))
 
         self.label_to_change = QLabel(text="Albums", parent=self.window)
 

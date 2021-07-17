@@ -164,7 +164,6 @@ class FilterView:
         self.animation = Animation()
         self.imageProcessor = Filters(Image.open(self.image).convert("RGBA"))
         self.special_buttons = QHBoxLayout()
-        self.special_buttons.setSpacing(20)
         self.callback = callback
         self.main_window = main_window
 

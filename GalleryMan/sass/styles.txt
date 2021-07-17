@@ -13,12 +13,12 @@ QScrollBar{{
 }}
 
 QScrollBar:horizontal {{
-    background: #2E3440;
+    background: transparent;
     margin: 0px 0px 0px 10px;
 }}
 
 QScrollBar::handle:horizontal {{
-    background: #3B4252;
+    background: transparent;
 }}
 
 QScrollBar::add-line:horizontal {{

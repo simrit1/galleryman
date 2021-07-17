@@ -7,12 +7,12 @@ setup(
     author='0xsapphir3',
     author_email='0xsapphir3@gmail.com',
     url='https://github.com/0xsapphir3/galleryman',
-    download_url='https://github.com/0xsapphir3/galleryman/tarball/0.1.0',
+    download_url='https://github.com/0xsapphir3/galleryman/tarball/1.0.0',
     entry_points={
         'console_scripts': [
             'galleryman = GalleryMan.main:main',
         ],
     },
     install_requires=['pyqt5' , 'pillow'],
-    packages=["GalleryMan" , "GalleryMan/assets" , "GalleryMan/data" , "GalleryMan/sass" , "GalleryMan/themes" , "GalleryMan/utils" , "GalleryMan/views"],
+    packages=["GalleryMan/assets" , "GalleryMan/data" , "GalleryMan/sass" , "GalleryMan/themes" , "GalleryMan/utils" , "GalleryMan/views" , "GalleryMan/galleryman.status" , "GalleryMan/config.ini" , "GalleryMan/main.py"],
 )

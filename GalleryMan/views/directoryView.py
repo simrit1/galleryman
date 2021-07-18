@@ -149,7 +149,7 @@ class DirectoryView:
         return " [ {} images]".format(count)
         
     def continue_forward(self):
-        with open('GalleryMan/data/scan_dirs.txt' , 'w') as f:
+        with open('/home/strawhat54/.config/galleryman/data/scan_dirs.txt' , 'w') as f:
             f.write(json.dumps(self.scans))
 
     def add(self, dir, label: QPushButton):        

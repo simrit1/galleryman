@@ -86,11 +86,10 @@ class Exposure:
 
 
 class Thrower:
-    def __init__(self, x, y, window, button) -> None:
+    def __init__(self, x, y, window) -> None:
         self.x = x
         self.y = y
         self.window = window
-        self.button = button
 
     def fade(self, widget):
         self.effect = QGraphicsOpacityEffect()
@@ -99,7 +98,7 @@ class Thrower:
 
         self.animation = QtCore.QPropertyAnimation(self.effect, b"opacity")
 
-        self.animation.setDuration(1000)
+        self.animation.setDuration(500)
 
         self.animation.setStartValue(1)
 
@@ -114,14 +113,18 @@ class Thrower:
         self.labels = []
 
         self.blurs = QParallelAnimationGroup()
-
+        
         for left, right in zip(
             [self.x - 50, self.x + 50, self.x + 0],
             [self.y - 70, self.y - 70, self.y + 40],
         ):
             label = QLabel(self.window)
 
-            label.setText("   ")
+            label.setText("  ")
+            
+            label.setStyleSheet("background-color: transparent; font-family: SauceCodePro Nerd Font")
+            
+            label.setFixedHeight(200)
 
             animation = QPropertyAnimation(label, b"pos")
 
@@ -147,8 +150,14 @@ class Thrower:
 
         q.click()
 
-    def start(self, animations):
+    def start(self, animations: QParallelAnimationGroup):
         animations.start()
+        
+        def callback():
+            for i in self.labels:
+                i.hide()
+        
+        animations.finished.connect(callback)
 
         self.blurs.start()
 
@@ -300,7 +309,7 @@ class Animation:
         
         return animation
     
-    def fadingAnimation(self , widget , duration , reverse=False):
+    def fadingAnimation(self , widget , duration, reverse=False , startValue = 0, endValue = 0):
         opacity = QGraphicsOpacityEffect()
             
         widget.setGraphicsEffect(opacity)
@@ -310,9 +319,9 @@ class Animation:
         if(not reverse):
             animation.setStartValue(1)
             
-            animation.setEndValue(0)
+            animation.setEndValue(endValue)
         else:
-            animation.setStartValue(0)
+            animation.setStartValue(startValue)
         
             animation.setEndValue(1)
         

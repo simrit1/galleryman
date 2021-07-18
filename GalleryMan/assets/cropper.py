@@ -39,7 +39,7 @@ class ImageCropper(QtWidgets.QGraphicsView):
         # Use A PyQt's Rubber Band While Dragging.
         self.setDragMode(QtWidgets.QGraphicsView.RubberBandDrag)
         
-        # Connec to the function when the user expands the rubber band
+        # Connect to the function when the user expands the rubber band
         self.rubberBandChanged.connect(self.onRubberBandChanged)
         
         self.last_rect = QtCore.QPointF()
@@ -106,7 +106,7 @@ class ImageCropper(QtWidgets.QGraphicsView):
             
             self.crop_pixmap.save('GalleryMan/assets/processed_image.png')
             
-            self.out_widget.setPixmap(QtGui.QPixmap('GalleryMan/assets/processed_image.png'))
+            self.out_widget.set_pixmap(QtGui.QPixmap('GalleryMan/assets/processed_image.png'))
             
             self.out_widget.show()
             

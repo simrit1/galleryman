@@ -1,5 +1,6 @@
 from PIL import Image
 import numpy as np
+import random
 
 class Filters:
     def __init__(self , img) -> None:
@@ -230,3 +231,32 @@ class Filters:
 
         return Image.fromarray(np.array([R, G, B, A]).T, mode="RGBA")
     
+    def test(self):
+        img_array = np.asarray(self.img)
+
+        R = img_array.T[0]
+        G = img_array.T[1]
+        B = img_array.T[2]
+        A = img_array.T[3]
+                
+        # self.rf , self.gf , self.bf = [round(random.random() , 2), round(random.random() , 2), round(random.random() , 2)]
+
+        # print(self.rf , self.gf , self.bf)
+        
+        # R = self.transform(R, G , B)
+        
+        # self.rf , self.gf , self.bf = [round(random.random() , 2), round(random.random() , 2), round(random.random() , 2)]
+
+        # print(self.rf , self.gf , self.bf)
+        
+        # G = self.transform(R , G , B)
+        
+        # self.rf , self.gf , self.bf = [round(random.random() , 2), round(random.random() , 2), round(random.random() , 2)]
+
+        # print(self.rf , self.gf , self.bf)
+        
+        # B = self.transform(R , G , B)
+
+        return Image.fromarray(np.array([R, G, B, A]).T, mode="RGBA")
+    
+# Filters(Image.open("../../a.jpg").convert("RGBA")).test().save("lolcat.png")

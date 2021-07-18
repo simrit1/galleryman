@@ -1,5 +1,7 @@
 # Import all the required modules
 import argparse
+from os import system
+import os
 import sys
 from PyQt5 import QtCore
 from PyQt5.QtCore import QPoint, QRect, QSize , Qt
@@ -68,6 +70,8 @@ class Main:
         status = read_file('GalleryMan/galleryman.status')
         
         if(status == 'NOT REGISTERED'):
+            self.create_files()
+            
             ui = FirstPage(contents , self.window , scrollArea , config)
             
             ui.start()
@@ -98,7 +102,11 @@ class Main:
                 self.window.showNormal()
             else:
                 self.window.showFullScreen()
-
+                
+    def create_files(self):    
+        with open("/home/strawhat54/.config/galleryman/data/scan_dirs.txt" , "w") as f:
+            f.write("[]")
+            
 
 
 def main():
@@ -106,10 +114,23 @@ def main():
     
     parser = argparse.ArgumentParser(description="A Tool For Managing Your Memories  ")
     
-    parser.add_argument("add" , action="store_true" , help="Add A New Directory To the Scanning List")
+    parser.add_argument("--add" , dest="add" , action="store_true" , help="Add A New Directory To the Scanning List")
     
-    parser.add_argument("remove" , help="Remove A New Directory To the Scanning List" , action="store_true")
+    parser.add_argument("--remove" , dest="remove" , help="Remove A New Directory To the Scanning List" , action="store_true")
+    
+    parser.add_argument("--backup" , dest="remove" , help="Creates a backup of your data and config in current directory ({})".format(os.getcwd()) , action="store_true")
+    
+    parser.add_argument("--restore" , dest="remove" , help="Restores a created backup" , action="store_true")
+    
+    parser.add_argument("--reset" , dest="remove" , help="Resets all configs and data" , action="store_true")
+    
+    parser.add_argument("--open" , dest="open" , help="Opens config file" , action="store_true")
 
     args = parser.parse_args()
-        
-    app.createApp()
+    
+    if(args.add):
+        input("Enter the file location (Press enter to select cwd): ")
+    elif(args.open):
+        system("nano config.ini || emacs config.ini || vim config.ini || code config.ini || echo 'Oops! You dont have a preferred editor!'")
+    else:
+        app.createApp()

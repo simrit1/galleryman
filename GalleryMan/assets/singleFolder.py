@@ -474,10 +474,12 @@ class singleFolderView:
 
         self.responser(None)
         
-    def addToLiked(self , dir):        
+    def addToLiked(self , dir):       
+        print(self.heartWidget.pos(), self.central.pos())
+         
         AddToLiked(self.application , dir).start()
         
-        Thrower(250 , 810 , self.application).throw()
+        Thrower(self.central.pos().x() + self.heartWidget.pos().x() + 13, self.central.pos().y() - self.heartWidget.pos().y() - 10, self.application).throw()
 
     def save_edited(self, dir):
         parent = dir[: dir.rindex("/")]

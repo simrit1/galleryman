@@ -14,6 +14,7 @@ from PyQt5.QtCore import (
     QPropertyAnimation,
     QRect,
     QThread,
+    QTimer,
     QVariant,
     QVariantAnimation,
     pyqtSignal,
@@ -183,8 +184,13 @@ class singleFolderView:
         except:
             pass
         
-        self.name.hide()
-    
+        try:
+            self.name.hide()
+        except:
+            pass
+        
+        
+        
         for i in [self.labelArea, self.name, self.go_back]:
             opacity = QGraphicsOpacityEffect()
 
@@ -310,7 +316,7 @@ class singleFolderView:
                 self.index = (self.index + 1) % len(colors)
 
             image = CustomLabel(self.labelArea)
-
+            
             image.setGeometry(QRect(0, 0, card_width, card_height))
             
             pixmap = QPixmap(i).scaled(
@@ -449,7 +455,7 @@ class singleFolderView:
         # 3. Crop Image
         for icon, icon_color, icon_font_size, icon_family in icons:
 
-            item = QCustomButton(icon, None, True).create()
+            item = QCustomButton(icon, self.application, True).create()
 
             item.setStyleSheet(
                 "color: {}; font-size: {}px; font-family: {}".format(
@@ -464,6 +470,7 @@ class singleFolderView:
             second_layout.addWidget(item)
             
             if(self.heartWidget == None): self.heartWidget = item
+            
 
         self.buttons.show()
 
@@ -472,8 +479,13 @@ class singleFolderView:
         del icons, icon, icon_color, icon_family, icon_font_size, self.pixmap
 
         self.new_layout = second_layout
-
+                
         gc.collect()
+
+        try:
+            self.new_label.hide()
+        except:
+            pass
 
         self.main_window.show()
 
@@ -483,6 +495,11 @@ class singleFolderView:
         AddToLiked(self.application , dir).start()
         
         Thrower(250 , 810 , self.application).throw()
+        
+        try:
+            self.new_label.hide()
+        except:
+            pass
 
     def save_edited(self, dir):
         parent = dir[: dir.rindex("/")]
@@ -680,7 +697,12 @@ class singleFolderView:
 
     def switch_to_home(self):
         self.scrollArea.takeWidget()
-
+        
+        try:
+            self.new_label.hide()
+        except:
+            pass
+        
         self.scrollArea.setWidget(self.buttons)
 
     def update_text(self):
@@ -702,34 +724,31 @@ class singleFolderView:
         self.textBox.setText(str(deg))
 
     def switch_to_cropper(self, name):
-        def callback():
-            try:
+        try:
 
-                self.main_window.hide()
+            self.main_window.hide()
 
-                self.buttons.hide()
+            self.buttons.hide()
 
-                self.new_label.hide()
+            self.new_label.hide()
 
-            except:
+        except:
 
-                pass
+            pass
 
-            Cropper(
-                self.application, name, self.image, self.config, self.callback_2
-            ).create()
-
-        callback()
+        Cropper(
+            self.application, name, self.image, self.config, self.callback_2
+        ).create()
 
     def callback_2(self):
         self.window.setCursor(QCursor(Qt.ArrowCursor))
 
-        try:
+        try:         
             self.main_window.show()
 
             self.buttons.show()
 
-            self.new_label.show()
+            self.new_label.hide()
         except:
             pass
 
@@ -757,8 +776,6 @@ class singleFolderView:
         ).create()
 
         self.new_label.setLayout(buttons)
-
-        self.new_label.show()
 
         self.responser(None)
 
@@ -897,9 +914,9 @@ class singleFolderView:
 
             pass
 
-        self.args[0].setFixedWidth(self.width)
+        self.name.setFixedWidth(self.width)
 
-        self.args[0].setAlignment(Qt.AlignCenter)
+        self.name.setAlignment(Qt.AlignCenter)
 
         self.animations.start()
 

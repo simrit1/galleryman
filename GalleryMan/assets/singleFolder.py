@@ -175,16 +175,6 @@ class singleFolderView:
             pass
         
         try:
-            self.new_label.hide()
-        except:
-            pass
-        
-        try:
-            self.buttons.hide()
-        except:
-            pass
-        
-        try:
             self.name.hide()
         except:
             pass
@@ -472,8 +462,6 @@ class singleFolderView:
             if(self.heartWidget == None): self.heartWidget = item
             
 
-        self.buttons.show()
-
         self.directory_name = "GalleryMan/assets/processed_image.png"
 
         del icons, icon, icon_color, icon_family, icon_font_size, self.pixmap
@@ -481,11 +469,6 @@ class singleFolderView:
         self.new_layout = second_layout
                 
         gc.collect()
-
-        try:
-            self.new_label.hide()
-        except:
-            pass
 
         self.main_window.show()
 
@@ -495,11 +478,6 @@ class singleFolderView:
         AddToLiked(self.application , dir).start()
         
         Thrower(250 , 810 , self.application).throw()
-        
-        try:
-            self.new_label.hide()
-        except:
-            pass
 
     def save_edited(self, dir):
         parent = dir[: dir.rindex("/")]
@@ -543,8 +521,6 @@ class singleFolderView:
         def callback():
             self.main_window.hide()
 
-            self.buttons.hide()
-
             try:
                 self.central.hide()
             except:
@@ -555,8 +531,6 @@ class singleFolderView:
         self.animatui.finished.connect(callback)
 
     def rotate_image(self):
-        self.buttons.hide()
-
         self.image.set_pixmap(QPixmap("GalleryMan/assets/processed_image.png"))
 
         self.new_label = QWidget(self.application)
@@ -698,11 +672,6 @@ class singleFolderView:
     def switch_to_home(self):
         self.scrollArea.takeWidget()
         
-        try:
-            self.new_label.hide()
-        except:
-            pass
-        
         self.scrollArea.setWidget(self.buttons)
 
     def update_text(self):
@@ -727,11 +696,6 @@ class singleFolderView:
         try:
 
             self.main_window.hide()
-
-            self.buttons.hide()
-
-            self.new_label.hide()
-
         except:
 
             pass
@@ -745,18 +709,12 @@ class singleFolderView:
 
         try:         
             self.main_window.show()
-
-            self.buttons.show()
-
-            self.new_label.hide()
         except:
             pass
 
         self.image.set_pixmap(QPixmap("GalleryMan/assets/processed_image.png"))
 
     def switch_to_filters(self, name):
-        self.buttons.hide()
-
         self.new_label = QWidget(self.application)
 
         self.new_label.setGeometry(QRect(0, 850, 3000, 100))
@@ -780,8 +738,6 @@ class singleFolderView:
         self.responser(None)
 
     def switch_to_palette(self, name):
-        self.buttons.hide()
-
         self.new_label = QWidget(self.application)
 
         self.scrollArea.takeWidget()
@@ -789,8 +745,6 @@ class singleFolderView:
         self.scrollArea.setWidget(self.new_label)
 
         self.new_label.setGeometry(self.buttons.geometry())
-
-        self.new_label.show()
 
         self.new_label.setStyleSheet("background-color: transparent")
 
@@ -802,8 +756,6 @@ class singleFolderView:
 
     def callback(self):
         def finish():
-            self.new_label.hide()
-
             self.scrollArea.takeWidget()
 
             self.scrollArea.setWidget(self.buttons)
@@ -881,8 +833,6 @@ class singleFolderView:
             )
 
             self.scrollArea.show()
-
-            self.new_label.show()
         except:
 
             pass

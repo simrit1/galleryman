@@ -9,11 +9,14 @@ from GalleryMan.utils.readers import change_with_config, read_file
 from GalleryMan.assets.QtHelpers import Animation, PopUpMessage, QCustomButton, Thrower
 from PyQt5.QtCore import (
     QAbstractAnimation,
+    QObject,
     QParallelAnimationGroup,
     QPoint,
     QPropertyAnimation,
     QRect,
+    QRunnable,
     QThread,
+    QThreadPool,
     QTimer,
     QVariant,
     QVariantAnimation,
@@ -38,6 +41,23 @@ from PyQt5.QtWidgets import (
 import os
 from GalleryMan.assets.QEditorButtons import Cropper, FilterView, PaletteView
 
+class MakePixmap(QRunnable):
+    def __init__(self , dir , card_width , card_height , parent):
+        super().__init__()
+        
+        self.card_width = card_width
+        
+        self.card_height = card_height
+        
+        self.dir = dir
+        
+        self.parent = parent
+        
+    def run(self):
+        pixmap = QPixmap(self.dir).scaled(self.card_width , self.card_height , transformMode=Qt.SmoothTransformation)
+        
+        self.parent.setPixmap(pixmap)
+
 class AddToLiked(QThread):
     def __init__(self , parent , dir):
         super().__init__(parent)
@@ -45,12 +65,17 @@ class AddToLiked(QThread):
         self.dir = dir
     
     def run(self):        
-        with open("/home/strawhat54/.config/galleryman/liked.txt" , "w+") as f:
+        with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt" , "r") as f:            
             data = f.read()
-            
+                                    
             if(data == ""): data = []
-            else: data = json.loads(data)
             
+            else: data = json.loads(data)
+        
+        if(self.dir in data):
+            return
+        
+        with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt" , "w") as f:                        
             data.append(self.dir)
             
             f.write(json.dumps(data))
@@ -125,10 +150,18 @@ class singleFolderView:
         self.scaled = json.loads(config.get("singleFolder", "editor-imageScaled"))
 
         self.scroll = scroll
+        
+        self.scroll.verticalScrollBar().setEnabled(True)
+
+        self.scroll.verticalScrollBar().show()
 
         self.application = application
 
         self.window = window
+        
+        self.original = self.window.geometry()
+        
+        self.original_responser = self.application.resizeEvent
 
         self.config = config
 
@@ -159,6 +192,8 @@ class singleFolderView:
         )
 
         self.directory = directory
+        
+        self.copy = directory
 
         stylesheet, self.config = change_with_config(
             read_file("GalleryMan/sass/styles.txt"), section="singleFolder"
@@ -171,15 +206,17 @@ class singleFolderView:
         
         try:
             self.main_window.hide()
+            
+            self.central.hide()
         except:
             pass
         
         try:
             self.name.hide()
-        except:
+            
+            self.new_label.hide()
+        except Exception as e:
             pass
-        
-        
         
         for i in [self.labelArea, self.name, self.go_back]:
             opacity = QGraphicsOpacityEffect()
@@ -207,6 +244,14 @@ class singleFolderView:
                 Animation.fadingAnimation(Animation, i, 200, True)
             )
 
+        self.window.setGeometry(self.original)
+        
+        self.scroll.setGeometry(self.original)
+        
+        self.application.resizeEvent = self.original_responser
+        
+        self.original_responser()
+        
         self.animation.start()
 
         self.animation.finished.connect(self.remove)
@@ -281,16 +326,23 @@ class singleFolderView:
 
         from pathlib import Path
 
-        dirs = Path(self.directory).rglob("*.png")
-
         self.application.setCursor(Qt.BusyCursor)
 
         x, y = 40, 100
-
-        for i in dirs:
+        
+        if(self.copy == "/home/strawhat54/.config/galleryman/data/likedPhotos.txt"):
+            with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt" , "r") as file:
+                dirs = json.loads(file.read())
+        else:
+            dirs = Path(self.copy).rglob("*")
+            
+        
+        pool = QThreadPool.globalInstance()
+        
+        for i in dirs:            
             i = str(i)
-
-            if os.path.isdir("{}/{}".format(self.directory, i)) or i[-3:] not in [
+            
+            if os.path.isdir(i) or i[-3:] not in [
                 "png",
                 "svg",
                 "jpg",
@@ -308,13 +360,11 @@ class singleFolderView:
             image = CustomLabel(self.labelArea)
             
             image.setGeometry(QRect(0, 0, card_width, card_height))
+                                    
+            worker = MakePixmap(i , card_width , card_height , image)
             
-            pixmap = QPixmap(i).scaled(
-                card_width, card_height, transformMode=Qt.SmoothTransformation
-            )
-
-            image.setPixmap(pixmap)
-
+            pool.start(worker)
+            
             image.setCursor(QCursor(Qt.PointingHandCursor))
 
             image.setStyleSheet(
@@ -346,6 +396,7 @@ class singleFolderView:
         gc.collect()
 
     def show_image(self, name):
+        self.origin = name
 
         self.directory_name = name
 
@@ -474,10 +525,8 @@ class singleFolderView:
 
         self.responser(None)
         
-    def addToLiked(self , dir):       
-        print(self.heartWidget.pos(), self.central.pos())
-         
-        AddToLiked(self.application , dir).start()
+    def addToLiked(self , dir):                
+        AddToLiked(self.application , self.origin).start()
         
         Thrower(self.central.pos().x() + self.heartWidget.pos().x() + 13, self.central.pos().y() - self.heartWidget.pos().y() - 10, self.application).throw()
 
@@ -839,9 +888,7 @@ class singleFolderView:
 
             pass
 
-        self.height = 400 + (card_height + card_padding) * (
-            len(self.folders) // self.perline
-        )
+        self.height = 300 + (card_height + card_padding) * (ceil(len(self.folders) / self.perline))
 
         self.window.setFixedHeight(self.height)
         
@@ -865,7 +912,7 @@ class singleFolderView:
         except:
 
             pass
-
+        
         self.name.setFixedWidth(self.width)
 
         self.name.setAlignment(Qt.AlignCenter)
@@ -886,7 +933,7 @@ class singleFolderView:
         for i in os.listdir(dir):
 
             # Check if the image is a supported one
-            if i[-3:] in ["png", "jpeg", "jpg", "webp"] and not os.path.isdir(
+            if i[i.rindex('.'):] in ["png", "jpeg", "jpg", "webp"] and not os.path.isdir(
                 "{}/{}".format(dir, i)
             ):
                 return "{}/{}".format(dir, i)

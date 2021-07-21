@@ -1,15 +1,89 @@
 from configparser import ConfigParser
 import json, os
+import pathlib
 from random import randint
-from PyQt5.QtCore import QParallelAnimationGroup, QPoint, QRect
+from PyQt5.QtCore import QObject, QParallelAnimationGroup, QPoint, QRect, QThread, pyqtSignal
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QLabel, QMainWindow, QScrollArea, QWidget
-from PyQt5.QtGui import QCursor, QPixmap
+from PyQt5.QtGui import QColor, QCursor, QMovie, QPixmap
 from GalleryMan.assets.singleFolder import singleFolderView
 from GalleryMan.views.directoryView import QDoublePushButton
 from math import ceil
 from GalleryMan.assets.QtHelpers import Animation, PopUpMessage
 
+class PixmapHeaderMaker(QObject):
+    finished = pyqtSignal()
+    
+    def run(self , inst , parent , imageArea: QLabel , border , width , height , dir):
+        path = imagesFolder.get_first(dir)
+                
+        if(path == None):
+            parent.hide()
+        else:
+            print(path)            
+            imageArea.setPixmap(
+                QPixmap(path).scaled(
+                    width - (int(border) * 2),
+                    height - 52,
+                    transformMode=Qt.SmoothTransformation,
+                )
+            )
+            
+            inst.addFolder(parent)
+            
+            inst.responser(None)
+            
+        self.finished.emit()
+
+class Loader(QObject):
+    finished = pyqtSignal()
+    
+    def run(self , parent):
+        self.movie = QMovie(parent)
+        
+        self.movie.setFileName("GalleryMan/assets/loader.gif")
+        
+        parent.setMovie(self.movie)
+            
+        self.movie.start()     
+        
+        self.finished.emit() 
+        
+class Worker(QObject):
+    finished = pyqtSignal()
+    
+    def run(self , inst , mode , colors , x , y , width , height , padding):
+        LIKED_FOLDERS = ".config/galleryman/data/likedPhotos.txt"
+        
+        color_rest = 0
+                
+        # Iterate through all the dirs
+        for i in [LIKED_FOLDERS] + inst.dirs:            
+            # Create a complete path of the folder
+            curr = "{}/{}".format(os.path.expanduser("~"), i)
+
+            # Check if the path is a folder and it is not in the prevent dirs
+            if i == LIKED_FOLDERS or (os.path.isdir(curr) and i[0] != "." and curr not in inst.prevented_dirs):
+                if mode == "single":
+                    color_rest = 0
+                elif mode == "random":
+                    color_rest = randint(0, len(colors))
+                else:
+                    color_rest = (color_rest + 1) % len(colors)
+
+                res = inst.update(curr, x, y, False, colors[color_rest])
+
+                if res:
+                    inst.no += 1
+
+                    x += width + padding
+
+                    if x > inst.window.width() - width:
+                        x = 40
+
+                        y += height + padding
+                        
+        self.finished.emit()
 
 class imagesFolder:
     """Creates The UI"""
@@ -24,7 +98,6 @@ class imagesFolder:
         # Make the QMainWindow global]
         self.main_window = main_window
 
-        self.main_window.resizeEvent = self.responser
 
         self.isshown = False
 
@@ -50,11 +123,14 @@ class imagesFolder:
 
         # Change the geometry
         self.images.setGeometry(QRect(0, 0, 1980, 1080))
-
-        # Show the label
+        
         self.images.show()
-
+        
+        self.allFolders = []
+        
     def start(self, label_to_change: QLabel) -> True:
+        LIKED_FOLDERS = ".config/galleryman/data/likedPhotos.txt"
+        
         """Creates The Ui And Renders To The MainWindow passes during __init__
 
         Args:
@@ -104,6 +180,8 @@ class imagesFolder:
                 self.config.get("folderPage", "restFolders-folderNameSize") + "px",
             )
         )
+        
+        
 
         # Set Fixed Width And Height
         self.folderHeaderText.setFixedHeight(50)
@@ -129,9 +207,6 @@ class imagesFolder:
         # Create x and y variables which will determine the position of the folder's card
         x, y = 40, self.folderStartValue
 
-        # A different x and y positions for pinned Folders
-        px, py = 40, 220
-
         colors = self.config.get("folderPage", "folders-color")
 
         height, width = int(self.config.get("folderPage", "folders-height")), int(
@@ -146,40 +221,24 @@ class imagesFolder:
 
         colors = json.loads(self.config.get("folderPage", "folders-color"))
 
-        color_rest = 0
-
         self.keybindings = json.loads(
             self.config.get("folderPage", "folderPage-keybindings")
         )
 
         self.no = 0
-
-        # Iterate through all the dirs
-        for i in self.dirs:
-            # Create a complete path of the folder
-            curr = "{}/{}".format(os.path.expanduser("~"), i)
-
-            # Check if the path is a folder and it is not in the prevent dirs
-            if os.path.isdir(curr) and i[0] != "." and curr not in self.prevented_dirs:
-                if mode == "single":
-                    color_rest = 0
-                elif mode == "random":
-                    color_rest = randint(0, len(colors))
-                else:
-                    color_rest = (color_rest + 1) % len(colors)
-
-                res = self.update(curr, x, y, False, colors[color_rest])
-
-                if res:
-                    self.no += 1
-
-                    x += width + padding
-
-                    if x > self.window.width() - width:
-                        x = 40
-
-                        y += height + padding
-
+        
+        self.thread = QThread()
+        
+        self.worker = Worker()
+        
+        self.worker.moveToThread(self.thread)
+        
+        self.thread.started.connect(lambda : self.worker.run(self , mode , colors , x , y , width , height, padding))
+        
+        self.worker.finished.connect(self.thread.quit)
+        
+        self.thread.start()
+     
         perline = (self.main_window.size().width() - 100) // width
 
         self.width = (
@@ -187,8 +246,8 @@ class imagesFolder:
             + ((width + padding) * self.no // perline)
             - padding
         )
-
-        self.width = max(self.width, self.main_window.size().height())
+                
+        self.width = max(self.width, self.main_window.size().height() - 100)
 
         self.window.setFixedHeight(self.width)
 
@@ -197,6 +256,12 @@ class imagesFolder:
         # Display the desired message if no cards are there under the folder's header
         if self.allFolders == []:
             self.showMessage()
+            
+        self.main_window.resizeEvent = self.responser
+        
+        self.main_window.show()
+        
+        
 
         # Final touches, call the responser to position the cards accurately, if it's not
         self.responser(None)
@@ -222,10 +287,6 @@ class imagesFolder:
 
         bool: Whether creating the folder will worth
         """
-        path = self.get_first(dir)
-
-        if path == None:
-            return
 
         # Create a Button For The Card
         label = QDoublePushButton("", self.images)
@@ -270,6 +331,8 @@ class imagesFolder:
 
         # Create A Label for showing the first picture
         imageArea = QLabel(label)
+        
+        imageArea.setPixmap(QPixmap("GalleryMan/assets/loader.png").scaled(width , height))
 
         # Set the Alignment
         imageArea.setAlignment(Qt.AlignCenter)
@@ -281,14 +344,20 @@ class imagesFolder:
 
         # Move a little bit aside for showing the border
         imageArea.move(QPoint(int(border), int(border)))
+        
+        worker = PixmapHeaderMaker()
+    
+        self.another = QThread(self.window)
+        
+        self.another.started.connect(lambda : worker.run(self , label , imageArea , border , width , height , dir))
+        
+        self.worker.finished.connect(self.another.quit)
+        
+        self.worker.finished.connect(lambda : self.responser(None))
 
-        imageArea.setPixmap(
-            QPixmap(path).scaled(
-                width - (int(border) * 2),
-                height - 52,
-                transformMode=Qt.SmoothTransformation,
-            )
-        )
+        worker.moveToThread(self.another)
+        
+        self.another.start()
 
         # A Label to show the name of the directory
         folderName = QLabel(label)
@@ -316,26 +385,29 @@ class imagesFolder:
         folderName.setAlignment(Qt.AlignCenter)
 
         # Change the text of the label with the folder's name
-        folderName.setText(dir[dir.rindex("/") + 1 :])
+        if(dir != "/home/strawhat54/.config/galleryman/data/likedPhotos.txt"):
+            folderName.setText(dir[dir.rindex("/") + 1 :])
+        else:
+            folderName.setText("Liked Photos")
 
         # Move the card yo the desired postion
         label.move(QPoint(x, y))
-
-        # Show the card
-        label.show()
 
         # Set a property of the card with a value as the directory, will help while pinning
         label.setProperty("directory", dir)
 
         # Move to the next page (which shows all the available images in a folder)
         label.clicked.connect(lambda: self.transfer_control(dir))
-
-        self.allFolders.append(label)
-
+        
+        label.show()
+        
         # Return True, nothing is better than that XD
         return True
+    
+    def addFolder(self , folder):
+        self.allFolders.append(folder)
 
-    def get_first(self, dir: str) -> str:
+    def get_first(dir: str) -> str:
         """Returns the first image in the folder, or None if no image is available
 
         Args:
@@ -343,16 +415,22 @@ class imagesFolder:
 
         Returns:
             str: [description]
-        """
+        """        
+        if(dir == "/home/strawhat54/.config/galleryman/data/likedPhotos.txt"):
+            with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt" , 'r') as f:
+                dirs = json.loads(f.read())
+            
+            return dirs[0] if dirs else None
 
         # Iterate through all the files and folders in the directory
-        for i in os.listdir(dir):
-
+        for i in pathlib.Path(dir).rglob("*"):
+            i = str(i)
+            
             # Check if the image is a supported one
             if i[-3:] in ["png", "jpeg", "jpg", "webp"] and not os.path.isdir(
                 "{}/{}".format(dir, i)
             ):
-                return "{}/{}".format(dir, i)
+                return i
 
         return None
 
@@ -429,8 +507,7 @@ class imagesFolder:
 
         self.width = (
             self.label_to_change.height()
-            + (card_width * ceil(len(self.folders_pinned) / perline))
-            + (card_width * ceil(max(len(self.allFolders) / perline, 1)))
+            + ((card_width + padding) * self.no // perline)
             - padding
         )
 
@@ -540,6 +617,8 @@ class imagesFolder:
         self.effects.finished.connect(lambda: self.run_second(directory))
 
     def run_second(self, dir):
+        print("Sending dir -> " , dir)
+        
         self.folderHeaderText.hide()
 
         self.args = []

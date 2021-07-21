@@ -4,7 +4,7 @@ from os import system
 import os
 import sys
 from PyQt5 import QtCore
-from PyQt5.QtCore import QPoint, QRect, QSize , Qt
+from PyQt5.QtCore import QObject, QPoint, QRect, QSize, QThread , Qt, pyqtSignal
 from PyQt5.QtGui import QKeyEvent
 from GalleryMan.views.firstPage import FirstPage
 from GalleryMan.utils.readers import read_file , change_with_config
@@ -30,7 +30,15 @@ class ScrollLabel(QScrollArea):
         self.label.setWordWrap(True)
  
         lay.addWidget(self.label)
+        
+class Worker(QObject):
+    finished = pyqtSignal()
 
+    def run(self , parent , status , scrollArea , config , contents , label):
+        
+            
+        self.finished.emit()
+                                
 class Main:
     def createApp(self):
         app = QApplication([])
@@ -47,7 +55,7 @@ class Main:
                 
         layout.addWidget(scrollArea)
         
-        contents = QLabel()
+        contents = QWidget(self.window)
         
         contents.setGeometry(self.window.geometry())
                 
@@ -68,31 +76,27 @@ class Main:
         stylesheet , config = change_with_config(read_file('GalleryMan/sass/styles.txt'))
             
         status = read_file('GalleryMan/galleryman.status')
-        
-        if(status == 'NOT REGISTERED'):
-            self.create_files()
+                
+        label = QLabel(contents)
             
+        label.setMinimumWidth(950)
+        
+        label.setMinimumHeight(100)
+        
+        label.move(QPoint(0 , 30))
+        
+        label.setAlignment(Qt.AlignCenter)
+
+        if(status == 'NOT REGISTERED'):            
             ui = FirstPage(contents , self.window , scrollArea , config)
             
             ui.start()
         else:
             ui = imagesFolder(contents , self.window , scrollArea , config)
             
-            label = QLabel(contents)
-            
-            label.setMinimumWidth(950)
-            
-            label.setMinimumHeight(100)
-            
-            label.move(QPoint(0 , 30))
-            
-            label.setAlignment(Qt.AlignCenter)
-            
             ui.start(label)
-                        
+        
         self.window.setStyleSheet(stylesheet)
-
-        self.window.show()
 
         sys.exit(app.exec_())
         

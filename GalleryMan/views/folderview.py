@@ -9,7 +9,7 @@ from PyQt5.QtGui import QColor, QCursor, QMovie, QPixmap
 from GalleryMan.assets.singleFolder import singleFolderView
 from GalleryMan.views.directoryView import QDoublePushButton
 from math import ceil
-from GalleryMan.assets.QtHelpers import Animation, PopUpMessage
+from GalleryMan.assets.QtHelpers import Animation, PopUpMessage, QBalloonToopTip
 
 class PixmapHeaderMaker(QObject):
     finished = pyqtSignal()
@@ -20,7 +20,8 @@ class PixmapHeaderMaker(QObject):
         if(path == None):
             parent.hide()
         else:
-            print(path)            
+            inst.no += 1
+                        
             imageArea.setPixmap(
                 QPixmap(path).scaled(
                     width - (int(border) * 2),
@@ -74,7 +75,7 @@ class Worker(QObject):
                 res = inst.update(curr, x, y, False, colors[color_rest])
 
                 if res:
-                    inst.no += 1
+                    # inst.no += 1
 
                     x += width + padding
 
@@ -85,7 +86,7 @@ class Worker(QObject):
                         
         self.finished.emit()
 
-class imagesFolder:
+class imagesFolder():
     """Creates The UI"""
 
     def __init__(
@@ -95,9 +96,9 @@ class imagesFolder:
         scroll: QScrollArea,
         config: ConfigParser,
     ) -> None:
-        # Make the QMainWindow global]
+        super().__init__()
+        
         self.main_window = main_window
-
 
         self.isshown = False
 
@@ -189,7 +190,7 @@ class imagesFolder:
         self.folderHeaderText.setFixedWidth(200)
 
         # Move To Desired Position
-        self.folderHeaderText.move(QPoint(40, 500))
+        self.folderHeaderText.move(QPoint(40, 170))
 
         # Change Text
         self.folderHeaderText.setText(
@@ -246,8 +247,8 @@ class imagesFolder:
             + ((width + padding) * self.no // perline)
             - padding
         )
-                
-        self.width = max(self.width, self.main_window.size().height() - 100)
+                        
+        self.width = max(self.width, self.main_window.size().height() - 200)
 
         self.window.setFixedHeight(self.width)
 
@@ -396,10 +397,12 @@ class imagesFolder:
         # Set a property of the card with a value as the directory, will help while pinning
         label.setProperty("directory", dir)
 
+        label.show()
+        
         # Move to the next page (which shows all the available images in a folder)
         label.clicked.connect(lambda: self.transfer_control(dir))
         
-        label.show()
+        # QBalloonToopTip(self.images , self.main_window).show()
         
         # Return True, nothing is better than that XD
         return True
@@ -434,7 +437,7 @@ class imagesFolder:
 
         return None
 
-    def responser(self, event=None):
+    def responser(self, event=None):                        
         """Sets the geometry of the widgets according to the new width of the window
 
         Args:
@@ -504,7 +507,7 @@ class imagesFolder:
             pass
 
         perline = (self.main_window.size().width() - 100) // card_width
-
+                
         self.width = (
             self.label_to_change.height()
             + ((card_width + padding) * self.no // perline)
@@ -523,7 +526,7 @@ class imagesFolder:
 
         # Start the animation
         self.an.start()
-
+    
     def pushDown(self):
         # Pushing down effect of the info
         self.anim = QParallelAnimationGroup()
@@ -616,9 +619,7 @@ class imagesFolder:
         # Run second slot of animations
         self.effects.finished.connect(lambda: self.run_second(directory))
 
-    def run_second(self, dir):
-        print("Sending dir -> " , dir)
-        
+    def run_second(self, dir):        
         self.folderHeaderText.hide()
 
         self.args = []
@@ -644,9 +645,10 @@ class imagesFolder:
             pass
 
         self.label_to_change.hide()
-
-        singleFolderView(
-            self.window,
+                
+        inst = singleFolderView()
+        
+        inst.init(self.window,
             dir,
             self.config,
             self.scroll,
@@ -654,5 +656,4 @@ class imagesFolder:
             self.label_to_change,
             self.images,
             self.folderHeaderText,
-            *self.args
-        ).start()
+            *self.args)

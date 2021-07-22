@@ -1,7 +1,7 @@
 # Importing all the required modules
 
 from math import ceil
-from PIL import Image
+from PIL import Image , ImageOps
 import functools, gc, json
 from configparser import ConfigParser
 from random import randint
@@ -41,23 +41,29 @@ from PyQt5.QtWidgets import (
 import os
 from GalleryMan.assets.QEditorButtons import Cropper, FilterView, PaletteView
 
-class MakePixmap(QRunnable):
-    def __init__(self , dir , card_width , card_height , parent):
-        super().__init__()
-        
-        self.card_width = card_width
-        
-        self.card_height = card_height
-        
-        self.dir = dir
-        
-        self.parent = parent
-        
-    def run(self):
-        pixmap = QPixmap(self.dir).scaled(self.card_width , self.card_height , transformMode=Qt.SmoothTransformation)
-        
-        self.parent.setPixmap(pixmap)
+# class ImageLoader(QObject):
+#     updateValue = pyqtSignal(int , str)
+    
+#     finished = pyqtSignal()
+    
+#     def initiat(self, update_label):
+#         self.updateValue.connect(lambda number , curr : self.run(update_label , number , curr))
+    
+#     def run(self , update_label):
+#         pass
 
+class MakePixmap(QObject):    
+    finished = pyqtSignal()
+    
+    # FIX - Incease the number of folders in singlefolder if it was successfully shown!
+        
+    def run(self , dir , card_width , card_height , parent):        
+        pixmap = QPixmap(dir).scaled(card_width , card_height , transformMode=Qt.SmoothTransformation)
+                
+        parent.setPixmap(pixmap)
+        
+        self.finished.emit()
+        
 class AddToLiked(QThread):
     def __init__(self , parent , dir):
         super().__init__(parent)
@@ -137,8 +143,8 @@ class QRotateLabel(QLabel):
         self.setPixmap(self._pixmap.transformed(t))
 
 
-class singleFolderView:
-    def __init__(
+class singleFolderView():
+    def init(
         self,
         window: QWidget,
         directory: str,
@@ -200,6 +206,8 @@ class singleFolderView:
         )
 
         self.window.setStyleSheet(stylesheet)
+        
+        self.start()
 
     def remove_self(self):
         self.animation = QParallelAnimationGroup()
@@ -250,7 +258,7 @@ class singleFolderView:
         
         self.application.resizeEvent = self.original_responser
         
-        self.original_responser()
+        self.original_responser(None)
         
         self.animation.start()
 
@@ -266,6 +274,7 @@ class singleFolderView:
         gc.collect()
 
     def start(self):
+                
         self.go_back = QCustomButton(
             text=self.config.get("singleFolder", "back-buttonText")[1:-1],
             window=self.window,
@@ -310,7 +319,7 @@ class singleFolderView:
 
         self.labelArea.show()
 
-        self.labelArea.setGeometry(QRect(0, 100, 1980, 1080))
+        self.labelArea.setGeometry(QRect(0, 150 , 1980, 1080))
 
         padding = int(self.config.get("singleFolder", "card-padding"))
 
@@ -336,9 +345,22 @@ class singleFolderView:
         else:
             dirs = Path(self.copy).rglob("*")
             
-        
-        pool = QThreadPool.globalInstance()
-        
+        def connect(*args):
+            worker = MakePixmap()
+            
+            thread = QThread(self.application)
+                        
+            worker.moveToThread(thread)
+            
+            worker.finished.connect(thread.quit)
+            
+            thread.started.connect(lambda : worker.run(*args))
+            
+            thread.start()
+            
+            return None
+            
+            
         for i in dirs:            
             i = str(i)
             
@@ -349,7 +371,11 @@ class singleFolderView:
                 "jpeg",
             ]:
                 continue
-
+                        
+            image = CustomLabel(self.labelArea)
+            
+            MakePixmap().run(i , card_width , card_height , image)
+            
             if color_mode == "single":
                 self.index = 0
             elif color_mode == "random":
@@ -357,13 +383,9 @@ class singleFolderView:
             else:
                 self.index = (self.index + 1) % len(colors)
 
-            image = CustomLabel(self.labelArea)
             
             image.setGeometry(QRect(0, 0, card_width, card_height))
                                     
-            worker = MakePixmap(i , card_width , card_height , image)
-            
-            pool.start(worker)
             
             image.setCursor(QCursor(Qt.PointingHandCursor))
 
@@ -388,7 +410,7 @@ class singleFolderView:
             image.show()
 
             self.folders.append(image)
-
+            
         self.responser(None)
 
         self.application.setCursor(Qt.ArrowCursor)
@@ -700,9 +722,17 @@ class singleFolderView:
     def removecropper(self):
         self.shortcut.setKey(QKeySequence())
 
-        value = int(self.textBox.text()) + 180
-    
-        image = Image.open("GalleryMan/assets/processed_image.png").convert("RGBA")
+        # value = 180 if int(self.textBox.text()) == 180 else int(self.textBox.text()) + 180
+        value = int(self.textBox.text())
+        
+        if(value in [90 , 270 , 360]): value += 180
+        elif(value == 180): value = value
+        else:
+            value -= 89
+        
+        image = Image.open("GalleryMan/assets/processed_image.png")
+        
+        image = ImageOps.exif_transpose(image).convert("RGBA")
         
         image = image.rotate(value, expand=1, fillcolor=(255, 255, 255, 0))
 

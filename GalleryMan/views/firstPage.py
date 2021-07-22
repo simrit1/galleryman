@@ -4,6 +4,7 @@ import json, os, gc
 from functools import partial
 from GalleryMan.assets.QtHelpers import Animation, QContinueButton, QCustomButton
 from PyQt5.QtCore import (
+    QObject,
     QParallelAnimationGroup,
     QPoint,
     QPropertyAnimation,
@@ -53,7 +54,7 @@ class QDoublePushButton(QPushButton):
             self.timer.start(250)
 
 
-class FirstPage:
+class FirstPage():
     """
     Main UI's First And Second Page
 
@@ -71,6 +72,7 @@ class FirstPage:
         scrollArea: QScrollArea,
         config: ConfigParser,
     ) -> None:
+        super().__init__()
 
         self.application = application
 

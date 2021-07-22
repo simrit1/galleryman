@@ -31,14 +31,14 @@ class ScrollLabel(QScrollArea):
  
         lay.addWidget(self.label)
         
-class Worker(QObject):
-    finished = pyqtSignal()
+# class Worker(QObject):
+#     finished = pyqtSignal()
 
-    def run(self , parent , status , scrollArea , config , contents , label):
+#     def run(self , parent , status , scrollArea , config , contents , label):
         
             
-        self.finished.emit()
-                                
+#         self.finished.emit()
+                      
 class Main:
     def createApp(self):
         app = QApplication([])
@@ -86,15 +86,25 @@ class Main:
         label.move(QPoint(0 , 30))
         
         label.setAlignment(Qt.AlignCenter)
+        
+        thread = QThread()
 
         if(status == 'NOT REGISTERED'):            
             ui = FirstPage(contents , self.window , scrollArea , config)
             
-            ui.start()
+            args = []
         else:
             ui = imagesFolder(contents , self.window , scrollArea , config)
             
-            ui.start(label)
+            args = [label]
+            
+        # ui.moveToThread(thread)
+        
+        # thread.started.connect(lambda : ui.start(*args))
+        
+        # thread.start()
+        
+        ui.start(*args)
         
         self.window.setStyleSheet(stylesheet)
 

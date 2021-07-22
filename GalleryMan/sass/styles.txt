@@ -91,8 +91,11 @@ QPushButton:focus{{
 }}
 
 QToolTip{{
-    background-color: #88C0D0;
-    color: #2E3440;
+    background-color: #2E3440;
+    color: #D8DEE9;
+    font-family: "SauceCodePro Nerd Font";
+    font-size: 20px;
+    border: 0px solid #2E3440;
 }}
 
 QPushButton[class="like"]{{

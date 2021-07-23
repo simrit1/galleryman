@@ -15,3 +15,9 @@ config.ini
 lolcat.py
 
 pinnedBackup.py
+
+*.png
+
+*.jpg
+
+*.gif

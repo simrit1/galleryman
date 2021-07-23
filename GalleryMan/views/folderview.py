@@ -19,7 +19,7 @@ class PixmapHeaderMaker(QObject):
                 
         if(path == None):
             parent.hide()
-        else:
+        else:            
             inst.no += 1
                         
             imageArea.setPixmap(
@@ -240,11 +240,11 @@ class imagesFolder():
         
         self.thread.start()
      
-        perline = (self.main_window.size().width() - 100) // width
-
+        perline = max((self.main_window.size().width() - 100) // width , 1)
+        
         self.width = (
             self.label_to_change.height()
-            + ((width + padding) * self.no // perline)
+            + ((width + padding) * max(self.no , 1) // perline)
             - padding
         )
                         
@@ -332,9 +332,7 @@ class imagesFolder():
 
         # Create A Label for showing the first picture
         imageArea = QLabel(label)
-        
-        imageArea.setPixmap(QPixmap("GalleryMan/assets/loader.png").scaled(width , height))
-
+    
         # Set the Alignment
         imageArea.setAlignment(Qt.AlignCenter)
 
@@ -505,12 +503,12 @@ class imagesFolder():
             )
         except:
             pass
-
-        perline = (self.main_window.size().width() - 100) // card_width
+        
+        perline = max((self.main_window.size().width() - 100) // card_width , 1)
                 
         self.width = (
             self.label_to_change.height()
-            + ((card_width + padding) * self.no // perline)
+            + ((card_width + padding) * max(self.no , 1) // perline)
             - padding
         )
 

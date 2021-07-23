@@ -7,7 +7,9 @@ class Filters:
         self.img = img
         
     def transform(self , r , g , b):
+        # new_color = r * self.rf + g * self.gf + b * self.bf
         new_color = r * self.rf + g * self.gf + b * self.bf
+        
                 
         return new_color.clip(0 , 255).astype(np.uint8)
 
@@ -238,25 +240,46 @@ class Filters:
         G = img_array.T[1]
         B = img_array.T[2]
         A = img_array.T[3]
-                
-        # self.rf , self.gf , self.bf = [round(random.random() , 2), round(random.random() , 2), round(random.random() , 2)]
+                        
+        self.rf , self.gf , self.bf = [round(random.random() , 4), round(random.random() , 4), round(random.random() , 4)]
 
-        # print(self.rf , self.gf , self.bf)
+        print(self.rf , self.gf , self.bf)
         
-        # R = self.transform(R, G , B)
+        R = self.transform(R, G , B)
         
-        # self.rf , self.gf , self.bf = [round(random.random() , 2), round(random.random() , 2), round(random.random() , 2)]
+        self.rf , self.gf , self.bf = [round(random.random() , 4), round(random.random() , 4), round(random.random() , 4)]
 
-        # print(self.rf , self.gf , self.bf)
+        print(self.rf , self.gf , self.bf)
         
-        # G = self.transform(R , G , B)
+        G = self.transform(R , G , B)
         
-        # self.rf , self.gf , self.bf = [round(random.random() , 2), round(random.random() , 2), round(random.random() , 2)]
+        self.rf , self.gf , self.bf = [round(random.random() , 4), round(random.random() , 4), round(random.random() , 4)]
 
-        # print(self.rf , self.gf , self.bf)
+        print(self.rf , self.gf , self.bf)
         
-        # B = self.transform(R , G , B)
-
+        B = self.transform(R , G , B)
+    
         return Image.fromarray(np.array([R, G, B, A]).T, mode="RGBA")
     
-# Filters(Image.open("../../a.jpg").convert("RGBA")).test().save("lolcat.png")
+# Filters(Image.open("a.jpg").convert("RGBA")).test().save("nord.png")
+
+
+# 0.21 0.31 0.63
+# 0.26 0.43 0.63
+# 0.12 0.84 0.79
+
+# 0.01 0.58 0.55
+# 0.28 0.02 0.73
+# 0.15 0.63 0.55
+
+# 0.28 0.7 0.84
+# 0.69 0.04 0.22
+# 0.23 0.01 0.49
+
+# 0.275 0.472 0.506
+# 0.144 0.819 0.305
+# 0.307 0.896 0.009
+
+# 0.036 0.015 0.678
+# 0.316 0.362 0.219
+# 0.844 0.421 0.317

@@ -156,8 +156,10 @@ class PaletteView:
         self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
 
 class FilterView:
-    def __init__(self, main_window, image, out_widget , icons , callback) -> None:
+    def __init__(self, main_window, image, out_widget , scrollArea ,  icons , callback) -> None:
         self.image = image
+        self.scrollArea = scrollArea
+        self.original = scrollArea.width()
         self.unblur = QParallelAnimationGroup()
         self.icons = icons
         self.out_widget = out_widget
@@ -180,9 +182,9 @@ class FilterView:
             lambda : self.clear(),
             lambda : self.realistic(),
             lambda : self.cool_filter(),
-            lambda : self.callback()
+            lambda : self.remove_self()
         ]
-        
+                
         i = 0
         
         for icon , icon_color , icon_font_size , icon_font_family , help_msg in self.icons:
@@ -200,80 +202,129 @@ class FilterView:
             
             i += 1
 
+        self.scrollArea.setFixedWidth(1000)
         
         return self.special_buttons
-
-    def shady(self):        
-        image = ImageQt.ImageQt(self.imageProcessor.shady())
-
-        self.out_widget.setPixmap(QPixmap.fromImage(image))
+    
+    def partial_hide(self):
+        return Animation.fade(Animation , self.out_widget , 1 , 0.5)
+        
+    def partial_unhide(self):
+        Animation.unfade(Animation , self.out_widget , 0.5).start()
+    
+    def shady(self):
+        self.animation = self.partial_hide()
+        
+        self.image = ImageQt.ImageQt(self.imageProcessor.shady())
+                
+        self.out_widget.setPixmap(QPixmap.fromImage(self.image))
         
         self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
         
+        self.partial_unhide()
+        
     def sepia(self):
+        self.partial_hide()
+
         image = ImageQt.ImageQt(self.imageProcessor.sepia())
 
         self.out_widget.setPixmap(QPixmap.fromImage(image))
         
         self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
 
+        self.partial_unhide()
+
     def cherry(self):
+        self.partial_hide()
+
         image = ImageQt.ImageQt(self.imageProcessor.cherry())
 
         self.out_widget.setPixmap(QPixmap.fromImage(image))
         
         self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
 
+        self.partial_unhide()
+
     def underwater(self):
+        self.partial_hide()
+
         image = ImageQt.ImageQt(self.imageProcessor.underwater())
 
         self.out_widget.setPixmap(QPixmap.fromImage(image))
         
         self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
 
+        self.partial_unhide()
+
     def purple(self):
+        self.partial_hide()
+
         image = ImageQt.ImageQt(self.imageProcessor.purple())
 
         self.out_widget.setPixmap(QPixmap.fromImage(image))
         
         self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
 
+        self.partial_unhide()
+
     def pink(self):
+        self.partial_hide()
+
         image = ImageQt.ImageQt(self.imageProcessor.pink())
 
         self.out_widget.setPixmap(QPixmap.fromImage(image))
         
         self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
 
+        self.partial_unhide()
+
     def dark(self):
+        self.partial_hide()
+
         image = ImageQt.ImageQt(self.imageProcessor.dark())
 
         self.out_widget.setPixmap(QPixmap.fromImage(image))
         
         self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
 
+        self.partial_unhide()
+
     def clear(self):
+        self.partial_hide()
+
         image = ImageQt.ImageQt(self.imageProcessor.clear())
 
         self.out_widget.setPixmap(QPixmap.fromImage(image))
         
         self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+
+        self.partial_unhide()
         
     def realistic(self):
+        self.partial_hide()
+
         image = ImageQt.ImageQt(self.imageProcessor.realistic())
 
         self.out_widget.setPixmap(QPixmap.fromImage(image))
         
         self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+
+        self.partial_unhide()
     
     def cool_filter(self):
+        self.partial_hide()
+
         new_image = ImageQt.ImageQt(self.imageProcessor.cool())
 
         self.out_widget.setPixmap(QPixmap.fromImage(new_image))
         
         self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+
+        self.partial_unhide()
         
     def clear_filter(self):
+        self.partial_hide()
+
         Animation.fade(Animation , self.out_widget , end=0.4).start()
         
         image = ImageQt.ImageQt(self.imageProcessor.clear())
@@ -281,7 +332,14 @@ class FilterView:
         # self.out_widget.setPixmap(QPixmap.fromImage(image)) 
         
         self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+
+        self.partial_unhide()
         
         # opacity.setOpacity(1)
         
         # self.out_widget.setGraphicsEffect(opacity)
+        
+    def remove_self(self):
+        self.scrollArea.setFixedWidth(self.original)
+        
+        self.callback()

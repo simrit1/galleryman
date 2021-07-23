@@ -191,9 +191,9 @@ class PopUpMessage:
         self.window = window
         
         self.popup_window = QLabel(self.window)
-        
-        self.popup_window.setFixedWidth(400)
-        
+                
+        self.popup_window.setFixedWidth(len(msg) * 20)
+                
         self.popup_window.setFixedHeight(60)
         
         self.popup_window.setAlignment(Qt.AlignCenter)

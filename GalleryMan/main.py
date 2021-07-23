@@ -1,15 +1,16 @@
 # Import all the required modules
+from GalleryMan.assets.QtHelpers import QCustomButton
 import argparse
 from os import system
 import os
 import sys
 from PyQt5 import QtCore
-from PyQt5.QtCore import QObject, QPoint, QRect, QSize, QThread , Qt, pyqtSignal
-from PyQt5.QtGui import QKeyEvent
+from PyQt5.QtCore import QEvent, QObject, QPoint, QRect, QSize, QThread , Qt, pyqtSignal
+from PyQt5.QtGui import QCursor, QKeyEvent, QMouseEvent
 from GalleryMan.views.firstPage import FirstPage
 from GalleryMan.utils.readers import read_file , change_with_config
 from GalleryMan.views.folderview import imagesFolder
-from PyQt5.QtWidgets import QApplication, QHBoxLayout, QLabel , QMainWindow, QScrollArea, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QApplication, QGraphicsOpacityEffect, QHBoxLayout, QLabel , QMainWindow, QPushButton, QScrollArea, QVBoxLayout, QWidget
 
 class ScrollLabel(QScrollArea):
     def __init__(self, *args, **kwargs):
@@ -30,19 +31,25 @@ class ScrollLabel(QScrollArea):
         self.label.setWordWrap(True)
  
         lay.addWidget(self.label)
-        
-# class Worker(QObject):
-#     finished = pyqtSignal()
 
-#     def run(self , parent , status , scrollArea , config , contents , label):
-        
-            
-#         self.finished.emit()
+    
+class CustomLabel(QLabel):
+    clicked = pyqtSignal(QMouseEvent)
+
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.RightButton:
+            self.clicked.emit(event)
+
                       
 class Main:
     def createApp(self):
+        self.curr = "Hide"
+        
         app = QApplication([])
-
+                
         self.window = QMainWindow()
         
         self.window.keyPressEvent = self.keyHandler
@@ -51,26 +58,77 @@ class Main:
         
         layout = QVBoxLayout(central)
         
-        scrollArea = QScrollArea(central)
+        self.scrollArea = QScrollArea(central)
+        
+        self.scrollArea.verticalScrollBar().valueChanged.connect(self.valueHandler)
                 
-        layout.addWidget(scrollArea)
+        layout.addWidget(self.scrollArea)
         
         contents = QWidget(self.window)
         
         contents.setGeometry(self.window.geometry())
                 
-        scrollArea.setWidget(contents)
+        self.scrollArea.setWidget(contents)
         
-        scrollArea.verticalScrollBar().setEnabled(False)
+        self.scrollArea.verticalScrollBar().setEnabled(False)
         
-        scrollArea.verticalScrollBar().hide()
+        self.scrollArea.verticalScrollBar().hide()
         
-        scrollArea.horizontalScrollBar().setEnabled(False)
+        self.scrollArea.horizontalScrollBar().setEnabled(False)
         
-        scrollArea.horizontalScrollBar().hide()
+        self.scrollArea.horizontalScrollBar().hide()
     
         layout = QHBoxLayout(contents)
         
+        self.helper = CustomLabel(self.window)
+        
+        self.helper.clicked.connect(self.show_hides)
+        
+        self.helper.setGeometry(QRect(
+            0 , 0,
+            1980,
+            50
+        ))
+        
+        self.helper.show()
+        
+        self.topbar = QLabel(self.helper)
+        
+        self.topbar.setGeometry(QRect(
+            1600 , 0,
+            200,
+            50
+        ))
+        
+        self.topbar.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
+        
+        self.topbar.setStyleSheet('background-color: transparent;')
+        
+        layoout = QHBoxLayout()
+        
+        j = 0
+        
+        functions = [
+            self.window.showMinimized,
+            self.window.showMaximized,
+            app.quit
+        ]
+        
+        for i in [" " , "  " , "  "]:            
+            button = QPushButton(i , self.topbar)
+            
+            button.setCursor(QCursor(Qt.PointingHandCursor))
+            
+            button.clicked.connect(functions[j])
+            
+            button.setFlat(True)
+            
+            button.setStyleSheet('font-family: "SauceCodePro Nerd Font"; color: #88C0D0; font-size: 25px')
+            
+            layoout.addWidget(button , alignment=Qt.AlignTop | Qt.AlignRight)
+            
+        self.topbar.setLayout(layoout)
+                
         self.window.setCentralWidget(central)
         
         stylesheet , config = change_with_config(read_file('GalleryMan/sass/styles.txt'))
@@ -86,29 +144,64 @@ class Main:
         label.move(QPoint(0 , 30))
         
         label.setAlignment(Qt.AlignCenter)
-        
-        thread = QThread()
 
         if(status == 'NOT REGISTERED'):            
-            ui = FirstPage(contents , self.window , scrollArea , config)
+            ui = FirstPage(contents , self.window , self.scrollArea , config)
             
             args = []
         else:
-            ui = imagesFolder(contents , self.window , scrollArea , config)
+            ui = imagesFolder(contents , self.window , self.scrollArea , config)
             
             args = [label]
-            
-        # ui.moveToThread(thread)
-        
-        # thread.started.connect(lambda : ui.start(*args))
-        
-        # thread.start()
         
         ui.start(*args)
         
         self.window.setStyleSheet(stylesheet)
 
         sys.exit(app.exec_())
+    
+    def hide(self):
+        self.button.hide()
+        
+        self.helper.hide()
+        
+    def show_hides(self , event: QMouseEvent):
+        try:
+            self.button.hide()
+        except:
+            pass
+        
+        self.button = QPushButton(self.curr , self.window)
+        
+        self.button.setCursor(QCursor(Qt.PointingHandCursor))
+        
+        self.button.setFlat(True)
+        
+        self.button.setStyleSheet("border: 1px solid #3B4252; font-size: 30px; font-family: Comfortaa")
+        
+        self.button.move(event.pos())
+        
+        self.button.setFixedSize(QSize(200 , 50))
+                
+        if(self.curr == "Hide"):
+            
+            self.button.clicked.connect(self.topbar.hide)
+            
+            self.button.clicked.connect(self.button.hide)
+            
+            self.button.clicked.connect(lambda : self.update("Show"))
+            
+        else:            
+            self.button.clicked.connect(self.topbar.show)
+            
+            self.button.clicked.connect(self.button.hide)
+            
+            self.button.clicked.connect(lambda : self.update("Hide"))
+        
+        self.button.show()
+        
+    def update(self , new):
+        self.curr = new
         
     def keyHandler(self , event: QKeyEvent):
         if(event.key() == QtCore.Qt.Key_F11):
@@ -121,8 +214,17 @@ class Main:
         with open("/home/strawhat54/.config/galleryman/data/scan_dirs.txt" , "w") as f:
             f.write("[]")
             
-
-
+    def valueHandler(self):
+        value = self.scrollArea.verticalScrollBar().value()
+                
+        if(value == 0):
+            stylesheet = "background-color: rgb(46 , 52 , 64)"
+        
+        else:
+            stylesheet = "background-color: rgba(46 , 52 , 64 , 75)"
+            
+        self.helper.setStyleSheet(stylesheet)
+        
 def main():
     app = Main()
     

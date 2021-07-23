@@ -168,7 +168,7 @@ class singleFolderView():
         self.original = self.window.geometry()
         
         self.original_responser = self.application.resizeEvent
-
+        
         self.config = config
 
         self.application.resizeEvent = self.responser
@@ -256,9 +256,11 @@ class singleFolderView():
         
         self.scroll.setGeometry(self.original)
         
+        self.scroll.verticalScrollBar().setValue(0)
+        
         self.application.resizeEvent = self.original_responser
         
-        self.original_responser(None)
+        self.application.resizeEvent(None)
         
         self.animation.start()
 
@@ -549,6 +551,8 @@ class singleFolderView():
         
     def addToLiked(self , dir):                
         AddToLiked(self.application , self.origin).start()
+                
+        self.popup.new_msg(self.application , "Image Added To Liked Images" , 400)
         
         Thrower(self.central.pos().x() + self.heartWidget.pos().x() + 13, self.central.pos().y() - self.heartWidget.pos().y() - 10, self.application).throw()
 
@@ -810,6 +814,7 @@ class singleFolderView():
             self.window,
             name,
             self.image,
+            self.new_label,
             json.loads(self.config.get("singleFolder", "filters-colorIcons")),
             self.callback,
         ).create()

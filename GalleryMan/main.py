@@ -1,4 +1,5 @@
 # Import all the required modules
+from functools import partial
 from GalleryMan.assets.QtHelpers import QCustomButton
 import argparse
 from os import system
@@ -51,6 +52,8 @@ class Main:
         app = QApplication([])
                 
         self.window = QMainWindow()
+        
+        self.window.mousePressEvent = self.mouseHandler
         
         self.window.keyPressEvent = self.keyHandler
         
@@ -188,15 +191,14 @@ class Main:
             self.button.clicked.connect(self.topbar.hide)
             
             self.button.clicked.connect(self.button.hide)
-            
-            self.button.clicked.connect(lambda : self.update("Show"))
-            
+                        
+            self.button.clicked.connect(partial(self.update , "Show"))
         else:            
             self.button.clicked.connect(self.topbar.show)
             
             self.button.clicked.connect(self.button.hide)
             
-            self.button.clicked.connect(lambda : self.update("Hide"))
+            self.button.clicked.connect(partial(self.update , "Hide"))
         
         self.button.show()
         
@@ -224,6 +226,13 @@ class Main:
             stylesheet = "background-color: rgba(46 , 52 , 64 , 75)"
             
         self.helper.setStyleSheet(stylesheet)
+        
+    def mouseHandler(self , _):
+        try:
+            self.button.hide()
+            
+        except:
+            pass
         
 def main():
     app = Main()

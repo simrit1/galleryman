@@ -222,7 +222,7 @@ class PopUpMessage:
         
         timer = QTimer(self.window)
         
-        timer.timeout.connect(lambda : self.remove())
+        timer.timeout.connect(self.remove)
         
         timer.start(2000)
         
@@ -246,7 +246,7 @@ class PopUpMessage:
             
         self.an.start()
         
-        self.an.finished.connect(lambda: self.popup_window.hide())
+        self.an.finished.connect(self.popup_window.hide)
         
 class QContinueButton:
     def __init__(self , window) -> None:

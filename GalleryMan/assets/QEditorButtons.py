@@ -111,7 +111,7 @@ class PaletteView:
         
         choose = json.loads(self.config.get("singleFolder" , "filter-icons"))
         
-        func = [lambda : self.blur() , lambda : self.sharp() , lambda : self.increaseBrightness(), lambda : self.increaseContrast() , lambda : self.increaseExposure() , lambda : self.callback()]
+        func = [self.blur , self.sharp , self.increaseBrightness, self.increaseContrast , self.increaseExposure , self.callback]
         
         for icon , color , font_size , family in choose:
             button = QCustomButton(icon , self.main_window).create()
@@ -172,17 +172,17 @@ class FilterView:
     def create(self):
         # 3. Blur Image
         func = [
-            lambda : self.shady(),
-            lambda : self.sepia(),
-            lambda : self.cherry(),
-            lambda : self.underwater(),
-            lambda : self.purple(),
-            lambda : self.pink(),
-            lambda : self.dark(),
-            lambda : self.clear(),
-            lambda : self.realistic(),
-            lambda : self.cool_filter(),
-            lambda : self.remove_self()
+            self.shady,
+            self.sepia,
+            self.cherry,
+            self.underwater,
+            self.purple,
+            self.pink,
+            self.dark,
+            self.clear,
+            self.realistic,
+            self.cool_filter,
+            self.remove_self
         ]
                 
         i = 0

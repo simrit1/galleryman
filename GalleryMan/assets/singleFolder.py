@@ -41,21 +41,89 @@ from PyQt5.QtWidgets import (
 import os
 from GalleryMan.assets.QEditorButtons import Cropper, FilterView, PaletteView
 
-# class ImageLoader(QObject):
-#     updateValue = pyqtSignal(int , str)
+class FindAll(QObject):
+    finished = pyqtSignal()
     
-#     finished = pyqtSignal()
+    curr = pyqtSignal(int , str)
     
-#     def initiat(self, update_label):
-#         self.updateValue.connect(lambda number , curr : self.run(update_label , number , curr))
+    request_label = pyqtSignal()
     
-#     def run(self , update_label):
-#         pass
+    label = None
+
+    def run(self , inst , dirs , card_width , card_height , padding , color_mode , colors , x , y):
+        done , processing = 0 , ""
+        
+        for i in dirs:     
+            
+            self.accepted = False
+                        
+            i = str(i)
+            
+            if os.path.isdir(i) or i[-3:] not in [
+                "png",
+                "svg",
+                "jpg",
+                "jpeg",
+            ]:
+                continue
+                        
+            
+            done = done + 1
+            
+            temp = i[:50] + '...' if len(i) > 50 else i
+            
+            self.curr.emit(done , temp)
+            
+            self.request_label.emit()
+            
+            while not self.accepted:
+                self.test = True
+            
+
+            self.final(inst , i , card_width , card_height , padding , color_mode , colors , x , y)
+            
+            x += card_width + padding
+            
+            if x > inst.application.size().width() - 250:
+                x = 40
+
+                y += card_height + padding
+        
+        inst.responser(None)
+        
+        self.finished.emit()
+            
+    def final(self , inst , i , card_width , card_height , padding , color_mode , colors , x , y):                       
+        MakePixmap().run(i , card_width , card_height , self.label)
+        
+        if color_mode == "single":
+            inst.index = 0
+        elif color_mode == "random":
+            inst.index = randint(0, len(colors) - 1)
+        else:
+            inst.index = (inst.index + 1) % len(colors)
+
+        
+        self.label.setGeometry(QRect(0, 0, card_width, card_height))
+                                
+        
+        self.label.setCursor(QCursor(Qt.PointingHandCursor))
+
+        # self.label.setStyleSheet(
+        #     "border: {}px solid {}".format(
+        #         "1",
+        #         "#88C0D0",
+        #     )
+        # )
+
+        self.label.clicked.connect(functools.partial(inst.show_image, i))
+
+        self.label.move(QPoint(x, y))
+
+        inst.folders.append(self.label)
 
 class MakePixmap(QObject):    
     finished = pyqtSignal()
-    
-    # FIX - Incease the number of folders in singlefolder if it was successfully shown!
         
     def run(self , dir , card_width , card_height , parent):        
         pixmap = QPixmap(dir).scaled(card_width , card_height , transformMode=Qt.SmoothTransformation)
@@ -318,8 +386,8 @@ class singleFolderView():
         self.go_back.show()
 
         self.labelArea = QLabel(self.window)
-
-        self.labelArea.show()
+        
+        self.labelArea.hide()
 
         self.labelArea.setGeometry(QRect(0, 150 , 1980, 1080))
 
@@ -347,77 +415,79 @@ class singleFolderView():
         else:
             dirs = Path(self.copy).rglob("*")
             
-        def connect(*args):
-            worker = MakePixmap()
-            
-            thread = QThread(self.application)
-                        
-            worker.moveToThread(thread)
-            
-            worker.finished.connect(thread.quit)
-            
-            thread.started.connect(lambda : worker.run(*args))
-            
-            thread.start()
-            
-            return None
-            
-            
-        for i in dirs:            
-            i = str(i)
-            
-            if os.path.isdir(i) or i[-3:] not in [
-                "png",
-                "svg",
-                "jpg",
-                "jpeg",
-            ]:
-                continue
-                        
-            image = CustomLabel(self.labelArea)
-            
-            MakePixmap().run(i , card_width , card_height , image)
-            
-            if color_mode == "single":
-                self.index = 0
-            elif color_mode == "random":
-                self.index = randint(0, len(colors) - 1)
-            else:
-                self.index = (self.index + 1) % len(colors)
-
-            
-            image.setGeometry(QRect(0, 0, card_width, card_height))
-                                    
-            
-            image.setCursor(QCursor(Qt.PointingHandCursor))
-
-            image.setStyleSheet(
-                "border: {}px solid {}".format(
-                    "1",
-                    colors[self.index],
-                )
-            )
-
-            image.clicked.connect(functools.partial(self.show_image, i))
-
-            image.move(QPoint(x, y))
-
-            x += card_width + padding
-
-            if x > self.application.size().width() - 250:
-                x = 40
-
-                y += card_height + padding
-
-            image.show()
-
-            self.folders.append(image)
-            
+        self.loader = QLabel(self.application)
+        
+        self.loader.setGeometry(self.application.geometry())
+        
+        self.loader.setText("Loaded 0 images \n\n Starting")
+        
+        self.loader.setStyleSheet("""
+            QLabel{
+                color: #88C0D0;
+                font-family: "SauceCodePro Nerd Font";
+                font-size: 30px;
+            }                      
+            """)
+        
+        self.loader.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
+        
+        self.loader.show()
+        
+        self.thread = QThread(self.application)
+        
+        self.worker = FindAll()
+        
+        self.worker.moveToThread(self.thread)
+        
+        self.worker.curr.connect(self.update)
+                
+        self.thread.started.connect(functools.partial(self.worker.run , self , dirs , card_width , card_height , padding , color_mode , colors , x , y))
+        
+        self.worker.request_label.connect(self.sendLabel)
+        
+        self.worker.finished.connect(self.thread.quit)
+        
+        self.worker.finished.connect(self.lolcat)
+        
+        self.thread.start()
+                    
         self.responser(None)
-
+        
         self.application.setCursor(Qt.ArrowCursor)
 
         gc.collect()
+    
+    def lolcat(self):
+        self.loader.setText("DONE!")
+        
+        import time
+        
+        time.sleep(0.5)
+        
+        self.animations = QParallelAnimationGroup()
+        
+        self.animations.addAnimation(Animation.fadingAnimation(Animation , self.loader , 200))
+        
+        self.animations.addAnimation(Animation.fadingAnimation(Animation , self.labelArea , 200 , True))
+        
+        self.animations.finished.connect(self.labelArea.show)
+        
+        self.animations.finished.connect(self.loader.hide)
+        
+        self.animations.finished.connect(functools.partial(self.responser , None))
+                
+        self.animations.start()
+        
+    def update(self , num , s):
+        self.loader.setText("Loaded {} images \n Loading {}".format(num , s))
+        
+    def sendLabel(self):                
+        label = CustomLabel(self.labelArea)
+        
+        self.worker.label = label
+        
+        self.worker.accepted = True
+        
 
     def show_image(self, name):
         self.origin = name
@@ -506,13 +576,13 @@ class singleFolderView():
         i = 0
 
         functions = [
-            lambda : self.addToLiked(self.directory_name),
+            functools.partial(self.addToLiked , self.directory_name),
             self.rotate_image,
-            lambda: self.switch_to_cropper(self.directory_name),
-            lambda: self.switch_to_filters(self.directory_name),
-            lambda: self.switch_to_palette(self.directory_name),
-            lambda: self.save_edited(name),
-            lambda: self.closeEditor(),
+            functools.partial(self.switch_to_cropper , self.directory_name),
+            functools.partial(self.switch_to_filters , self.directory_name),
+            functools.partial(self.switch_to_palette , self.directory_name),
+            functools.partial(self.save_edited , name),
+            self.closeEditor()
         ]
         
         self.heartWidget = None
@@ -705,7 +775,7 @@ class singleFolderView():
 
         self.textBox.textChanged.connect(self.update_text)
 
-        self.slider.valueChanged.connect(lambda: self.show(self.slider.value()))
+        self.slider.valueChanged.connect(functools.partial(self.show , self.slider.value()))
 
         self.layout.addWidget(self.slider)
 
@@ -858,7 +928,7 @@ class singleFolderView():
 
         self.ani.finished.connect(finish)
 
-    def responser(self, _):
+    def responser(self, _):        
         self.width = self.application.size().width()
 
         card_width = int(self.config.get("singleFolder", "card-width"))

@@ -179,7 +179,7 @@ class FirstPage():
         self.animation.start()
 
         # Call next function on completion of the animation
-        self.animation.finished.connect(lambda: self.next_animation(home_directories))
+        self.animation.finished.connect(partial(self.next_animation , home_directories))
 
     def next_animation(self, home_directories):
 

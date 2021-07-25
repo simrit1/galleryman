@@ -1,11 +1,8 @@
-from PIL import Image
-
+from PIL import Image , ImageQt
 from GalleryMan.themes.filters import Filters
 import json
-from GalleryMan.themes.autumn import *
-
 from GalleryMan.assets.cropper import ImageCropper
-from GalleryMan.assets.QtHelpers import QCustomButton, Thrower
+from GalleryMan.assets.QtHelpers import PopUpMessage, QCustomButton, Thrower
 from PyQt5.QtCore import QParallelAnimationGroup, QPropertyAnimation, QRect
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QGraphicsOpacityEffect, QHBoxLayout, QLabel, QVBoxLayout
@@ -111,7 +108,7 @@ class PaletteView:
         
         choose = json.loads(self.config.get("singleFolder" , "filter-icons"))
         
-        func = [self.blur , self.sharp , self.increaseBrightness, self.increaseContrast , self.increaseExposure , self.callback]
+        func = [lambda : self.blur() , lambda : self.sharp() , lambda : self.increaseBrightness(), lambda : self.increaseContrast() , lambda : self.increaseExposure() , lambda : self.callback()]
         
         for icon , color , font_size , family in choose:
             button = QCustomButton(icon , self.main_window).create()
@@ -162,7 +159,9 @@ class FilterView:
         self.original = scrollArea.width()
         self.unblur = QParallelAnimationGroup()
         self.icons = icons
+        self.process = 'unlock'
         self.out_widget = out_widget
+        self.popup = PopUpMessage()
         self.animation = Animation()
         self.imageProcessor = Filters(Image.open(self.image).convert("RGBA"))
         self.special_buttons = QHBoxLayout()
@@ -172,17 +171,17 @@ class FilterView:
     def create(self):
         # 3. Blur Image
         func = [
-            self.shady,
-            self.sepia,
-            self.cherry,
-            self.underwater,
-            self.purple,
-            self.pink,
-            self.dark,
-            self.clear,
-            self.realistic,
-            self.cool_filter,
-            self.remove_self
+            lambda : self.shady(),
+            lambda : self.sepia(),
+            lambda : self.cherry(),
+            lambda : self.underwater(),
+            lambda : self.purple(),
+            lambda : self.pink(),
+            lambda : self.dark(),
+            lambda : self.clear(),
+            lambda : self.realistic(),
+            lambda : self.cool_filter(),
+            lambda : self.remove_self()
         ]
                 
         i = 0
@@ -213,132 +212,258 @@ class FilterView:
         Animation.unfade(Animation , self.out_widget , 0.5).start()
     
     def shady(self):
+        if(self.process == 'lock'):
+            self.popup.new_msg("Wait while applying is filter")
+        
+        self.process = 'lock'
+        
+        def callback():
+            self.image = ImageQt.ImageQt(self.imageProcessor.shady())
+                
+            self.out_widget.setPixmap(QPixmap.fromImage(self.image))
+            
+            self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+            
+            self.partial_unhide()
+            
+            self.process = 'unlock'
+        
         self.animation = self.partial_hide()
         
-        self.image = ImageQt.ImageQt(self.imageProcessor.shady())
-                
-        self.out_widget.setPixmap(QPixmap.fromImage(self.image))
+        self.animation.start()
         
-        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
-        
-        self.partial_unhide()
+        self.animation.finished.connect(callback)
         
     def sepia(self):
-        self.partial_hide()
-
-        image = ImageQt.ImageQt(self.imageProcessor.sepia())
-
-        self.out_widget.setPixmap(QPixmap.fromImage(image))
+        if(self.process == 'lock'):
+            self.popup.new_msg("Wait while applying is filter")
         
-        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
-
-        self.partial_unhide()
+        self.process = 'lock'
+        
+        def callback():
+            self.image = ImageQt.ImageQt(self.imageProcessor.sepia())
+                
+            self.out_widget.setPixmap(QPixmap.fromImage(self.image))
+            
+            self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+            
+            self.partial_unhide()
+            
+            self.process = 'unlock'
+        
+        self.animation = self.partial_hide()
+        
+        self.animation.start()
+        
+        self.animation.finished.connect(callback)
 
     def cherry(self):
-        self.partial_hide()
-
-        image = ImageQt.ImageQt(self.imageProcessor.cherry())
-
-        self.out_widget.setPixmap(QPixmap.fromImage(image))
+        if(self.process == 'lock'):
+            self.popup.new_msg("Wait while applying is filter")
         
-        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
-
-        self.partial_unhide()
+        self.process = 'lock'
+        
+        def callback():
+            self.image = ImageQt.ImageQt(self.imageProcessor.cherry())
+                
+            self.out_widget.setPixmap(QPixmap.fromImage(self.image))
+            
+            self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+            
+            self.partial_unhide()
+            
+            self.process = 'unlock'
+        
+        self.animation = self.partial_hide()
+        
+        self.animation.start()
+        
+        self.animation.finished.connect(callback)
 
     def underwater(self):
-        self.partial_hide()
-
-        image = ImageQt.ImageQt(self.imageProcessor.underwater())
-
-        self.out_widget.setPixmap(QPixmap.fromImage(image))
+        if(self.process == 'lock'):
+            self.popup.new_msg("Wait while applying is filter")
         
-        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
-
-        self.partial_unhide()
+        self.process = 'lock'
+        
+        def callback():
+            self.image = ImageQt.ImageQt(self.imageProcessor.underwater())
+                
+            self.out_widget.setPixmap(QPixmap.fromImage(self.image))
+            
+            self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+            
+            self.partial_unhide()
+            
+            self.process = 'unlock'
+        
+        self.animation = self.partial_hide()
+        
+        self.animation.start()
+        
+        self.animation.finished.connect(callback)
 
     def purple(self):
-        self.partial_hide()
-
-        image = ImageQt.ImageQt(self.imageProcessor.purple())
-
-        self.out_widget.setPixmap(QPixmap.fromImage(image))
+        if(self.process == 'lock'):
+            self.popup.new_msg("Wait while applying is filter")
         
-        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
-
-        self.partial_unhide()
+        self.process = 'lock'
+        
+        def callback():
+            self.image = ImageQt.ImageQt(self.imageProcessor.purple())
+                
+            self.out_widget.setPixmap(QPixmap.fromImage(self.image))
+            
+            self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+            
+            self.partial_unhide()
+            
+            self.process = 'unlock'
+        
+        self.animation = self.partial_hide()
+        
+        self.animation.start()
+        
+        self.animation.finished.connect(callback)
 
     def pink(self):
-        self.partial_hide()
-
-        image = ImageQt.ImageQt(self.imageProcessor.pink())
-
-        self.out_widget.setPixmap(QPixmap.fromImage(image))
+        if(self.process == 'lock'):
+            self.popup.new_msg("Wait while applying is filter")
         
-        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
-
-        self.partial_unhide()
+        self.process = 'lock'
+        
+        def callback():
+            self.image = ImageQt.ImageQt(self.imageProcessor.pink())
+                
+            self.out_widget.setPixmap(QPixmap.fromImage(self.image))
+            
+            self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+            
+            self.partial_unhide()
+            
+            self.process = 'unlock'
+        
+        self.animation = self.partial_hide()
+        
+        self.animation.start()
+        
+        self.animation.finished.connect(callback)
 
     def dark(self):
-        self.partial_hide()
-
-        image = ImageQt.ImageQt(self.imageProcessor.dark())
-
-        self.out_widget.setPixmap(QPixmap.fromImage(image))
+        if(self.process == 'lock'):
+            self.popup.new_msg("Wait while applying is filter")
         
-        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
-
-        self.partial_unhide()
+        self.process = 'lock'
+        
+        def callback():
+            self.image = ImageQt.ImageQt(self.imageProcessor.dark())
+                
+            self.out_widget.setPixmap(QPixmap.fromImage(self.image))
+            
+            self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+            
+            self.partial_unhide()
+            
+            self.process = 'unlock'
+        
+        self.animation = self.partial_hide()
+        
+        self.animation.start()
+        
+        self.animation.finished.connect(callback)
 
     def clear(self):
-        self.partial_hide()
-
-        image = ImageQt.ImageQt(self.imageProcessor.clear())
-
-        self.out_widget.setPixmap(QPixmap.fromImage(image))
+        if(self.process == 'lock'):
+            self.popup.new_msg("Wait while applying is filter")
         
-        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
-
-        self.partial_unhide()
+        self.process = 'lock'
+        
+        def callback():
+            self.image = ImageQt.ImageQt(self.imageProcessor.clear())
+                
+            self.out_widget.setPixmap(QPixmap.fromImage(self.image))
+            
+            self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+            
+            self.partial_unhide()
+            
+            self.process = 'unlock'
+        
+        self.animation = self.partial_hide()
+        
+        self.animation.start()
+        
+        self.animation.finished.connect(callback)
         
     def realistic(self):
-        self.partial_hide()
-
-        image = ImageQt.ImageQt(self.imageProcessor.realistic())
-
-        self.out_widget.setPixmap(QPixmap.fromImage(image))
+        if(self.process == 'lock'):
+            self.popup.new_msg("Wait while applying is filter")
         
-        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
-
-        self.partial_unhide()
+        self.process = 'lock'
+        
+        def callback():
+            self.image = ImageQt.ImageQt(self.imageProcessor.realistic())
+                
+            self.out_widget.setPixmap(QPixmap.fromImage(self.image))
+            
+            self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+            
+            self.partial_unhide()
+            
+            self.process = 'unlock'
+        
+        self.animation = self.partial_hide()
+        
+        self.animation.start()
+        
+        self.animation.finished.connect(callback)
     
     def cool_filter(self):
-        self.partial_hide()
-
-        new_image = ImageQt.ImageQt(self.imageProcessor.cool())
-
-        self.out_widget.setPixmap(QPixmap.fromImage(new_image))
+        if(self.process == 'lock'):
+            self.popup.new_msg("Wait while applying is filter")
         
-        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
-
-        self.partial_unhide()
+        self.process = 'lock'
+        
+        def callback():
+            self.image = ImageQt.ImageQt(self.imageProcessor.cool())
+                
+            self.out_widget.setPixmap(QPixmap.fromImage(self.image))
+            
+            self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+            
+            self.partial_unhide()
+            
+            self.process = 'unlock'
+        
+        self.animation = self.partial_hide()
+        
+        self.animation.start()
+        
+        self.animation.finished.connect(callback)
         
     def clear_filter(self):
-        self.partial_hide()
-
-        Animation.fade(Animation , self.out_widget , end=0.4).start()
+        if(self.process == 'lock'):
+            self.popup.new_msg("Wait while applying is filter")
         
-        image = ImageQt.ImageQt(self.imageProcessor.clear())
-
-        # self.out_widget.setPixmap(QPixmap.fromImage(image)) 
+        self.process = 'lock'
         
-        self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
-
-        self.partial_unhide()
+        def callback():
+            self.image = ImageQt.ImageQt(self.imageProcessor.clear())
+                
+            self.out_widget.setPixmap(QPixmap.fromImage(self.image))
+            
+            self.out_widget.pixmap().save("GalleryMan/assets/processed_image.png")
+            
+            self.partial_unhide()
+            
+            self.process = 'unlock'
         
-        # opacity.setOpacity(1)
+        self.animation = self.partial_hide()
         
-        # self.out_widget.setGraphicsEffect(opacity)
+        self.animation.start()
         
+        self.animation.finished.connect(callback)
+    
     def remove_self(self):
         self.scrollArea.setFixedWidth(self.original)
         

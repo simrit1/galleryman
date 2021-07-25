@@ -134,3 +134,11 @@ QLabel[class="headertext"]{{
     font-family: {headerFontFamily};
     font-size: {headerFontSize};
 }}
+
+QLabel[class="liked"]{{
+    color: #88C
+}}
+
+QLabel[class="unliked"]{{
+    color: #88C0D0
+}}

@@ -72,11 +72,9 @@ class Worker(QObject):
                 else:
                     color_rest = (color_rest + 1) % len(colors)
 
-                res = inst.update(curr, x, y, False, colors[color_rest])
+                res = imagesFolder.update(inst , curr, x, y, False, colors[color_rest])
 
                 if res:
-                    # inst.no += 1
-
                     x += width + padding
 
                     if x > inst.window.width() - width:

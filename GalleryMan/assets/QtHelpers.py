@@ -122,7 +122,7 @@ class Thrower:
 
             label.setText("  ")
             
-            label.setStyleSheet("background-color: transparent; font-family: SauceCodePro Nerd Font")
+            label.setStyleSheet("background-color: transparent; font-family: SauceCodePro Nerd Font; color: #BF616A")
             
             label.setFixedHeight(200)
 

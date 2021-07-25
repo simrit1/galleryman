@@ -57,6 +57,8 @@ class Main:
         
         self.window.keyPressEvent = self.keyHandler
         
+        QtCore.qInstallMessageHandler(self.messageHandler)
+        
         central = QWidget(self.window)
         
         layout = QVBoxLayout(central)
@@ -233,6 +235,9 @@ class Main:
             
         except:
             pass
+        
+    def messageHandler(self , msg_type , msg_log_content , msg_string):
+        pass
         
 def main():
     app = Main()

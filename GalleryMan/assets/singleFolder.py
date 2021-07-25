@@ -1,8 +1,7 @@
 # Importing all the required modules
-
-from math import ceil
-from PIL import Image , ImageOps
-import functools, gc, json
+from math import ceil, inf
+from PIL import Image , ExifTags
+import functools, gc, json , datetime , pathlib
 from configparser import ConfigParser
 from random import randint
 from GalleryMan.utils.readers import change_with_config, read_file
@@ -26,6 +25,7 @@ from PyQt5.QtCore import (
 from PyQt5.QtGui import QCursor, QKeySequence, QPixmap, QTransform
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
+    QCommonStyle,
     QGraphicsOpacityEffect,
     QHBoxLayout,
     QLabel,
@@ -46,15 +46,14 @@ class FindAll(QObject):
     
     curr = pyqtSignal(int , str)
     
-    request_label = pyqtSignal()
+    request_label = pyqtSignal(str)
     
     label = None
 
     def run(self , inst , dirs , card_width , card_height , padding , color_mode , colors , x , y):
-        done , processing = 0 , ""
+        done = 0
         
         for i in dirs:     
-            
             self.accepted = False
                         
             i = str(i)
@@ -74,7 +73,7 @@ class FindAll(QObject):
             
             self.curr.emit(done , temp)
             
-            self.request_label.emit()
+            self.request_label.emit(i)
             
             while not self.accepted:
                 self.test = True
@@ -132,11 +131,11 @@ class MakePixmap(QObject):
         
         self.finished.emit()
         
-class AddToLiked(QThread):
-    def __init__(self , parent , dir):
-        super().__init__(parent)
-        
+class AddToLiked:    
+    def __init__(self , parent , dir , remove=False):        
         self.dir = dir
+        
+        self.remove = remove
     
     def run(self):        
         with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt" , "r") as f:            
@@ -145,13 +144,14 @@ class AddToLiked(QThread):
             if(data == ""): data = []
             
             else: data = json.loads(data)
-        
-        if(self.dir in data):
-            return
-        
-        with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt" , "w") as f:                        
-            data.append(self.dir)
             
+        with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt" , "w") as f:                       
+            if(self.remove):
+                data.remove(self.dir)
+
+            else:
+                data.append(self.dir)
+                         
             f.write(json.dumps(data))
                         
         
@@ -458,11 +458,7 @@ class singleFolderView():
         gc.collect()
     
     def lolcat(self):
-        self.loader.setText("DONE!")
-        
-        import time
-        
-        time.sleep(0.5)
+        self.loader.setText("   DONE")
         
         self.animations = QParallelAnimationGroup()
         
@@ -481,8 +477,10 @@ class singleFolderView():
     def update(self , num , s):
         self.loader.setText("Loaded {} images \n Loading {}".format(num , s))
         
-    def sendLabel(self):                
+    def sendLabel(self , dir):                
         label = CustomLabel(self.labelArea)
+        
+        label.clicked.connect(functools.partial(self.show_image , dir))
         
         self.worker.label = label
         
@@ -571,27 +569,31 @@ class singleFolderView():
         # |___________________________|
         #
 
-        icons = json.loads(self.config.get("singleFolder", "editorButtons-icons"))
+        self.icons = json.loads(self.config.get("singleFolder", "editorButtons-icons"))
 
         i = 0
 
         functions = [
-            functools.partial(self.addToLiked , self.directory_name),
-            self.rotate_image,
-            functools.partial(self.switch_to_cropper , self.directory_name),
-            functools.partial(self.switch_to_filters , self.directory_name),
-            functools.partial(self.switch_to_palette , self.directory_name),
-            functools.partial(self.save_edited , name),
-            self.closeEditor()
+            lambda : self.addToLiked(),
+            lambda : self.rotate_image(),
+            lambda : self.switch_to_cropper(self.directory_name),
+            lambda : self.switch_to_filters(self.directory_name),
+            lambda : self.switch_to_palette(self.directory_name),
+            lambda : self.save_edited(name),
+            lambda : self.show_info(name),
+            lambda : self.closeEditor()
         ]
         
         self.heartWidget = None
+        
+        with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt") as file:
+            dirs = json.loads(file.read())
 
         # 3. Crop Image
-        for icon, icon_color, icon_font_size, icon_family in icons:
+        for icon, icon_color, icon_font_size, icon_family in self.icons:
 
             item = QCustomButton(icon, self.application, True).create()
-
+            
             item.setStyleSheet(
                 "color: {}; font-size: {}px; font-family: {}".format(
                     icon_color, icon_font_size, icon_family
@@ -604,12 +606,19 @@ class singleFolderView():
 
             second_layout.addWidget(item)
             
-            if(self.heartWidget == None): self.heartWidget = item
+            if(self.heartWidget == None):
+                item.setStyleSheet(
+                    "color: {}; font-size: {}px; font-family: {}".format(
+                        "#BF616A", icon_font_size, icon_family
+                    )
+                )
+                 
+                self.heartWidget = item
             
 
         self.directory_name = "GalleryMan/assets/processed_image.png"
 
-        del icons, icon, icon_color, icon_family, icon_font_size, self.pixmap
+        del icon, icon_color, icon_family, icon_font_size, self.pixmap
 
         self.new_layout = second_layout
                 
@@ -619,12 +628,118 @@ class singleFolderView():
 
         self.responser(None)
         
-    def addToLiked(self , dir):                
-        AddToLiked(self.application , self.origin).start()
-                
-        self.popup.new_msg(self.application , "Image Added To Liked Images" , 400)
+    def show_info(self, dir):
+        print("NOIW!")
         
-        Thrower(self.central.pos().x() + self.heartWidget.pos().x() + 13, self.central.pos().y() - self.heartWidget.pos().y() - 10, self.application).throw()
+        info = QLabel(self.main_window)
+        
+        info.setGeometry(self.image.geometry())
+                
+        layout = QVBoxLayout()
+        
+        path = QLabel(text=f'Path: {dir}')
+        
+        path.setStyleSheet("background-color: transparent; color: #D8DEE9; font-size: 23px")
+
+        path.setAlignment(Qt.AlignCenter)
+        
+        name = dir[dir.rindex('/') + 1:]
+        
+        layout.addWidget(path)
+        
+        path = QLabel(text=f'File Name: {name}')
+        
+        path.setStyleSheet("background-color: transparent; color: #D8DEE9; font-size: 23px")
+
+        path.setAlignment(Qt.AlignCenter)
+        
+        layout.addWidget(path)
+        
+        reso = list(Image.open(dir).size)
+        
+        path = QLabel(text=f'Resolution: {reso[0]} * {reso[1]}')
+        
+        path.setStyleSheet("background-color: transparent; color: #D8DEE9; font-size: 23px")
+
+        path.setAlignment(Qt.AlignCenter)
+        
+        layout.addWidget(path)
+        
+        size = os.path.getsize(dir)
+        
+        path = QLabel(text=f"Size: {size}bytes ({round(size / 1e+6 , 2)}MB)")
+        
+        path.setStyleSheet("background-color: transparent; color: #D8DEE9; font-size: 23px")
+
+        path.setAlignment(Qt.AlignCenter)
+        
+        layout.addWidget(path)
+        
+        info.setLayout(layout)
+        
+        rgb = tuple([int("2E3440"[i : i + 2], 16) for i in (0, 2, 4)] + [0.7])
+        
+        info.setStyleSheet(f"background-color: rgba{rgb}")
+        
+        self.animation = Animation.fadingAnimation(Animation , info , 200 , True)
+        
+        self.animation.start()
+        
+        self.animation.finished.connect(info.show)
+        
+        self.cross = QCustomButton("" , info).create()
+        
+        self.cross.setStyleSheet('color: #D8DEE9; background-color: transparent; font-size: 27px')
+                
+        self.cross.clicked.connect(info.hide)
+        
+        self.cross.setGeometry(QRect(
+            (95 / 100) * info.width(),
+            (92 / 100) * info.height(),
+            (5 / 100) * info.width(),
+            (5 / 100) * info.height(), 
+        ))
+        
+        self.cross.show()
+    
+        
+    def addToLiked(self):
+        with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt") as file:
+            dirs = json.loads(file.read())
+                    
+        if(self.origin in dirs):
+            AddToLiked(self.application , self.origin , True).run()
+            
+            self.popup.new_msg(self.application , "Image Removed From Liked Images" , 400)
+            
+            self.heartWidget.setStyleSheet(
+                "color: {}; font-size: {}px; font-family: {}".format(
+                    self.icons[0][1] , self.icons[0][2], self.icons[0][3]
+                )
+            )
+            
+            
+        else:
+            
+            AddToLiked(self.application , self.origin).run()
+                    
+            self.popup.new_msg(self.application , "Image Added To Liked Images" , 400)
+            
+            self.heartWidget.setStyleSheet(
+                "color: {}; font-size: {}px; font-family: {}".format(
+                    "#BF616A", self.icons[0][2], self.icons[0][3]
+                )
+            )
+            
+            self.application.style().unpolish(self.application)
+
+            self.application.style().polish(self.application)
+
+            self.application.update()
+            
+            Thrower(self.central.pos().x() + self.heartWidget.pos().x() + 13, self.central.pos().y() - self.heartWidget.pos().y() - 10, self.application).throw()
+            
+        
 
     def save_edited(self, dir):
         parent = dir[: dir.rindex("/")]
@@ -775,7 +890,7 @@ class singleFolderView():
 
         self.textBox.textChanged.connect(self.update_text)
 
-        self.slider.valueChanged.connect(functools.partial(self.show , self.slider.value()))
+        self.slider.valueChanged.connect(lambda : self.show(self.slider.value()))
 
         self.layout.addWidget(self.slider)
 
@@ -796,20 +911,12 @@ class singleFolderView():
     def removecropper(self):
         self.shortcut.setKey(QKeySequence())
 
-        # value = 180 if int(self.textBox.text()) == 180 else int(self.textBox.text()) + 180
-        value = int(self.textBox.text())
+        value = -int(self.textBox.text())
+                
+        image = Image.open("GalleryMan/assets/processed_image.png").convert("RGBA")
         
-        if(value in [90 , 270 , 360]): value += 180
-        elif(value == 180): value = value
-        else:
-            value -= 89
-        
-        image = Image.open("GalleryMan/assets/processed_image.png")
-        
-        image = ImageOps.exif_transpose(image).convert("RGBA")
-        
-        image = image.rotate(value, expand=1, fillcolor=(255, 255, 255, 0))
-
+        image = image.rotate(value , expand=1 , fillcolor=(255, 0, 0, 0))
+                    
         image.save("GalleryMan/assets/processed_image.png")
 
         self.parallel = QParallelAnimationGroup()

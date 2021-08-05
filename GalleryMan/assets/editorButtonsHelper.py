@@ -5,10 +5,9 @@ from GalleryMan.utils.readers import getFontNameFromFile
 import os
 from GalleryMan.utils.doodleImage import PolyGon
 from functools import partial
-from singleFolder import CustomLabel, QRotateLabel
 from math import atan2, pi
 from PIL import Image , ImageDraw , ImageFont
-from PyQt5.QtCore import QLine, QParallelAnimationGroup, QPoint, QPropertyAnimation, QRect, QRectF, QSize, QStandardPaths, Qt
+from PyQt5.QtCore import QAbstractAnimation, QLine, QParallelAnimationGroup, QPoint, QPropertyAnimation, QRect, QRectF, QSize, QStandardPaths, QVariant, QVariantAnimation, Qt, pyqtSlot
 from GalleryMan.assets.QEditorButtons import FilterView, PaletteView
 from configparser import ConfigParser
 from PyQt5.QtGui import QColor, QCursor, QFont, QFontInfo, QFontMetrics, QImage, QMouseEvent, QPaintDevice, QPainterPath, QPen, QPixmap, QTransform
@@ -16,6 +15,65 @@ from PyQt5.QtWidgets import QApplication, QGraphicsItem, QGraphicsScene, QGraphi
 from GalleryMan.assets.QtHelpers import Animation, PopUpMessage, QContinueButton, QCustomButton, QLayoutMaker, QSliderMenu, Thrower
 from json import loads
 from GalleryMan.utils.helpers import *
+
+class CustomLabel(QLabel):
+    clicked = pyqtSignal(QPoint)
+
+    def __init__(self, parent=None , listenFor = Qt.LeftButton):
+        super().__init__(parent=parent)
+        
+        self.listenFor = listenFor
+
+    def mouseReleaseEvent(self, event: QMouseEvent):
+        if event.button() == self.listenFor:
+            self.clicked.emit(event.pos())
+            
+            self.eventPos = event.pos()
+            
+class QRotateLabel(QLabel):
+    def __init__(self, *args, **kwargs):
+        super(QRotateLabel, self).__init__(*args, **kwargs)
+        self._pixmap = QPixmap()
+
+        self.curr = 0
+
+        self.initial = 0
+
+        self.init_ani()
+
+    def init_ani(self):
+        self._animation = QVariantAnimation(
+            self,
+            startValue=self.initial,
+            endValue=self.curr,
+            duration=100,
+            valueChanged=self.on_valueChanged,
+        )
+
+        self.initial = self.curr
+
+    def set_pixmap(self, pixmap):
+        self._pixmap = pixmap
+        self.setPixmap(self._pixmap)
+
+    def start_animation(self, deg):
+        if self._animation.state() != QAbstractAnimation.Running:
+            self.curr, self.initial = deg, self.curr
+
+            self.init_ani()
+
+            self._animation.start()
+
+    def get_curr_deg(self):
+        return self.curr % 360
+
+    @pyqtSlot(QVariant)
+    def on_valueChanged(self, value):
+        t = QTransform()
+        t.rotate(value)
+        self.setPixmap(self._pixmap.transformed(t))
+
+
 
 class QEditorHelper:
     def __init__(self , parent: QApplication , application: QMainWindow , central: QWidget , config: ConfigParser, newParent: QScrollArea , out_widget) -> None:

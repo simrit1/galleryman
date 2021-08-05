@@ -3,7 +3,7 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import QParallelAnimationGroup, QPoint, QPropertyAnimation, QRect, QSize, QTimer
 from PyQt5.QtGui import QCursor
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QGraphicsOpacityEffect, QHBoxLayout, QLabel, QPushButton
+from PyQt5.QtWidgets import QGraphicsOpacityEffect, QHBoxLayout, QLabel, QLayout, QPushButton, QScrollArea, QVBoxLayout, QWidget
 
 class QtCrossButton:
     def __init__(self, window) -> None:
@@ -87,7 +87,7 @@ class Exposure:
 
 class Thrower:
     def __init__(self, x, y, window) -> None:
-        self.x = x
+        self.x = x - 10
         self.y = y
         self.window = window
 
@@ -115,8 +115,8 @@ class Thrower:
         self.blurs = QParallelAnimationGroup()
         
         for left, right in zip(
-            [self.x - 50, self.x + 50, self.x + 0],
-            [self.y - 70, self.y - 70, self.y + 40],
+            [self.x - 40, self.x + 40, self.x ],
+            [self.y - 65, self.y - 65, self.y + 35],
         ):
             label = QLabel(self.window)
 
@@ -189,6 +189,11 @@ class QCustomButton:
 class PopUpMessage:            
     def new_msg(self , window , msg , duration):        
         self.window = window
+        
+        try:
+            self.popup_window.hide()
+        except:
+            pass
         
         self.popup_window = QLabel(self.window)
                 
@@ -353,3 +358,79 @@ class QBalloonToopTip:
         ))
         
         tool.show()
+        
+class QLayoutMaker:
+    def __init__(self , icons: list[list[str]] , functions: list) -> None:
+        self.icons = icons
+        self.functions = functions
+        
+    def make(self) -> QHBoxLayout:
+        layout = QHBoxLayout()
+        
+        i = 0
+        
+        for icon, icon_color, icon_font_size, icon_family in self.icons:
+            item = QCustomButton(icon, None).create()
+            
+            item.setStyleSheet(
+                "color: {}; font-size: {}px; font-family: {}".format(
+                    icon_color, icon_font_size, icon_family
+                )
+            )
+
+            item.clicked.connect(self.functions[i])
+
+            i += 1
+
+            layout.addWidget(item)
+        
+        return layout
+
+class QSliderMenu(QLabel):
+    def __init__(self , parent) -> None:
+        super().__init__(parent)
+        
+        self.head = parent
+        
+        self.setGeometry(QRect(2000, 0, 400, 1000))
+
+        self.show()
+
+        layout = QVBoxLayout(self)
+
+        self.scrollArea = QScrollArea(self)
+
+        layout.addWidget(self.scrollArea)
+
+        self.buttons = QWidget(self)
+
+        self.buttons.setGeometry(QRect(100, 0, 400, 1000))
+
+        self.scrollArea.setWidget(self.buttons)
+
+        self.second_layout = QVBoxLayout(self.buttons)
+
+        self.buttons.setLayout(self.second_layout)
+
+        
+    def addMenu(self , name , widget , addAsLayout = False):
+        childLayout = QVBoxLayout()
+        
+        nameLabel = QLabel()
+        
+        nameLabel.setText(name)
+        
+        nameLabel.setGeometry(self.geometry())
+        
+        nameLabel.setStyleSheet("color: white; font-size: 20px; font-family: Comfortaa")
+        
+        childLayout.addWidget(nameLabel)
+        
+        if(addAsLayout):
+            childLayout.addLayout(widget)
+        else:
+            childLayout.addWidget(widget)
+        
+        widget.setGeometry(self.geometry())
+        
+        self.second_layout.addLayout(childLayout)

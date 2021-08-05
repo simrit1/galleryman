@@ -9,6 +9,7 @@ from PyQt5.QtCore import (
     QPoint,
     QPropertyAnimation,
     QRect,
+    QSize,
     Qt,
     QTimer,
     pyqtSignal,
@@ -54,7 +55,7 @@ class QDoublePushButton(QPushButton):
             self.timer.start(250)
 
 
-class FirstPage():
+class FirstPage:
     """
     Main UI's First And Second Page
 
@@ -71,8 +72,13 @@ class FirstPage():
         application: QMainWindow,
         scrollArea: QScrollArea,
         config: ConfigParser,
+        topbar: QWidget,
+        app
     ) -> None:
-        super().__init__()
+        
+        self.app = app
+        
+        self.topbar = topbar
 
         self.application = application
 
@@ -120,7 +126,7 @@ class FirstPage():
         self.header_text = QLabel(text="Welcome To GalleryMan!", parent=self.window)
 
         # Center Alignment
-        self.header_text.setAlignment(Qt.AlignCenter)
+        self.header_text.setAlignment(Qt.AlignCenter | Qt.AlignBottom)
 
         # Set Geometry
         self.header_text.setGeometry(QRect(140, 450, 640, 100))
@@ -153,6 +159,8 @@ class FirstPage():
 
         # Add finishing touches
         self.responser(None)
+        
+        self.application.show()
 
     def go_to_next(self):
         "Goes to next page, which is the directory selection page"
@@ -221,7 +229,7 @@ class FirstPage():
 
         moving_animation.setStartValue(QPoint(0, 80))
 
-        moving_animation.setEndValue(QPoint(0, 20))
+        moving_animation.setEndValue(QPoint(0, 0))
 
         self.animation.addAnimation(moving_animation)
 
@@ -369,9 +377,7 @@ class FirstPage():
         gc.collect()
 
         # Call the main class
-        imagesFolder(self.window, self.application, self.scrollarea, self.config).start(
-            self.header_text
-        )
+        imagesFolder(self.window, self.application, self.scrollarea, self.config , self.topbar , self.app).start(self.header_text)
 
     def update_dirs(self, directory: str):
         """Updates the directories label with the new directory
@@ -499,38 +505,18 @@ class FirstPage():
             self.scans.add(directory)
 
     def responser(self, _):
-        try:
-
-            # Check if the geometry of the window is changed
-            curr = self.application.geometry()
-
-            self.window.setGeometry(curr)
-
-            if (
-                curr.size().width() != self.original_window_size
-                or curr.size().height() != self.height
-            ):
-                self.height = curr.size().height()
-
-                self.original_window_size = curr.size().width()
-
-                # Update sizes if yes
-                self.update_sizes(curr.size())
-
-        except:
-
-            pass
-
-    def update_sizes(self, point: QRect):
+        self.update_sizes(self.application.size())
+                
+    def update_sizes(self, point: QSize):        
         width = point.width()
 
         height = point.height()
-
+    
         self.window.setGeometry(self.application.geometry())
 
-        self.header_text.setGeometry(0, (height // 2) - 170, width, 100)
+        self.header_text.setGeometry(0, (height // 2) - 130, width, 100)
 
-        self.next.setGeometry(QRect(0, height // 2 - 60, width, 100))
+        self.next.setGeometry(QRect(0, (height // 2) - 10, width, 100))
 
         if self.isdir_open:
             self.header_text.setGeometry(0, 10, width, 100)

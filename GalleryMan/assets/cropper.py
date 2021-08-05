@@ -1,129 +1,96 @@
 # Import All Modules
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import  QDialogButtonBox, QPushButton
-from functools import partial
-from PyQt5.QtCore import Qt, pyqtSignal
+from GalleryMan.utils.helpers import ResizableRubberBand
+from GalleryMan.assets.QtHelpers import QContinueButton
+from PIL import Image 
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtWidgets import QGraphicsScene, QLabel, QMainWindow
+from PyQt5.QtCore import QPoint, QRect, QSize, Qt, pyqtSignal
 
+class Resizable(QLabel):
+    def __init__(self , parent):
+        super().__init__(parent)
+        
+        self.setGeometry(QRect(10 , 10 , 100 , 100))
+        
+        self.setStyleSheet("background-color: rgb(255 , 0 , 0)")
+        
+    def createHandles(self):
+        for pos in [Qt.AlignTop | Qt.AlignLeft , Qt.AlignTop | Qt.AlignRight , Qt.AlignBottom | Qt.AlignLeft , Qt.AlignBottom | Qt.AlignRight]:
+            label = QLabel(self)
+            
+            label.setFixedSize(QSize(10 , 10))
+            
+            label.setStyleSheet("border: 1px solid white")
+            
+            label.setAlignment(pos)
+            
+            label.show()
+            
 # Main Cropper Class
 class ImageCropper(QtWidgets.QGraphicsView):
+    # Signals
     closed = pyqtSignal()
-    
+        
     # __init__ the QGraphicsView Class
-    def __init__(self, main_window , name , out_widget , callback):
-        super().__init__(QtWidgets.QGraphicsScene(main_window) , parent=main_window)
+    def __init__(self, inst , main_window: QMainWindow, name , out_widget , callback):                
+        super().__init__(main_window)
         
-        self.callback = callback
-        # Make the arguments global        
-        self.out_widget = out_widget
+        self.originalResponser = main_window.resizeEvent
         
-        self.main_window = main_window
+        main_window.resizeEvent = self.resizeEvent
+        
+        self.graphicsScene = QGraphicsScene(self)
+        
+        self.setGeometry(QRect(0 , 0 , 1980 , 1080))
+        
+        self.setScene(self.graphicsScene)
+        
+        self.setAlignment(Qt.AlignTop | Qt.AlignLeft)
                 
-        # Change The Cursor (Use A CrossHair Pointer)
-        self.main_window.setCursor(QtGui.QCursor(QtCore.Qt.CrossCursor))
+        self.pixmap = self.graphicsScene.addPixmap(QtGui.QPixmap("GalleryMan/assets/processed_image.png"))
         
-        # Add Pixmap 
-        self.pixmap_item = self.scene().addPixmap(QtGui.QPixmap(name))
+        self.cropper = ResizableRubberBand()
         
-        # Set Geometry
-        self.setGeometry(QtCore.QRect(0, 0, 1980, 1080))
+        self.scene().addWidget(self.cropper)
         
-        # Set Stylesheet
-        self.setStyleSheet("background-color: #2E3440;")
+        self.cropper.setGeometry(QRect(50 , 50 , 300 , 300))
         
-        # Set Alignment
-        self.setAlignment(QtCore.Qt.AlignCenter)
+        self.cropper.show()
         
-        # Background Role
-        self.setBackgroundRole(QtGui.QPalette.Dark)
+        self.continueCrop = QContinueButton(self).start()
         
-        # Use A PyQt's Rubber Band While Dragging.
-        self.setDragMode(QtWidgets.QGraphicsView.RubberBandDrag)
+        self.continueCrop.setStyleSheet("""
+            color: #D8DEE9;
+            font-size: 20px;                         
+            background-color: transparent;         
+        """)
         
-        # Connect to the function when the user expands the rubber band
-        self.rubberBandChanged.connect(self.onRubberBandChanged)
+        self.continueCrop.enterEvent(None)
         
-        self.last_rect = QtCore.QPointF()
+        self.continueCrop.setGeometry(QRect(50 , 50 , 500 , 100))
+        
+        self.continueCrop.clicked.connect(self.continueCropping)
+        
+        self.resizeEvent(main_window.size())
+        
 
-    def setPixmap(self, pixmap):
-        self.pixmap_item.setPixmap(pixmap)
-
-    @QtCore.pyqtSlot(QtCore.QRect, QtCore.QPointF, QtCore.QPointF)
-    def onRubberBandChanged(self, rubberBandRect, fromScenePoint, toScenePoint):
-        if rubberBandRect.isNull():
-
-            pixmap = self.pixmap_item.pixmap()
-
-            rect = self.pixmap_item.mapFromScene(self.last_rect).boundingRect().toRect()
-
-            if not rect.intersected(pixmap.rect()).isNull():
-
-                self.crop_pixmap = pixmap.copy(rect)
-
-                label = QtWidgets.QLabel(pixmap=self.crop_pixmap)
-                
-                self.dialog = QtWidgets.QDialog(self)
-                
-                self.buttons = QtWidgets.QDialogButtonBox(self.dialog)
-                
-                self.buttons.setFixedWidth(self.crop_pixmap.size().width())
-                
-                # Buttons
-                for text in [" ReCrop" , " Continue" , "﫼 Exit"]:
-                    button = QPushButton()
-                    
-                    button.setText(text)
-                    
-                    self.buttons.addButton(button , QDialogButtonBox.ActionRole)
-                    
-                    button.setFlat(True)
-                    
-                    button.clicked.connect(partial(self.parser , text))
-                    
-                    button.setCursor(QtGui.QCursor(QtCore.Qt.PointingHandCursor))
-                                        
-                    button.setStyleSheet('font-size: 25px')
-                    
-                lay = QtWidgets.QVBoxLayout(self.dialog)
-                
-                lay.addWidget(label)
-                
-                lay.setSpacing(20)
-                
-                lay.addWidget(self.buttons)
-                
-                self.dialog.exec_()
-
-            self.last_rect = QtCore.QRectF()
-        else:
-            self.last_rect = QtCore.QRectF(fromScenePoint, toScenePoint)
-            
-    def parser(self , text):
-        if(text == " ReCrop"):
-            self.dialog.close()
-            
-        elif(text == " Continue"):
-            self.dialog.close()
-            
-            self.crop_pixmap.save('GalleryMan/assets/processed_image.png')
-            
-            self.out_widget.set_pixmap(QtGui.QPixmap('GalleryMan/assets/processed_image.png'))
-            
-            self.out_widget.show()
-            
-            self.hide()     
-            
-            self.closed.emit()
-            
-            self.callback()
-            
-            self.main_window.setCursor(QtGui.QCursor(Qt.ArrowCursor))
-               
-        else:
-            
-            self.hide()
-            
-            self.callback()
-            
-            self.dialog.close()
-            
-            self.closed.emit()
+    def continueCropping(self):
+        image = Image.open("GalleryMan/assets/processed_image.png")
+        
+        x , y , width , height = self.cropper.geometry().x() , self.cropper.geometry().y() ,  self.cropper.geometry().width() ,  self.cropper.geometry().height()
+        
+        image = image.crop((x , y , width + x , height + y))
+        
+        image.save("new_image.png")
+        
+    def resizeEvent(self, event: QtGui.QResizeEvent) -> None:
+        try:
+            self.continueCrop.move(QPoint(
+                event.size().width() - 200,
+                event.size().height() - 100,
+            ))
+        except:
+            self.continueCrop.move(QPoint(
+                event.width() - 200,
+                event.height() - 100,
+            ))

@@ -1,7 +1,9 @@
 # Import all the required modules
+from GalleryMan.utils.initer import Initer
 from functools import partial
 from GalleryMan.assets.QtHelpers import QCustomButton
 import argparse
+import json
 from os import system
 import os
 import sys
@@ -12,6 +14,7 @@ from GalleryMan.views.firstPage import FirstPage
 from GalleryMan.utils.readers import read_file , change_with_config
 from GalleryMan.views.folderview import imagesFolder
 from PyQt5.QtWidgets import QApplication, QGraphicsOpacityEffect, QHBoxLayout, QLabel , QMainWindow, QPushButton, QScrollArea, QVBoxLayout, QWidget
+from GalleryMan.assets.singleFolder import singleFolderView
 
 class ScrollLabel(QScrollArea):
     def __init__(self, *args, **kwargs):
@@ -46,27 +49,30 @@ class CustomLabel(QLabel):
 
                       
 class Main:
-    def createApp(self):
+    def createApp(self , showOnlyImage=False):
         self.curr = "Hide"
         
         app = QApplication([])
                 
         self.window = QMainWindow()
         
+        self.window.setWindowTitle("GalleryMan")
+        
         self.window.mousePressEvent = self.mouseHandler
         
         self.window.keyPressEvent = self.keyHandler
-        
-        QtCore.qInstallMessageHandler(self.messageHandler)
+                
+        def except_hook(cls, exception, traceback):
+            sys.__excepthook__(cls, exception, traceback)
+            
+        sys.excepthook = except_hook
         
         central = QWidget(self.window)
         
         layout = QVBoxLayout(central)
         
         self.scrollArea = QScrollArea(central)
-        
-        self.scrollArea.verticalScrollBar().valueChanged.connect(self.valueHandler)
-                
+                        
         layout.addWidget(self.scrollArea)
         
         contents = QWidget(self.window)
@@ -74,7 +80,7 @@ class Main:
         contents.setGeometry(self.window.geometry())
                 
         self.scrollArea.setWidget(contents)
-        
+                
         self.scrollArea.verticalScrollBar().setEnabled(False)
         
         self.scrollArea.verticalScrollBar().hide()
@@ -97,17 +103,17 @@ class Main:
         
         self.helper.show()
         
-        self.topbar = QLabel(self.helper)
+        self.topbar = QLabel(self.window)
         
         self.topbar.setGeometry(QRect(
-            1600 , 0,
+            self.window.width() - 400 , 0,
             200,
             50
         ))
         
         self.topbar.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
         
-        self.topbar.setStyleSheet('background-color: transparent;')
+        self.helper.setStyleSheet('background-color: transparent;')
         
         layoout = QHBoxLayout()
         
@@ -115,12 +121,14 @@ class Main:
         
         functions = [
             self.window.showMinimized,
-            self.window.showMaximized,
-            app.quit
+            lambda : self.window.showFullScreen(),
+            lambda : app.exit(1)
         ]
         
-        for i in [" " , "  " , "  "]:            
-            button = QPushButton(i , self.topbar)
+        stylesheet , config = change_with_config(read_file('GalleryMan/sass/styles.txt'))
+        
+        for icon , color , size , font in json.loads(config.get("singleFolder" , "topBar-buttons")):            
+            button = QPushButton(icon , self.topbar)
             
             button.setCursor(QCursor(Qt.PointingHandCursor))
             
@@ -128,15 +136,19 @@ class Main:
             
             button.setFlat(True)
             
-            button.setStyleSheet('font-family: "SauceCodePro Nerd Font"; color: #88C0D0; font-size: 25px')
+            button.setStyleSheet('font-family: {}; color: {}; font-size: {}px'.format(
+                font , color , size
+            ))
             
             layoout.addWidget(button , alignment=Qt.AlignTop | Qt.AlignRight)
+            
+        button.clicked.connect(lambda : print("Thanks for using GalleryMan!"))
+        
+        button.clicked.connect(exit)
             
         self.topbar.setLayout(layoout)
                 
         self.window.setCentralWidget(central)
-        
-        stylesheet , config = change_with_config(read_file('GalleryMan/sass/styles.txt'))
             
         status = read_file('GalleryMan/galleryman.status')
                 
@@ -149,17 +161,25 @@ class Main:
         label.move(QPoint(0 , 30))
         
         label.setAlignment(Qt.AlignCenter)
-
-        if(status == 'NOT REGISTERED'):            
-            ui = FirstPage(contents , self.window , self.scrollArea , config)
-            
-            args = []
-        else:
-            ui = imagesFolder(contents , self.window , self.scrollArea , config)
-            
-            args = [label]
         
-        ui.start(*args)
+        if(showOnlyImage):
+            ui = singleFolderView()
+            
+            ui.init(self.window , "./themes" , config , self.scrollArea , self.window , app , label)
+            
+            self.window.show()
+            
+            ui.show_image('/home/strawhat54/Pictures/ONE_P/darker_than_black.jpg' , None)
+            
+        elif(status == 'NOT REGISTERED'):            
+            ui = FirstPage(contents , self.window , self.scrollArea , config , self.topbar , app)
+                        
+            ui.start()
+            
+        else:
+            ui = imagesFolder(contents , self.window , self.scrollArea , config , self.topbar , app)        
+        
+            ui.start(label)
         
         self.window.setStyleSheet(stylesheet)
 
@@ -207,7 +227,7 @@ class Main:
     def update(self , new):
         self.curr = new
         
-    def keyHandler(self , event: QKeyEvent):
+    def keyHandler(self , event: QKeyEvent):        
         if(event.key() == QtCore.Qt.Key_F11):
             if(self.window.isFullScreen()):
                 self.window.showNormal()
@@ -217,17 +237,7 @@ class Main:
     def create_files(self):    
         with open("/home/strawhat54/.config/galleryman/data/scan_dirs.txt" , "w") as f:
             f.write("[]")
-            
-    def valueHandler(self):
-        value = self.scrollArea.verticalScrollBar().value()
-                
-        if(value == 0):
-            stylesheet = "background-color: rgb(46 , 52 , 64)"
         
-        else:
-            stylesheet = "background-color: rgba(46 , 52 , 64 , 75)"
-            
-        self.helper.setStyleSheet(stylesheet)
         
     def mouseHandler(self , _):
         try:
@@ -255,6 +265,10 @@ def main():
     parser.add_argument("--reset" , dest="remove" , help="Resets all configs and data" , action="store_true")
     
     parser.add_argument("--open" , dest="open" , help="Opens config file" , action="store_true")
+    
+    parser.add_argument("--init" , dest="init" , help="Initiates GalleryMan" , action="store_true")
+    
+    parser.add_argument("--show" , dest="show" , help="Shows a particular image")
 
     args = parser.parse_args()
     
@@ -262,5 +276,9 @@ def main():
         input("Enter the file location (Press enter to select cwd): ")
     elif(args.open):
         system("nano config.ini || emacs config.ini || vim config.ini || code config.ini || echo 'Oops! You dont have a preferred editor!'")
+    elif(args.init):
+        Initer().init()
+    elif(args.show):
+        app.createApp(True)
     else:
         app.createApp()

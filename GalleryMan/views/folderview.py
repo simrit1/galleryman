@@ -1,15 +1,16 @@
 from configparser import ConfigParser
+import functools
 import json, os
 import pathlib
 from random import randint
-from PyQt5.QtCore import QObject, QParallelAnimationGroup, QPoint, QRect, QThread, pyqtSignal
+from PyQt5.QtCore import QObject, QParallelAnimationGroup, QPoint, QRect, QSize, QThread, pyqtSignal
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QLabel, QMainWindow, QScrollArea, QWidget
+from PyQt5.QtWidgets import QHBoxLayout, QLabel, QMainWindow, QScrollArea, QVBoxLayout, QWidget
 from PyQt5.QtGui import QColor, QCursor, QMovie, QPixmap
-from GalleryMan.assets.singleFolder import singleFolderView
+from GalleryMan.assets.singleFolder import CustomLabel, singleFolderView
 from GalleryMan.views.directoryView import QDoublePushButton
 from math import ceil
-from GalleryMan.assets.QtHelpers import Animation, PopUpMessage, QBalloonToopTip
+from GalleryMan.assets.QtHelpers import Animation, PopUpMessage, QBalloonToopTip, QCustomButton
 
 class PixmapHeaderMaker(QObject):
     finished = pyqtSignal()
@@ -36,30 +37,20 @@ class PixmapHeaderMaker(QObject):
             
         self.finished.emit()
 
-class Loader(QObject):
-    finished = pyqtSignal()
-    
-    def run(self , parent):
-        self.movie = QMovie(parent)
-        
-        self.movie.setFileName("GalleryMan/assets/loader.gif")
-        
-        parent.setMovie(self.movie)
-            
-        self.movie.start()     
-        
-        self.finished.emit() 
-        
+
 class Worker(QObject):
     finished = pyqtSignal()
     
-    def run(self , inst , mode , colors , x , y , width , height , padding):
+    def run(self , inst , mode , colors , x , y , width , height , padding , includeFavs=True):
         LIKED_FOLDERS = ".config/galleryman/data/likedPhotos.txt"
+        
+        if(includeFavs):
+            inst.dirs += [".config/galleryman/data/likedPhotos.txt"]
         
         color_rest = 0
                 
         # Iterate through all the dirs
-        for i in [LIKED_FOLDERS] + inst.dirs:            
+        for i in inst.dirs:            
             # Create a complete path of the folder
             curr = "{}/{}".format(os.path.expanduser("~"), i)
 
@@ -81,7 +72,39 @@ class Worker(QObject):
                         x = 40
 
                         y += height + padding
-                        
+            
+        self.panel = QLabel(inst.main_window)
+        
+        self.panel.setStyleSheet("background-color: #2E3440")
+        
+        self.layout = QHBoxLayout()
+        
+        inst.albums = QCustomButton(" " , None).create()
+        
+        inst.albums.setFixedWidth(300)
+        
+        inst.albums.clicked.connect(inst.switchToAlbums)
+        
+        self.layout.addWidget(inst.albums)
+        
+        inst.albums.setStyleSheet("color: #88C0D0; font-size: 30px")
+        
+        inst.trash = QCustomButton(" " , None).create()
+        
+        inst.trash.clicked.connect(inst.moveToThrash)
+        
+        inst.trash.setFixedWidth(300)
+        
+        inst.trash.setStyleSheet("color: #88C0D0; font-size: 40px")
+    
+        self.layout.addWidget(inst.trash)
+        
+        self.panel.setGeometry(QRect(0 , 940 , 1887 , 64))
+        
+        self.panel.show()
+        
+        self.panel.setLayout(self.layout)
+                                
         self.finished.emit()
 
 class imagesFolder():
@@ -93,8 +116,12 @@ class imagesFolder():
         main_window: QMainWindow,
         scroll: QScrollArea,
         config: ConfigParser,
+        topbar: QWidget,
+        app
     ) -> None:
-        super().__init__()
+        self.app = app
+        
+        self.topbar = topbar
         
         self.main_window = main_window
 
@@ -107,6 +134,8 @@ class imagesFolder():
         self.scroll.horizontalScrollBar().valueChanged.connect(
             lambda: self.scroll.horizontalScrollBar().setValue(0)
         )
+        
+        self.currentWindow = "albums"
 
         self.window = window
 
@@ -124,6 +153,8 @@ class imagesFolder():
         self.images.setGeometry(QRect(0, 0, 1980, 1080))
         
         self.images.show()
+        
+        self.trashFoldersLayout = None
         
         self.allFolders = []
         
@@ -152,15 +183,23 @@ class imagesFolder():
 
         self.dirs = os.listdir(os.path.expanduser("~"))
 
-        self.label_to_change = QLabel(text="Albums", parent=self.window)
+        self.label_to_change = QLabel(text="Albums", parent=self.main_window)
 
         self.label_to_change.setGeometry(label_to_change.geometry())
 
         self.label_to_change.setAlignment(label_to_change.alignment())
+        
+        self.label_to_change.setStyleSheet("""
+            color: {};
+            font-family: {};
+            font-size: {}px;                                   
+        """.format(
+            self.config.get("folderPage" , "headerText-color"),
+            self.config.get("folderPage" , "headerText-fontFamily"),
+            self.config.get("folderPage" , "headerText-fontSize"),
+        ))
 
         self.label_to_change.show()
-
-        self.update_styling()
 
         # Change The Name Of The Window
         self.window.setObjectName("PyGallery")
@@ -173,15 +212,13 @@ class imagesFolder():
 
         # Change StyleSheet
         self.folderHeaderText.setStyleSheet(
-            """color: {}; font-family: {}; font-size: {};""".format(
-                self.config.get("folderPage", "restFolders-folderNameColor"),
-                self.config.get("folderPage", "restFolders-folderNameFontFamily"),
-                self.config.get("folderPage", "restFolders-folderNameSize") + "px",
+            """color: {}; font-family: {}; font-size: {}px;""".format(
+                self.config.get("folderPage", "folders-folderNameColor"),
+                self.config.get("folderPage", "folders-folderNameFontFamily"),
+                self.config.get("folderPage", "folders-folderNameSize"),
             )
         )
         
-        
-
         # Set Fixed Width And Height
         self.folderHeaderText.setFixedHeight(50)
 
@@ -192,7 +229,7 @@ class imagesFolder():
 
         # Change Text
         self.folderHeaderText.setText(
-            self.config.get("folderPage", "restFolders-icon")[1:-1] + "Folders"
+            self.config.get("folderPage", "folders-icon")[1:-1] + "Folders"
         )
 
         # Show The Text
@@ -205,8 +242,6 @@ class imagesFolder():
 
         # Create x and y variables which will determine the position of the folder's card
         x, y = 40, self.folderStartValue
-
-        colors = self.config.get("folderPage", "folders-color")
 
         height, width = int(self.config.get("folderPage", "folders-height")), int(
             self.config.get("folderPage", "folders-width")
@@ -450,10 +485,10 @@ class imagesFolder():
         # Hide the messages if the folders is not empty
         if self.allFolders != []:
             self.hide_msg()
-
+            
         # Check how many cards can fit in one line
-        self.per_line = max((self.main_window.width() - padding - 50) // card_width, 1)
-
+        self.per_line = max((self.main_window.width() - 140) // card_width, 1)
+                        
         # New x and y positions
         x, y = 40, 220
 
@@ -473,9 +508,8 @@ class imagesFolder():
 
         except:
             pass
-
-        # Create new x and y positions according to the height being used by the pinned folders
-        height = self.main_window.size().height()
+                    
+        self.topbar.move(QPoint(self.main_window.width() - 200 , 0))
 
         x, y = 40, self.folderStartValue
 
@@ -487,11 +521,31 @@ class imagesFolder():
             # Update x and y
             x += card_width + padding
 
-            if x > self.main_window.width() - 260:
+
+            if x > self.main_window.width() - 240:
                 x = 40
 
                 y += card_height + padding
+                
+        x, y = 40, self.folderStartValue
+        
+        try:
+            for i in self.thrashItem:
+                self.an.addAnimation(
+                    Animation.movingAnimation(Animation, i, QPoint(x, y), 100)
+                )
 
+                # Update x and y
+                x += card_width + padding
+
+
+                if x > self.main_window.width() - 240:
+                    x = 40
+
+                    y += card_height + padding
+        
+        except:
+            pass
         # Check if the msg exists
         try:
             self.an.addAnimation(
@@ -501,13 +555,12 @@ class imagesFolder():
             )
         except:
             pass
-        
-        perline = max((self.main_window.size().width() - 100) // card_width , 1)
                 
         self.width = (
             self.label_to_change.height()
-            + ((card_width + padding) * max(self.no , 1) // perline)
-            - padding
+            + ((card_height + padding) * max(self.no , 1) // self.per_line)
+            + self.folderHeaderText.height() 
+            + padding
         )
 
         self.width = max(self.width, self.main_window.size().height())
@@ -649,7 +702,187 @@ class imagesFolder():
             self.config,
             self.scroll,
             self.main_window,
+            self.app,
             self.label_to_change,
             self.images,
             self.folderHeaderText,
             *self.args)
+    
+    def createThrashLayout(self):                
+        self.trashFoldersLayout = QLabel(self.images.parent())
+        
+        self.trashFoldersLayout.setGeometry(self.images.geometry())
+        
+        x , y = 40 , self.folderStartValue
+                        
+        mode = self.config.get("folderPage", "folders-mode")[1:-1]
+
+        colors = json.loads(self.config.get("folderPage", "folders-color"))
+        
+        height, width = int(self.config.get("folderPage", "folders-height")), int(
+            self.config.get("folderPage", "folders-width")
+        )
+
+        height += int(self.config.get("folderPage", "folders-borderWidth"))
+
+        padding = int(self.config.get("folderPage", "folders-padding"))
+        
+        self.thrashItem = []
+        
+        for file in os.listdir('/home/strawhat54/.galleryman/data/thrashFiles/'):
+            label = CustomLabel(self.trashFoldersLayout , Qt.RightButton)
+            
+            label.setGeometry(QRect(
+                x , y,
+                width , height
+            ))
+            
+            label.clicked.connect(functools.partial(self.showDeleteOptions , "/home/strawhat54/.galleryman/data/thrashFiles/" + file , label))
+            
+            label.setPixmap(QPixmap("/home/strawhat54/.galleryman/data/thrashFiles/" + file))
+            
+            label.setScaledContents(True)
+            
+            label.setStyleSheet("border: 10px solid #88C0D0")
+            
+            x += width + padding
+            
+            if(x > self.main_window.width()):
+                x = 40
+                
+                y += height + padding
+                        
+            label.show()
+            
+            self.thrashItem.append(label)
+            
+        self.trashFoldersLayout.show()
+    
+    def moveToThrash(self):
+        if(self.currentWindow == "trash"): return
+        
+        self.currentWindow = "trash"
+        
+        def run_second():
+            self.label_to_change.setText("Thrash")
+            
+            self.animation = QParallelAnimationGroup()
+            
+            if(self.trashFoldersLayout == None):
+                self.createThrashLayout()
+            
+            self.animation.addAnimation(Animation.fadingAnimation(Animation, self.label_to_change , 200 , True))
+            
+            self.animation.start()
+                
+        self.animation = QParallelAnimationGroup()
+        
+        self.animation.addAnimation(Animation.fadingAnimation(Animation , self.images , 200))
+        
+        self.animation.addAnimation(Animation.fadingAnimation(Animation , self.label_to_change , 200))
+        
+        self.animation.finished.connect(run_second)
+        
+        self.trash.setStyleSheet("font-size: 60px; color: #88C")
+        
+        self.albums.setStyleSheet("font-size: 30px")
+        
+        self.animation.start()
+        
+    def showDeleteOptions(self , directory , parent, pos):
+        try:
+            self.options.hide()
+            
+        except:
+            
+            pass
+        
+        self.main_window.mousePressEvent = lambda pos : self.options.hide()
+        
+        self.options = QLabel(parent)
+        
+        self.options.setProperty("class" , "need")
+        
+        self.options.setStyleSheet("""
+            border: 1px solid #4C566A;
+        """)
+        
+        self.options.move(pos)
+        
+        self.options.setFixedSize(QSize(200 , 100))
+        
+        layout = QVBoxLayout()
+        
+        for layoutOption , func in zip(["Restore" , "Delete"] , [lambda : self.restoreImage(directory) , self.deleteForever]):
+            label = QCustomButton(layoutOption , None).create()
+            
+            label.clicked.connect(func)
+            
+            label.setFixedHeight(50)
+            
+            label.setStyleSheet("""
+                color: #D8DEE9;
+                font-size: 20px;
+                border: none       
+            """)
+            
+            layout.addWidget(label)
+            
+        self.options.setLayout(layout)
+        
+        self.options.show()
+        
+    def restoreImage(self , directory):
+        with open('/home/strawhat54/.galleryman/data/thrashLogs.txt') as f:
+            trashFiles = dict(json.loads(f.read()))
+            
+        try:
+            dest = trashFiles.pop(directory)
+            
+        except:
+            
+            return
+        
+        os.replace(directory , dest)
+        
+        self.popup.new_msg(self.main_window , "File restored" , 200)
+    
+    def deleteForever(self):
+        pass
+    
+    def switchToAlbums(self):
+        if(self.currentWindow == "albums"): return
+        
+        self.currentWindow = "albums"
+        
+        def run_second():
+            self.label_to_change.setText("Albums")
+            
+            self.trashFoldersLayout.hide()
+            
+            self.animation = QParallelAnimationGroup()
+            
+            self.animation.addAnimation(Animation.fadingAnimation(Animation , self.images , 300 , True))
+        
+            self.animation.addAnimation(Animation.fadingAnimation(Animation , self.label_to_change , 300 , True))
+            
+            self.animation.start()
+            
+            self.animation.finished.connect(self.images.show)
+        
+        self.animation = QParallelAnimationGroup()
+                
+        try:
+            self.animation.addAnimation(Animation.fadingAnimation(Animation , self.trashFoldersLayout , 300))
+        except:
+            pass
+        
+        self.animation.addAnimation(Animation.fadingAnimation(Animation , self.label_to_change , 300))
+        
+        self.animation.finished.connect(run_second)
+        
+        self.animation.start()
+        
+        self.albums.setStyleSheet("font-size: 50px; color: #88C")
+        
+        self.trash.setStyleSheet("font-size: 40px")

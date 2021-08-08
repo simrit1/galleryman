@@ -1,4 +1,3 @@
-from PIL.ImageQt import ImageQt
 from PIL import Image
 from PIL.ImageFilter import *
 from PIL import ImageEnhance

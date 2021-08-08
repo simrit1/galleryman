@@ -1,12 +1,11 @@
 # Importing all the required modules
 from GalleryMan.assets.editorButtonsHelper import QEditorHelper
-from math import ceil, inf
-from PIL import Image , ExifTags
-import functools, gc, json , datetime , pathlib
+from math import ceil
+import functools, gc, json
 from configparser import ConfigParser
 from random import randint
 from GalleryMan.utils.readers import change_with_config, read_file
-from GalleryMan.assets.QtHelpers import Animation, PopUpMessage, QCustomButton, Thrower
+from GalleryMan.assets.QtHelpers import Animation, PopUpMessage, QCustomButton
 from PyQt5.QtCore import (
     QAbstractAnimation,
     QObject,
@@ -14,37 +13,29 @@ from PyQt5.QtCore import (
     QPoint,
     QPropertyAnimation,
     QRect,
-    QRunnable,
     QThread,
-    QThreadPool,
-    QTimer,
     QVariant,
     QVariantAnimation,
     pyqtSignal,
     pyqtSlot,
 )
-from PyQt5.QtGui import QCursor, QKeySequence, QMouseEvent, QPixmap, QTransform
+from PyQt5.QtGui import QCursor, QMouseEvent, QPixmap, QTransform
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QApplication,
-    QCommonStyle,
     QGraphicsOpacityEffect,
     QHBoxLayout,
     QLabel,
-    QLineEdit,
     QMainWindow,
     QPushButton,
     QScrollArea,
-    QShortcut,
-    QSlider,
-    QTextEdit,
     QVBoxLayout,
     QWidget,
 )
 import os
-from GalleryMan.assets.QEditorButtons import Cropper, FilterView, PaletteView
 
 class FindAll(QObject):
+    # Signals and slots
     finished = pyqtSignal()
     
     curr = pyqtSignal(int , str)
@@ -54,36 +45,45 @@ class FindAll(QObject):
     label = None
 
     def run(self , inst , dirs , card_width , card_height , padding , color_mode , colors , x , y):
+        # A variable to keep track of the number of cards
         done = 0
         
         for i in dirs:     
+            
+            # Make the accepted variable false
             self.accepted = False
-                        
+            
+            # Parse to sring
             i = str(i)
             
+            # Check if the image is a supported format
             if os.path.isdir(i) or i[-3:] not in [
                 "png",
-                "svg",
                 "jpg",
                 "jpeg",
             ]:
                 continue
                         
-            
+            # Add done
             done = done + 1
             
+            # Get first 50 letters of the path
             temp = i[:50] + '...' if len(i) > 50 else i
             
+            # Send the number of uimages parsed and current parsing image to the signal
             self.curr.emit(done , temp)
             
+            # Request label
             self.request_label.emit(i)
             
+            # Wait while the request is accepted
             while not self.accepted:
                 self.test = True
             
-
+            # Create the card
             self.final(inst , i , card_width , card_height , padding , color_mode , colors , x , y)
             
+            # Update x and y pos
             x += card_width + padding
             
             if x > inst.application.size().width() - 250:
@@ -91,13 +91,17 @@ class FindAll(QObject):
 
                 y += card_height + padding
         
+        # Add finishing touches
         inst.responser(None)
         
+        # Emit the finish signal
         self.finished.emit()
             
     def final(self , inst , i , card_width , card_height , padding , color_mode , colors , x , y):                       
+        # Create pixmap        
         MakePixmap().run(i , card_width , card_height , self.label)
-                
+        
+        # Check for color mode
         if color_mode == "single":
             inst.index = 0
         elif color_mode == "random":
@@ -105,23 +109,27 @@ class FindAll(QObject):
         else:
             inst.index = (inst.index + 1) % len(colors)
 
-        
+        # Set geomerty
         self.label.setGeometry(QRect(0, 0, card_width, card_height))
-                                
         
+        # Use Pointing cursor on hover
         self.label.setCursor(QCursor(Qt.PointingHandCursor))
-
+        
+        # Use border accordingly
         self.label.setStyleSheet(
             "border: {}px solid {}".format(
                 inst.config.get("singleFolder" , "card-borderWidth"),
                 colors[inst.index]
             )
         )
-
+        
+        # Call a function on click
         self.label.clicked.connect(functools.partial(inst.show_image, i))
-
+        
+        # Move to correct x and y pos
         self.label.move(QPoint(x, y))
-
+        
+        # Add to folder list
         inst.folders.append(self.label)
 
 class MakePixmap(QObject):    
@@ -133,31 +141,6 @@ class MakePixmap(QObject):
         parent.setPixmap(pixmap)
         
         self.finished.emit()
-        
-class AddToLiked:    
-    def __init__(self , parent , dir , remove=False):        
-        self.dir = dir
-        
-        self.remove = remove
-    
-    def run(self):        
-        with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt" , "r") as f:            
-            data = f.read()
-                                    
-            if(data == ""): data = []
-            
-            else: data = json.loads(data)
-            
-        with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt" , "w") as f:                       
-            if(self.remove):
-                data.remove(self.dir)
-
-            else:
-                data.append(self.dir)
-                         
-            f.write(json.dumps(data))
-                        
-        
 
 class CustomLabel(QLabel):
     clicked = pyqtSignal(QPoint)
@@ -168,6 +151,7 @@ class CustomLabel(QLabel):
         self.listenFor = listenFor
 
     def mouseReleaseEvent(self, event: QMouseEvent):
+        # Listen for click on label
         if event.button() == self.listenFor:
             self.clicked.emit(event.pos())
             
@@ -229,8 +213,7 @@ class singleFolderView():
         app: QApplication,
         *args
     ) -> None:
-        self.scaled = json.loads(config.get("singleFolder", "editor-imageScaled"))
-        
+                
         self.app = app
         
         self.scroll = scroll
@@ -288,8 +271,10 @@ class singleFolderView():
         self.start()
 
     def remove_self(self):
+        # A Parallel Animation class
         self.animation = QParallelAnimationGroup()
         
+        # Hide opened image
         try:
             self.main_window.hide()
             
@@ -297,6 +282,7 @@ class singleFolderView():
         except:
             pass
         
+        # Hide folder's name
         try:
             self.name.hide()
             
@@ -304,6 +290,7 @@ class singleFolderView():
         except Exception as e:
             pass
         
+        # Reset everything
         for i in [self.labelArea, self.name, self.go_back]:
             opacity = QGraphicsOpacityEffect()
 
@@ -346,6 +333,8 @@ class singleFolderView():
         self.animation.finished.connect(self.remove)
 
     def remove(self):
+        
+        # Hide and delete unused variable and collect garbage
         self.labelArea.hide()
 
         self.animation = self.main_window = self.labelArea = self.name = None
@@ -355,12 +344,14 @@ class singleFolderView():
         gc.collect()
 
     def start(self):
-                
+        
+        # Get the back button text
         self.go_back = QCustomButton(
             text=self.config.get("singleFolder", "back-buttonText")[1:-1],
             window=self.window,
         ).create()
-
+        
+        # Stylings
         self.go_back.setStyleSheet(
             """
             font-size: {}px;
@@ -372,7 +363,8 @@ class singleFolderView():
                 self.config.get("singleFolder", "back-buttonColor"),
             )
         )
-
+        
+        # Geometry
         self.go_back.setGeometry(
             QRect(
                 int(self.config.get("singleFolder", "back-buttonTopPadding")),
@@ -382,26 +374,37 @@ class singleFolderView():
             )
         )
         
-        self.currDirName = QLabel(self.application)
+        # # directory name label
+        # self.currDirName = QLabel(self.application)
         
-        self.currDirName.setGeometry(self.args[0].geometry())
+        # # Geometry
+        # self.currDirName.setGeometry(self.args[0].geometry())
         
-        self.currDirName.setText(self.directory)
+        # # Ste text
+        # self.currDirName.setText(self.directory)
         
-        self.currDirName.hide()
-
+        
+        # self.currDirName.hide()
+        
+        # Go back key bindings
         self.go_back.setShortcut("Alt+Left")
-
+        
+        # Call the function
         self.go_back.clicked.connect(self.remove_self)
-
+        
+        # Show
         self.go_back.show()
-
+        
+        # Area where images will be rendered
         self.labelArea = QLabel(self.window)
         
+        # Hide for a while
         self.labelArea.hide()
-
+        
+        # Geometry
         self.labelArea.setGeometry(QRect(0, 150 , 1980, 1080))
-
+        
+        # Get card properties
         padding = int(self.config.get("singleFolder", "card-padding"))
 
         card_width = int(self.config.get("singleFolder", "card-width"))
@@ -415,23 +418,31 @@ class singleFolderView():
         self.index = 0
 
         from pathlib import Path
-
+        
+        # Set a waiting cursor
         self.application.setCursor(Qt.BusyCursor)
-
+        
+        # Default x and y
         x, y = 40, 100
         
+        # Check if the clicked directory is of liked photes
         if(self.copy == "/home/strawhat54/.config/galleryman/data/likedPhotos.txt"):
             with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt" , "r") as file:
                 dirs = json.loads(file.read())
         else:
-            dirs = Path(self.copy).rglob("*")
             
+            dirs = Path(self.copy).rglob("*")
+        
+        # A loader which will show the track of processing
         self.loader = QLabel(self.application)
         
+        # Cover the whole area
         self.loader.setGeometry(self.application.geometry())
         
+        # Set text
         self.loader.setText("Loaded 0 images \n\n Starting")
         
+        # Some stylings
         self.loader.setStyleSheet("""
             QLabel{
                 color: #88C0D0;
@@ -440,10 +451,13 @@ class singleFolderView():
             }                      
             """)
         
+        # Alignment
         self.loader.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
         
+        # Show
         self.loader.show()
         
+        # Thread which will process
         self.thread = QThread(self.application)
         
         self.worker = FindAll()
@@ -454,66 +468,71 @@ class singleFolderView():
                 
         self.thread.started.connect(functools.partial(self.worker.run , self , dirs , card_width , card_height , padding , color_mode , colors , x , y))
         
+        # Send label on request
         self.worker.request_label.connect(self.sendLabel)
         
+        # Quit thread on finish
         self.worker.finished.connect(self.thread.quit)
         
+        # Additional finishing touches
         self.worker.finished.connect(self.lolcat)
         
+        # Start
         self.thread.start()
-                    
-        self.responser(None)
         
+        # Reswitch to Arrow Cursor
         self.application.setCursor(Qt.ArrowCursor)
 
+        # Collect garbage (if any)
         gc.collect()
     
     def lolcat(self):
+        # Change the loader text to Done (yay)
         self.loader.setText("   DONE")
         
+        # Animation to show every element with a animation
         self.animations = QParallelAnimationGroup()
         
         self.animations.addAnimation(Animation.fadingAnimation(Animation , self.loader , 200))
         
         self.animations.addAnimation(Animation.fadingAnimation(Animation , self.labelArea , 200 , True))
         
+        # Show all the elements on finish
         self.animations.finished.connect(self.labelArea.show)
         
         self.animations.finished.connect(self.loader.hide)
         
+        # Call the responser for finishing touches
         self.animations.finished.connect(functools.partial(self.responser , None))
                 
+        # Start the animation
         self.animations.start()
         
     def update(self , num , s):
+        
+        # Update the loader text with new data
         self.loader.setText("Loaded {} images \n\n Loading {}".format(num , s))
         
-    def sendLabel(self , dir):                
+    def sendLabel(self , dir):        
+        
+        # Create a clickable label        
         label = CustomLabel(self.labelArea)
         
+        # Call the show image function on click
         label.clicked.connect(functools.partial(self.show_image , dir))
         
+        # Set the worker's label
         self.worker.label = label
         
+        # Set to accepted
         self.worker.accepted = True
-        
-
+    
     def show_image(self, name , pos):
+        
+        # Create copies of directory
         self.origin = name
 
         self.directory_name = name
-
-        """Editor Box
-
-        Args:
-            self.directory_name (str): The file location
-        """
-
-        #  ___________________________
-        # |                           |
-        # | Center Pixmap Adjustments |
-        # |___________________________|
-        #
 
         # Center Area (Main)
         self.main_window = QLabel(self.application)
@@ -541,51 +560,57 @@ class singleFolderView():
 
         # Set The Pixmap
         os.system('cp "{}" GalleryMan/assets/processed_image.png'.format(self.directory_name))
-
+    
         self.pixmap = QPixmap("GalleryMan/assets/processed_image.png")
 
         self.image.set_pixmap(self.pixmap)
 
-        # Again, Scaled Contents are cool :)
-        self.image.setScaledContents(self.scaled)
-
+        self.image.setScaledContents(True)
+        
+        # Buttons area
         self.central = QLabel(self.application)
-
+        
+        # Geomerty
         self.central.setGeometry(QRect(450, 850, 1010, 140))
-
+        
+        # Show 
         self.central.show()
-
+        
+        # Create layout 
         layout = QVBoxLayout(self.central)
-
+        
+        # Add scrollarea to it
         self.scrollArea = QScrollArea(self.central)
-
+        
         layout.addWidget(self.scrollArea)
-
+        
+        # Buttons label
         self.buttons = QWidget(self.main_window)
-
+        
+        # Set geomerty
         self.buttons.setGeometry(QRect(0, 850, 900, 100))
-
+        
+        # Set the scrollarea widget
         self.scrollArea.setWidget(self.buttons)
-
+        
+        # Inner button layout
         second_layout = QHBoxLayout(self.buttons)
-
+        
+        # Set layout
         self.buttons.setLayout(second_layout)
 
         # Set fixed spacing between the elements
         second_layout.setSpacing(1)
-
-        #  ___________________________
-        # |                           |
-        # |    Editor Buttons         |
-        # |___________________________|
-        #
-
+        
+        # Get preffered icons
         self.icons = json.loads(self.config.get("singleFolder", "editorButtons-icons"))
 
         i = 0
         
+        # Main helper class
         self.functional = QEditorHelper(self.app , self.application , self.central , self.config , self.scrollArea , self.image)
-
+        
+        # respective functions
         functions = [
             lambda : self.functional.copyToClipboard(self.origin),
             lambda : self.functional.showEditButtons(self.origin),
@@ -594,30 +619,35 @@ class singleFolderView():
             lambda : self.functional.moreInfo(self.directory_name),
         ]
         
+        
         self.heartWidget = 2
         
-        # with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt") as file:
-        #     dirs = json.loads(file.read())
-        
-        dirs = []
-
-        # 3. Crop Image
+        with open("/home/strawhat54/.galleryman/data/likedFolders.txt") as file:
+            dirs = json.loads(file.read())
+            
+        # Iterate through each icon
         for icon, icon_color, icon_font_size, icon_family in self.icons:
-
+            
+            # Create a custom redefined label with styling
             item = QCustomButton(icon, self.application, True).create()
             
+            # Stylings
             item.setStyleSheet(
                 "color: {}; font-size: {}px; font-family: {}".format(
                     icon_color, icon_font_size, icon_family
                 )
             )
-
+            
+            # Connect to the function
             item.clicked.connect(functions[i])
-
+            
+            # Increase i
             i += 1
-
+            
+            # Add to layout
             second_layout.addWidget(item)
             
+            # Check if it is a heart Widget
             if(type(self.heartWidget) == QPushButton):
                 item.setStyleSheet(
                     "color: {}; font-size: {}px; font-family: {}".format(
@@ -636,9 +666,6 @@ class singleFolderView():
                     
                     self.heartWidget -= 1
                     
-
-        self.directory_name = "GalleryMan/assets/processed_image.png"
-
         del icon, icon_color, icon_family, icon_font_size, self.pixmap
 
         self.new_layout = second_layout
@@ -649,463 +676,6 @@ class singleFolderView():
 
         self.responser(None)
         
-    def show_info(self, dir):        
-        info = QLabel(self.main_window)
-        
-        info.setGeometry(self.image.geometry())
-                
-        layout = QVBoxLayout()
-        
-        path = QLabel(text=f'Path: {dir}')
-        
-        path.setStyleSheet("background-color: transparent; color: #D8DEE9; font-size: 23px")
-
-        path.setAlignment(Qt.AlignCenter)
-        
-        name = dir[dir.rindex('/') + 1:]
-        
-        layout.addWidget(path)
-        
-        path = QLabel(text=f'File Name: {name}')
-        
-        path.setStyleSheet("background-color: transparent; color: #D8DEE9; font-size: 23px")
-
-        path.setAlignment(Qt.AlignCenter)
-        
-        layout.addWidget(path)
-        
-        reso = list(Image.open(dir).size)
-        
-        path = QLabel(text=f'Resolution: {reso[0]} * {reso[1]}')
-        
-        path.setStyleSheet("background-color: transparent; color: #D8DEE9; font-size: 23px")
-
-        path.setAlignment(Qt.AlignCenter)
-        
-        layout.addWidget(path)
-        
-        size = os.path.getsize(dir)
-        
-        path = QLabel(text=f"Size: {size} bytes ({round(size / 1e+6 , 2)} MB)")
-        
-        path.setStyleSheet("background-color: transparent; color: #D8DEE9; font-size: 23px")
-
-        path.setAlignment(Qt.AlignCenter)
-        
-        layout.addWidget(path)
-        
-        info.setLayout(layout)
-        
-        rgb = tuple([int("2E3440"[i : i + 2], 16) for i in (0, 2, 4)] + [0.7])
-        
-        info.setStyleSheet(f"background-color: rgba{rgb}")
-        
-        self.animation = Animation.fadingAnimation(Animation , info , 200 , True)
-        
-        self.animation.start()
-        
-        self.animation.finished.connect(info.show)
-        
-        self.cross = QCustomButton("" , info).create()
-        
-        self.cross.setStyleSheet('color: #D8DEE9; background-color: transparent; font-size: 27px')
-                
-        self.cross.clicked.connect(info.hide)
-        
-        self.cross.setGeometry(QRect(
-            (95 / 100) * info.width(),
-            (92 / 100) * info.height(),
-            (5 / 100) * info.width(),
-            (5 / 100) * info.height(), 
-        ))
-        
-        self.cross.show()
-    
-    def rename(self , dir):
-        self.test = QLineEdit(self.application)
-        
-        self.test.setGeometry(QRect(
-            (self.application.width() // 2) - 400,
-            (self.application.height() // 2) - 25,
-            800,
-            50
-        ))
-                
-        self.test.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
-                                
-        self.test.setStyleSheet("color: #D8DEE9; font-size: 25px; border: 1px solid #3B4252; font-family: 'Comfortaa'; padding-left: 10px")
-        
-        self.test.setText("New file name...")
-        
-        self.keybordShort = QShortcut(QKeySequence("Return"), self.application)
-        
-        self.escape = QShortcut(QKeySequence("Esc") , self.application)
-        
-        self.escape.activated.connect(self.test.hide)
-        
-        self.escape.activated.connect(lambda: self.escape.setKey(QKeySequence()))
-        
-        
-        
-        self.keybordShort.activated.connect(lambda : self.fileRename(dir))
-                
-        self.animation = Animation.fadingAnimation(Animation , self.test , 200 , True)
-        
-        self.animation.finished.connect(self.test.show)
-        
-        self.animation.start()
-    
-    def fileRename(self , file):
-        text = self.test.text().replace('\n' , '')
-        
-        self.test.setText(text)
-        
-        try:
-            filename , extension = text[:text.rindex('.')] , text[text.rindex('.') + 1:]
-            
-            text = file[:file.rindex('/')] + '/' + filename
-            
-            path = os.path.join(file[:file.rindex('/')], filename) + '.' + extension
-            
-            Image.open(file).convert("RGB").save("GalleryMan/assets/temp." + extension , quality=90)
-            
-            os.replace("GalleryMan/assets/temp." + extension , path)
-            
-            self.animation = Animation.fadingAnimation(Animation , self.test , 200)
-            
-            self.animation.start()
-            
-            self.animation.finished.connect(self.test.hide)
-            
-            self.keybordShort.setKey(QKeySequence())
-            
-            self.popup.new_msg(self.application , "Image renamed" , 200)
-            
-        except:
-            
-            self.popup.new_msg(self.application , "Invalid File Extension" , 200)
-            
-        
-        
-    def addToLiked(self):
-        with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt") as file:
-            dirs = json.loads(file.read())
-                    
-        if(self.origin in dirs):
-            AddToLiked(self.application , self.origin , True).run()
-            
-            self.popup.new_msg(self.application , "Image Removed From Liked Images" , 400)
-            
-            self.heartWidget.setStyleSheet(
-                "color: {}; font-size: {}px; font-family: {}".format(
-                    self.icons[0][1] , self.icons[0][2], self.icons[0][3]
-                )
-            )
-            
-            
-        else:
-            
-            AddToLiked(self.application , self.origin).run()
-                    
-            self.popup.new_msg(self.application , "Image Added To Liked Images" , 400)
-            
-            self.heartWidget.setStyleSheet(
-                "color: {}; font-size: {}px; font-family: {}".format(
-                    "#BF616A", self.icons[0][2], self.icons[0][3]
-                )
-            )
-            
-            self.application.style().unpolish(self.application)
-
-            self.application.style().polish(self.application)
-
-            self.application.update()
-            
-            Thrower(self.central.pos().x() + self.heartWidget.pos().x() + 13, self.central.pos().y() - self.heartWidget.pos().y() - 10, self.application).throw()
-            
-        
-
-    def save_edited(self, dir):
-        parent = dir[: dir.rindex("/")]
-
-        name = dir[dir.rindex("/") + 1 : -4] + "_edited.png"
-
-        os.system(
-            "mv GalleryMan/assets/processed_image.png  {}".format(
-                "{}/{}".format(parent, name)
-            )
-        )
-
-        self.popup.new_msg(self.application, "Image saved as {}".format(name), 200)
-
-        parent = name = None
-
-        del parent, name
-
-        self.closeEditor()
-
-        gc.collect()
-
-    def closeEditor(self):
-        self.animatui = QParallelAnimationGroup()
-
-        self.animatui.addAnimation(
-            Animation.fadingAnimation(Animation, self.main_window, 250)
-        )
-
-        self.animatui.addAnimation(
-            Animation.fadingAnimation(Animation, self.buttons, 250)
-        )
-
-        try:
-            self.animatui.addAnimation(
-                Animation.fadingAnimation(Animation, self.central, 250)
-            )
-        except:
-            pass
-
-        def callback():
-            self.main_window.hide()
-
-            try:
-                self.central.hide()
-            except:
-                pass
-
-        self.animatui.start()
-
-        self.animatui.finished.connect(callback)
-
-    def rotate_image(self):
-        self.image.set_pixmap(QPixmap("GalleryMan/assets/processed_image.png"))
-
-        self.new_label = QWidget(self.application)
-
-        width = int(self.config.get("singleFolder", "slider-width"))
-
-        input_width = int(self.config.get("singleFolder", "input-width"))
-
-        padding = int(self.config.get("singleFolder", "item-padding"))
-
-        self.new_label.setGeometry(
-            QRect(
-                int(self.config.get("singleFolder", "item-leftPadding")),
-                310,
-                width + padding + input_width + padding,
-                100,
-            )
-        )
-
-        self.scrollArea.takeWidget()
-
-        self.scrollArea.setWidget(self.new_label)
-
-        self.new_label.setStyleSheet("background-color: transparent;")
-
-        self.layout = QHBoxLayout()
-
-        self.layout.setSpacing(padding)
-
-        self.slider = QSlider(Qt.Horizontal)
-
-        self.slider.setMaximum(360)
-
-        self.slider.setMinimum(0)
-
-        self.slider.setFixedSize(
-            width,
-            int(self.config.get("singleFolder", "slider-height")),
-        )
-
-        self.slider.setStyleSheet(
-            """
-            QSlider::groove:horizontal{{
-                background-color: {};
-                border-radius: {}px; 
-                border: {}px solid {}     
-            }}
-            QSlider::handle:horizontal{{
-                width: {}px;
-                height: {}px;
-                color: {};
-                border-radius: {}px;
-                border: {}px solid {};
-            }}
-            """.format(
-                self.config.get("singleFolder", "slider-backgroundColor"),
-                self.config.get("singleFolder", "slider-borderRadius"),
-                self.config.get("singleFolder", "slider-borderWidth"),
-                self.config.get("singleFolder", "slider-borderColor"),
-                self.config.get("singleFolder", "slider-holderWidth"),
-                self.config.get("singleFolder", "slider-holderHeight"),
-                self.config.get("singleFolder", "slider-holderColor"),
-                self.config.get("singleFolder", "slider-holderRadius"),
-                self.config.get("singleFolder", "slider-holderBorderWidth"),
-                self.config.get("singleFolder", "slider-holderColor"),
-            )
-        )
-        
-        self.slider.valueChanged.connect(lambda : self.show(self.slider.value()))
-
-        self.textBox = QLineEdit()
-
-        self.textBox.setPlaceholderText("Image Degree")
-
-        self.textBox.setStyleSheet(
-            """
-            width: {}px;
-            height: {}px;
-            background-color: {};
-            font-size: {}px;
-            font-family: {};
-            color: {};
-            border-radius: {}px;
-            border: {}px solid {};                           
-        """.format(
-                input_width,
-                self.config.get("singleFolder", "input-height"),
-                self.config.get("singleFolder", "input-backgroundColor"),
-                self.config.get("singleFolder", "input-fontSize"),
-                self.config.get("singleFolder", "input-fontFamily"),
-                self.config.get("singleFolder", "input-textColor"),
-                self.config.get("singleFolder", "input-borderRadius"),
-                self.config.get("singleFolder", "input-borderWidth"),
-                self.config.get("singleFolder", "input-borderColor"),
-            )
-        )
-
-        self.textBox.textChanged.connect(self.update_text)
-
-        self.layout.addWidget(self.slider)
-
-        self.new_label.setLayout(self.layout)
-
-        self.layout.addWidget(self.textBox)
-
-        self.popup.new_msg(self.application, "Press Enter To Rotate The Image", 200)
-
-        self.shortcut = QShortcut(QKeySequence("Return"), self.application)
-
-        self.shortcut.activated.connect(self.removecropper)
-
-        del self.new_label, width, input_width, padding
-
-        gc.collect()
-
-    def removecropper(self):
-        self.shortcut.setKey(QKeySequence())
-
-        value = -int(self.textBox.text())
-                
-        image = Image.open("GalleryMan/assets/processed_image.png").convert("RGBA")
-        
-        image = image.rotate(value , expand=1 , fillcolor=(255, 0, 0, 0))
-                    
-        image.save("GalleryMan/assets/processed_image.png")
-
-        self.parallel = QParallelAnimationGroup()
-
-        anim = Animation.fadingAnimation(Animation, self.buttons, 400, True)
-
-        self.parallel.addAnimation(anim)
-
-        self.parallel.start()
-
-        self.image.set_pixmap(QPixmap("GalleryMan/assets/processed_image.png"))
-
-        self.parallel.finished.connect(self.switch_to_home)
-
-    def switch_to_home(self):
-        self.scrollArea.takeWidget()
-        
-        self.scrollArea.setWidget(self.buttons)
-
-    def update_text(self):
-        curr = self.textBox.text()
-
-        try:
-            curr = int(curr)
-        except:
-
-            return
-
-        self.slider.setValue(int(curr))
-
-        self.image.start_animation(curr)
-
-    def show(self, deg):
-        self.image.start_animation(deg)
-
-        self.textBox.setText(str(deg))
-
-    def switch_to_cropper(self, name):
-        try:
-
-            self.main_window.hide()
-        except:
-
-            pass
-
-        self.cropper = Cropper(
-            self , self.application, name, self.image, self.config, self.callback_2
-        )
-        
-        self.cropper.create()
-        
-    
-
-    def callback_2(self):
-        self.window.setCursor(QCursor(Qt.ArrowCursor))
-
-        try:         
-            self.main_window.show()
-        except:
-            pass
-
-        self.image.set_pixmap(QPixmap("GalleryMan/assets/processed_image.png"))
-
-    def switch_to_filters(self, name):
-        self.new_label = QWidget(self.application)
-
-        self.new_label.setGeometry(QRect(0, 850, 3000, 100))
-        
-        self.scrollArea.takeWidget()
-
-        self.scrollArea.setWidget(self.new_label)
-
-        # self.new_label.setStyleSheet("background-color: transparent;")
-
-        buttons = FilterView(
-            self.application,
-            self.window,
-            name,
-            self.image,
-            self.new_label,
-            json.loads(self.config.get("singleFolder", "filters-colorIcons")),
-            self.callback,
-        ).create()
-
-        self.new_label.setLayout(buttons)
-
-        self.responser(None)
-
-    def switch_to_palette(self, name):
-        self.new_label = QWidget(self.application)
-
-        self.scrollArea.takeWidget()
-
-        self.scrollArea.setWidget(self.new_label)
-
-        self.new_label.setGeometry(self.buttons.geometry())
-
-        self.new_label.setStyleSheet("background-color: transparent")
-
-        buttons = PaletteView(
-            self.application, name, self.image, self.config, self.callback
-        ).create()
-
-        self.new_label.setLayout(buttons)
-
     def callback(self):
         def finish():
             self.scrollArea.takeWidget()
@@ -1124,7 +694,9 @@ class singleFolderView():
 
         self.ani.finished.connect(finish)
 
-    def responser(self, _):        
+    def responser(self, _):     
+        
+        # Get required files   
         self.width = self.application.size().width()
 
         card_width = int(self.config.get("singleFolder", "card-width"))
@@ -1132,12 +704,17 @@ class singleFolderView():
         card_height = int(self.config.get("singleFolder", "card-height"))
 
         card_padding = int(self.config.get("singleFolder", "card-padding"))
-
+        
+        # Default x and y pos
         x, y = 40, 100
-
+        
+        # Parallel animation class to run all animations together
         self.animations = QParallelAnimationGroup()
-
+        
+        # Iterate through all the items 
         for i in self.folders:
+            
+            # Move the card to the desired location
             ani = QPropertyAnimation(i, b"pos")
 
             ani.setStartValue(i.pos())
@@ -1145,7 +722,8 @@ class singleFolderView():
             ani.setEndValue(QPoint(x, y))
 
             ani.setDuration(100)
-
+            
+            # Update x and y positions
             x += card_width + card_padding
 
             self.animations.addAnimation(ani)
@@ -1154,12 +732,14 @@ class singleFolderView():
                 x = 40
 
                 y += card_height + card_padding
-
+                
+        # Check how many cards can fit in one line
         self.perline = max((self.width - card_width) // card_width , 1)
 
         try:
             self.new_width = (50 / 100) * self.width
-
+            
+            # Get the new width and set to the central
             self.central.setGeometry(
                 QRect(
                     self.new_width // 2,
@@ -1173,31 +753,17 @@ class singleFolderView():
             pass
         
         try:
-            self.cropper.updateSize(self.application.size())
-        except:
-            pass
-        
-        try:
-            self.new_width = (50 / 100) * self.width
-
-            self.new_label.setGeometry(
-                QRect(
-                    self.new_width // 2,
-                    self.new_label.y(),
-                    self.new_width,
-                    self.new_label.height(),
-                )
-            )
-
             self.scrollArea.show()
         except:
 
             pass
-
-        self.height = 300 + (card_height + card_padding) * (ceil(len(self.folders) / self.perline))
-
-        self.window.setFixedHeight(self.height)
         
+        # Get the height
+        self.height = 300 + (card_height + card_padding) * (ceil(len(self.folders) / self.perline))
+        
+        # Set the height
+        self.window.setFixedHeight(self.height)
+    
         try:
             self.labelArea.setFixedHeight(self.height)
         except:
@@ -1219,29 +785,9 @@ class singleFolderView():
 
             pass
         
+        # Set additional sizes
         self.name.setFixedWidth(self.width)
 
         self.name.setAlignment(Qt.AlignCenter)
 
         self.animations.start()
-
-    def get_first(self, dir: str) -> str:
-        """Returns the first image in the folder, or None if no image is available
-
-        Args:
-            dir (str): [description]
-
-        Returns:
-            str: [description]
-        """
-
-        # Iterate through all the files and folders in the directory
-        for i in os.listdir(dir):
-
-            # Check if the image is a supported one
-            if i[i.rindex('.'):] in ["png", "jpeg", "jpg", "webp"] and not os.path.isdir(
-                "{}/{}".format(dir, i)
-            ):
-                return "{}/{}".format(dir, i)
-
-        return None

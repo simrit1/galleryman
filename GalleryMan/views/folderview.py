@@ -8,7 +8,7 @@ from PyQt5.QtGui import QColor, QCursor, QMovie, QPixmap
 from GalleryMan.assets.singleFolder import CustomLabel, singleFolderView
 from GalleryMan.views.directoryView import QDoublePushButton
 from math import ceil
-from GalleryMan.assets.QtHelpers import Animation, PopUpMessage, QBalloonToopTip, QCustomButton
+from GalleryMan.assets.QtHelpers import Animation, PopUpMessage, QCustomButton
 
 class PixmapHeaderMaker(QObject):
     finished = pyqtSignal()
@@ -905,12 +905,3 @@ class imagesFolder():
         self.albums.setStyleSheet("font-size: 50px; color: #88C")
         
         self.trash.setStyleSheet("font-size: 40px")
-        
-    def handleScrollEvent(self , value):
-        
-        if(self.originalPos > value):
-            self.label_to_change.move(self.label_to_change.x() , self.posX + value)
-        else:
-            self.label_to_change.move(self.label_to_change.x() , self.posX - value)
-            
-        self.originalPos = value

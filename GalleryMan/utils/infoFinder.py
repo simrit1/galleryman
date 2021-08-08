@@ -8,6 +8,8 @@ from PyQt5.QtWidgets import QLabel, QLineEdit, QShortcut, QVBoxLayout
 
 class getMoreInfo:
     def __init__(self , scrollArea , renderArea , directory , application) -> None:
+        
+        # Make every arg global
         self.renderArea = renderArea
         
         self.scrollArea = scrollArea
@@ -21,6 +23,8 @@ class getMoreInfo:
         self.image = Image.open("GalleryMan/assets/processed_image.png")
         
     def getInfo(self):
+        
+        # To prevent recreation of the parent over the widget, it would be better to hide the prent before hand
         try:
             self.animation = Animation.fadingAnimation(Animation , self.parent , 100)
             
@@ -31,6 +35,7 @@ class getMoreInfo:
         except Exception as e:
             pass
         
+        # Check if the rename option is not opened
         try:
             
             self.animation = Animation.fadingAnimation(Animation , self.renameParent , 100)
@@ -43,20 +48,26 @@ class getMoreInfo:
             
             pass
         
+        # Create a label 
         self.parent = QLabel(self.renderArea)
         
+        # Set a special property to prevent addition of the border on the child labels
         self.parent.setProperty("class" , "need")
         
+        # Set geometry
         self.parent.setGeometry(self.renderArea.geometry())
         
+        # Stylings
         self.parent.setStyleSheet("""
             QLabel[class="need"]{{
                 background-color: #2E3440; 
             }}
         """)
                 
+        # Create a layout which would hold every child labels
         layout = QVBoxLayout()
         
+        # File path child
         filePath = QLabel()
 
         filePath.setStyleSheet("""
@@ -70,6 +81,7 @@ class getMoreInfo:
         
         layout.addWidget(filePath)
         
+        # File name child
         filePath = QLabel()
 
         filePath.setStyleSheet("""
@@ -85,6 +97,8 @@ class getMoreInfo:
         
         width , height = Image.open(self.directory).size
         
+        
+        # Resolution child
         filePath = QLabel()
 
         filePath.setStyleSheet("""
@@ -100,6 +114,7 @@ class getMoreInfo:
                 
         bytesSize = os.path.getsize(self.directory)
         
+        # File size child
         filePath = QLabel()
 
         filePath.setStyleSheet("""
@@ -113,8 +128,10 @@ class getMoreInfo:
         
         layout.addWidget(filePath)
         
+        # Set the widget
         self.parent.setLayout(layout)
         
+        # Show the parent
         self.parent.show()
     
     def castToScreen(self):
@@ -159,46 +176,61 @@ class getMoreInfo:
             
             pass
         
+        # Create a label which will hold the text edit
         self.renameParent = QLabel(self.renderArea)
         
         self.renameParent.setProperty("class" , "need")
         
+        # New message
         self.message.new_msg(self.application , "Press Enter To Rename File" , 300)
         
+        # Listen for Enter click events
         key = QShortcut(QKeySequence("Return") , self.renameParent)
         
+        # Save the photo with a new filename on click 
         key.activated.connect(self.saveWithNew)
         
+        # Set geometry
         self.renameParent.setGeometry(self.renderArea.geometry())
         
+        # Stylings
         self.renameParent.setStyleSheet("""
             QLabel[class="need"]{{
                 background-color: #2E344050;
             }}
         """)
         
+        # Layout which will hold text edit
         layout = QVBoxLayout()
         
+        # Input box
         self.inputBox = QLineEdit()
         
+        # Sized
         self.inputBox.setFixedHeight(50)
         
         self.inputBox.setFixedWidth(1000)
         
+        # Placeholder
         self.inputBox.setPlaceholderText("New file name: ")
         
+        # Stylings
         self.inputBox.setStyleSheet("""
             color: #D8DEE9;
             font-size: 20px;
             font-family: Comfortaa                       
         """)
         
+        # Alignment
         self.inputBox.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
         
+        # Add to layout
         layout.addWidget(self.inputBox , alignment=Qt.AlignCenter | Qt.AlignCenter)
         
+        # Set layout
         self.renameParent.setLayout(layout)
         
+        # Show the label
         self.renameParent.show()
     
     def callback(self):

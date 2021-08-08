@@ -26,7 +26,8 @@ class DraggableLabel(QLabel):
 
     def setLimits(self, rect):
         self.limits = rect
-
+        
+    # Listen for mouse events
     def mousePressEvent(self, event):
         if not self.origin:
             self.origin = self.pos()
@@ -44,23 +45,6 @@ class DraggableLabel(QLabel):
             if not self.limits.contains(self.geometry()):
                 self.move(self.origin)
 
-
-# A rotatable label
-class AdvancedLabel(QWidget):
-    def paintEvent(self, event):
-        painter = QPainter(self)
-
-        painter.setPen(Qt.black)
-
-        painter.translate(20, 100)
-
-        painter.rotate(-95)
-
-        painter.drawText(0, 0, "hellos")
-
-        painter.end()
-
-
 # A Draggable input
 class DraggableInput(QLineEdit):
     def __init__(self, *args, **kwargs):
@@ -71,6 +55,7 @@ class DraggableInput(QLineEdit):
     def setLimits(self, rect):
         self.limits = rect
 
+    # Mouse listens
     def mousePressEvent(self, event):
         if not self.origin:
             self.origin = self.pos()
@@ -118,170 +103,6 @@ class AddToLiked:
 
             f.write(dumps(data))
 
-
-# An angled label
-class AngledLabel(QWidget):
-    _alignment = Qt.AlignLeft | Qt.AlignTop
-
-    def __init__(self, text="", angle=0, parent=None):
-        super(AngledLabel, self).__init__(parent)
-
-        self._text = text
-
-        self._angle = angle % 360
-
-        self._radians = radians(-angle)
-
-        self._radiansOpposite = radians(-angle + 90)
-
-    def alignment(self):
-        return self._alignment
-
-    def setAlignment(self, alignment):
-        if alignment == self._alignment:
-            return
-
-        self._alignment = alignment
-
-        self.setMinimumSize(self.sizeHint())
-
-    def angle(self):
-        return self._angle
-
-    def setAngle(self, angle):
-        angle %= 360
-
-        if angle == self._angle:
-
-            return
-
-        self._angle = angle
-
-        self._radians = radians(-angle)
-
-        self._radiansOpposite = radians(-angle + 90)
-
-        self.setMinimumSize(self.sizeHint())
-
-    def text(self):
-
-        return self._text
-
-    def setText(self, text):
-
-        if text == self._text:
-
-            return
-
-        self._text = text
-
-        self.setMinimumSize(self.sizeHint())
-
-    def sizeHint(self):
-        rect = self.fontMetrics().boundingRect(QRect(), self._alignment, self._text)
-
-        sinWidth = abs(sin(self._radians) * rect.width())
-
-        cosWidth = abs(cos(self._radians) * rect.width())
-
-        sinHeight = abs(sin(self._radiansOpposite) * rect.height())
-
-        cosHeight = abs(cos(self._radiansOpposite) * rect.height())
-
-        return QSize(cosWidth + cosHeight, sinWidth + sinHeight)
-
-    def minimumSizeHint(self):
-
-        return self.sizeHint()
-
-    def paintEvent(self, event):
-
-        qp = QPainter(self)
-
-        textRect = self.fontMetrics().boundingRect(QRect(), self._alignment, self._text)
-
-        width = textRect.width()
-
-        height = textRect.height()
-        if self._angle <= 90:
-
-            deltaX = 0
-
-            deltaY = sin(self._radians) * width
-
-        elif 90 < self._angle <= 180:
-
-            deltaX = cos(self._radians) * width
-
-            deltaY = sin(self._radians) * width + sin(self._radiansOpposite) * height
-
-        elif 180 < self._angle <= 270:
-
-            deltaX = cos(self._radians) * width + cos(self._radiansOpposite) * height
-
-            deltaY = sin(self._radiansOpposite) * height
-
-        else:
-
-            deltaX = cos(self._radiansOpposite) * height
-
-            deltaY = 0
-
-        qp.translate(0.5 - deltaX, 0.5 - deltaY)
-
-        qp.rotate(-self._angle)
-
-        qp.drawText(self.rect(), self._alignment, self._text)
-
-class QClickableTextEdit(QLineEdit):
-    clicked = pyqtSignal(QPoint)
-    
-    def __init__(self , parent=None):
-        super().__init__(parent)
-        
-    def mousePressEvent(self, e: QMouseEvent) -> None:
-        if(e.button() == Qt.LeftButton):
-            self.clicked.emit(e.pos())
-        
-        return super().mousePressEvent(e)
-
-class ResizableLabel(QLabel):
-    def __init__(self):
-        super().__init__()
-        
-        self.setGeometry(QRect(500 , 500 , 300 , 300))
-        
-        layout = QVBoxLayout()
-                
-        resizerLeft , resizerRight , resizerTop , resizerBottom = QLabel(text=".") , QLabel(text=".") , QLabel(text=".") , QLabel(text=".")
-        
-        resizerLeft.resizeEvent = self.resizeHandler
-        
-        resizerBottom.resizeEvent = self.resizeHandler
-        
-        resizerRight.resizeEvent = self.resizeHandler
-        
-        resizerTop.resizeEvent = self.resizeHandler
-        
-        layout.setContentsMargins(0 , 0 , 0 , 0)
-        
-        layout.addWidget(resizerRight , alignment=Qt.AlignLeft | Qt.AlignTop)
-        
-        layout.addWidget(resizerLeft , alignment=Qt.AlignTop | Qt.AlignRight)
-        
-        layout.addWidget(resizerBottom , alignment=Qt.AlignBottom | Qt.AlignLeft)
-        
-        layout.addWidget(resizerTop , alignment=Qt.AlignBottom | Qt.AlignRight)
-        
-        layout.addStretch()
-        
-        self.setLayout(layout)
-        
-    def resizeHandler(self , event: QResizeEvent):
-        print(event.size())
-
-def mouseToThrash(pathDir):
-    pass
 
 class ResizableRubberBand(QWidget):
     def __init__(self, parent=None):

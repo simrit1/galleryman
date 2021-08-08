@@ -2,9 +2,8 @@ from GalleryMan.assets.QtHelpers import Animation, QCustomButton, QSliderMenu
 from functools import partial
 from PIL import Image , ImageDraw
 from PyQt5.QtCore import QPoint, QRect, Qt, pyqtBoundSignal, pyqtSignal 
-from PyQt5.QtGui import QColor, QCursor, QKeySequence, QMouseEvent, QPen, QTextCursor
-from PyQt5.QtWidgets import QApplication, QGraphicsItem, QGraphicsLineItem, QGraphicsScene, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QPushButton, QShortcut
-import random
+from PyQt5.QtGui import QColor, QKeySequence, QMouseEvent, QPen
+from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QShortcut
 
 class customLineItem(QGraphicsLineItem):
     changeStyles = pyqtBoundSignal(QGraphicsLineItem)
@@ -221,23 +220,6 @@ class doodleShape:
         self.poped.append(self.lines.pop(-1))
         
         self.line = self.lines[-1]
-    
-    # def redohandler(self):
-    #     line = self.line.line()
-        
-    #     new_line = self.poped.pop(-1)
-        
-    #     self.line.setLine(line.x1() , line.y1() , new_line.line().x2() , new_line.line().y2())
-        
-    #     self.poped[-1].show()
-        
-    #     self.lines.append(new_line)
-        
-    #     self.line = new_line
-        
-    #     self.increase(self.parent.cursor().pos())
-
-# ----------------- SUBCLASSES -------------------------
 
 class PolyGon(doodleShape):
     def __init__(self , parent):

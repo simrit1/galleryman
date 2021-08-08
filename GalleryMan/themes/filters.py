@@ -304,4 +304,3 @@ class Filters:
     
         return Image.fromarray(np.array([R, G, B, A]).T, mode="RGBA")
     
-# Filters(Image.open("a.jpg").convert("RGBA")).test().save("nord.png")

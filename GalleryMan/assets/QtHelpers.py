@@ -1,27 +1,9 @@
 from functools import partial
 from PyQt5 import QtCore
-from PyQt5.QtCore import QParallelAnimationGroup, QPoint, QPropertyAnimation, QRect, QSize, QTimer
+from PyQt5.QtCore import QParallelAnimationGroup, QPoint, QPropertyAnimation, QRect, QTimer
 from PyQt5.QtGui import QCursor
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QGraphicsEffect, QGraphicsOpacityEffect, QHBoxLayout, QLabel, QLayout, QPushButton, QScrollArea, QVBoxLayout, QWidget
-
-class QtCrossButton:
-    def __init__(self, window) -> None:
-        self.window = window
-
-    def button(self) -> QPushButton:
-        pushbutton = QPushButton(self.window)
-
-        pushbutton.setText("  ")
-
-        pushbutton.setFlat(True)
-
-        pushbutton.setCursor(QCursor(Qt.PointingHandCursor))
-
-        pushbutton.setShortcut("Esc")
-
-        return pushbutton
-
+from PyQt5.QtWidgets import QGraphicsOpacityEffect, QHBoxLayout, QLabel, QPushButton, QScrollArea, QVBoxLayout, QWidget
 
 class QLikeButton:
     """

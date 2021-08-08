@@ -1,3 +1,4 @@
+# Importing all modules
 from PIL import Image , ImageQt
 from GalleryMan.themes.filters import Filters
 import json
@@ -9,6 +10,7 @@ from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QGraphicsOpacityEffect, Q
 from GalleryMan.assets.QtImageProcessor import ImageProcessor
 import os
 
+# Animation class for unhide and hide
 class Animation:
     def fade(self, widget , start=1 , end=0):
         self.effect = QGraphicsOpacityEffect()
@@ -41,204 +43,151 @@ class Animation:
         return self.animation
 
 
-
-class Cropper:        
-    def __init__(self , inst, main_window, name , out_wiget , config , callback) -> None:
-        self.main_window = main_window
-        self.name = name
-        self.out_widget = out_wiget
-        self.config = config
-        self.inst = inst
-        self.callback = callback
-        self.layout = QHBoxLayout()
-        
-    def create(self):
-        self.buttons_layout = QVBoxLayout()
-        
-        self.back = QCustomButton(" " , self.main_window).create()
-        
-        self.buttons_layout.addWidget(self.back)
-        
-        label = QLabel(self.main_window)
-        
-        label.setGeometry(QRect(0 , 0 , 1980 , 1080))
-                                
-        self.crop = ImageCropper(self.inst , label , self.name , self.out_widget , self.callback)
-
-        self.crop.closed.connect(label.hide)
-                            
-        self.crop.show()
-                                
-        self.layout.addWidget(self.crop)
-                
-        label.setLayout(self.layout)
-        
-        label.show()
-        
-        return self.buttons_layout
-    
-    def updateSize(self , size):
-        self.crop.resizeItem(size)
-
 class PaletteView:
     def __init__(self, main_window, image, out_widget , config , callback) -> None:
-        self.processors = ImageProcessor()
         
+        # Make all args global
         self.callback = callback
         
         self.edited = False
         
-        self.processors.add_image(image)
-        
         self.config = config
         
-        self.sliderView = QLabel(main_window)
-        
-        self.unblur = QParallelAnimationGroup()
-        
         self.out_widget = out_widget
-        
-        self.animation = Animation()
-        
-        self.special_buttons = QHBoxLayout()
-        
+                        
         self.main_window = main_window
-
-    def create(self):
-        lay = QVBoxLayout()
-
-        self.sliderView.setLayout(lay)
         
-        i = 0
+        # Initialize the image processor class
+        self.processors = ImageProcessor()
         
-        choose = json.loads(self.config.get("singleFolder" , "filter-icons"))
-        
-        func = [lambda : self.blur() , lambda : self.sharp() , lambda : self.increaseBrightness(), lambda : self.increaseContrast() , lambda : self.increaseExposure() , lambda : self.remove()]
-        
-        for icon , color , font_size , family in choose:
-            button = QCustomButton(text=icon , window=None).create()
-            
-            button.setStyleSheet("""
-                color: {};
-                font-size: {}px;
-                font-family: {};
-            """.format(color , font_size , family))
-            
-            button.clicked.connect(func[i])
-            
-            i += 1
-            
-            self.unblur.addAnimation(self.animation.unfade(button))
-            
-            self.special_buttons.addWidget(button)
-
-
-        self.sliderView.show()
-
-        return self.special_buttons
+        # Add image
+        self.processors.add_image(image)
+    
 
     def blur(self):
+        # Make the edited variable True
         self.edited = True
-
+        
+        # Animation Callback
         def callback():
+            
+            # Blur the imahe
             self.out_widget.set_pixmap(self.createPixmap(self.processors.blur()))
-                    
+            
+            # Set pixmap
             self.out_widget.pixmap().save("GalleryMan/assets/current_edited.png")
-
+            
+            # Partial unhide
             Animation.unfade(Animation , self.out_widget , 0.5).start()
-
+            
+        # Partial hide while the image is being processed
         self.animations = Animation.fade(Animation , self.out_widget , end=0.5)
-
+        
+        # Call callback on finish
         self.animations.finished.connect(callback)
-
+        
+        # Start the animation
         self.animations.start()
 
     def sharp(self):        
+        # Make the edited variable True
         self.edited = True
-
+        
+        # Animation Callback
         def callback():
+            
+            # Blur the imahe
             self.out_widget.set_pixmap(self.createPixmap(self.processors.sharpen()))
-                    
+            
+            # Set pixmap
             self.out_widget.pixmap().save("GalleryMan/assets/current_edited.png")
-
+            
+            # Partial unhide
             Animation.unfade(Animation , self.out_widget , 0.5).start()
-
+            
+        # Partial hide while the image is being processed
         self.animations = Animation.fade(Animation , self.out_widget , end=0.5)
-
+        
+        # Call callback on finish
         self.animations.finished.connect(callback)
-
+        
+        # Start the animation
         self.animations.start()
         
     def increaseBrightness(self):
+        # Make the edited variable True
         self.edited = True
-
+        
+        # Animation Callback
         def callback():
+            
+            # Blur the imahe
             self.out_widget.set_pixmap(self.createPixmap(self.processors.increaseBrightness()))
-                    
+            
+            # Set pixmap
             self.out_widget.pixmap().save("GalleryMan/assets/current_edited.png")
-
+            
+            # Partial unhide
             Animation.unfade(Animation , self.out_widget , 0.5).start()
-
+            
+        # Partial hide while the image is being processed
         self.animations = Animation.fade(Animation , self.out_widget , end=0.5)
-
+        
+        # Call callback on finish
         self.animations.finished.connect(callback)
-
+        
+        # Start the animation
         self.animations.start()
         
     def increaseContrast(self):
+        # Make the edited variable True
         self.edited = True
-
+        
+        # Animation Callback
         def callback():
+            
+            # Blur the imahe
             self.out_widget.set_pixmap(self.createPixmap(self.processors.increaseContrast()))
-                    
+            
+            # Set pixmap
             self.out_widget.pixmap().save("GalleryMan/assets/current_edited.png")
-
+            
+            # Partial unhide
             Animation.unfade(Animation , self.out_widget , 0.5).start()
-
+            
+        # Partial hide while the image is being processed
         self.animations = Animation.fade(Animation , self.out_widget , end=0.5)
-
+        
+        # Call callback on finish
         self.animations.finished.connect(callback)
-
+        
+        # Start the animation
         self.animations.start()
         
     def increaseExposure(self):
+        # Make the edited variable True
         self.edited = True
-
+        
+        # Animation Callback
         def callback():
-            self.out_widget.set_pixmap(self.createPixmap(self.processors.increaseExposure()))
-                    
-            self.out_widget.pixmap().save("GalleryMan/assets/current_edited.png")
-
-            Animation.unfade(Animation , self.out_widget , 0.5).start()
-
-        self.animations = Animation.fade(Animation , self.out_widget , end=0.5)
-
-        self.animations.finished.connect(callback)
-
-        self.animations.start()
-    
-    def remove(self):
-        self.dialog = QDialog()
-        
-        if(self.edited):
-            FilterView.show_dialog(FilterView , self.dialog , self.main_window , [self.useUpdate , self.removeUpdated])
-        else:
-            self.removeUpdated()
             
-    def useUpdate(self):
-        os.system("mv GalleryMan/assets/current_edited.png GalleryMan/assets/processed_image.png")
+            # Blur the imahe
+            self.out_widget.set_pixmap(self.createPixmap(self.processors.increaseExposure()))
+            
+            # Set pixmap
+            self.out_widget.pixmap().save("GalleryMan/assets/current_edited.png")
+            
+            # Partial unhide
+            Animation.unfade(Animation , self.out_widget , 0.5).start()
+            
+        # Partial hide while the image is being processed
+        self.animations = Animation.fade(Animation , self.out_widget , end=0.5)
         
-        self.removeUpdated()
+        # Call callback on finish
+        self.animations.finished.connect(callback)
         
-    def removeUpdated(self):
-        if(os.path.isfile("GalleryMan/assets/current_edited.png")):
-            os.remove("GalleryMan/assets/current_edited.png")
-        
-        self.out_widget.setPixmap(QPixmap("GalleryMan/assets/processed_image.png"))
-                    
-        self.dialog.hide()
-        
-        self.callback()
+        # Start the animation
+        self.animations.start()
         
     def createPixmap(self , image: Image):
         if image.mode == "RGB":
@@ -264,17 +213,24 @@ class PaletteView:
 
 class FilterView:
     def __init__(self, main_window, out_widget , scrollArea ,  icons , callback) -> None:
+        
+        # Make args global
         self.original = scrollArea.width()
+        
         self.scrollArea = scrollArea
-        self.unblur = QParallelAnimationGroup()
-        self.icons = icons
+        
         self.out_widget = out_widget
+        
         self.popup = PopUpMessage()
+        
         self.animation = Animation()
+        
         self.imageProcessor = Filters(Image.open("GalleryMan/assets/processed_image.png").convert("RGBA"))
-        self.special_buttons = QHBoxLayout()
+        
         self.callback = callback
+        
         self.edited = False
+        
         self.main_window = main_window
     
     def partial_hide(self):
@@ -284,212 +240,298 @@ class FilterView:
         Animation.unfade(Animation , self.out_widget , 0.5).start()
     
     def shady(self):
+        
+        # Make edited variable true
         self.edited = True
-            
+        
+        # Animation callback
         def callback():
+            
+            # Apply effect
             self.image = ImageQt.ImageQt(self.imageProcessor.shady())
-                
+            
+            # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
             self.out_widget.pixmap().save("GalleryMan/assets/current_edited.png")
             
             self.partial_unhide()
-                
+            
+        # partial hide while the image is being processed
         self.animation = self.partial_hide()
         
+        # Start the animation
         self.animation.start()
         
+        # Callback
         self.animation.finished.connect(callback)
         
     def sepia(self):
+        # Make edited variable true
         self.edited = True
         
+        # Animation callback
         def callback():
+            
+            # Apply effect
             self.image = ImageQt.ImageQt(self.imageProcessor.sepia())
-                
+            
+            # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
             self.out_widget.pixmap().save("GalleryMan/assets/current_edited.png")
             
             self.partial_unhide()
-                
+            
+        # partial hide while the image is being processed
         self.animation = self.partial_hide()
         
+        # Start the animation
         self.animation.start()
         
+        # Callback
         self.animation.finished.connect(callback)
 
     def cherry(self):
+        # Make edited variable true
         self.edited = True
         
+        # Animation callback
         def callback():
+            
+            # Apply effect
             self.image = ImageQt.ImageQt(self.imageProcessor.cherry())
-                
+            
+            # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
             self.out_widget.pixmap().save("GalleryMan/assets/current_edited.png")
             
             self.partial_unhide()
-                
+            
+        # partial hide while the image is being processed
         self.animation = self.partial_hide()
         
+        # Start the animation
         self.animation.start()
         
+        # Callback
         self.animation.finished.connect(callback)
 
     def underwater(self):
+        # Make edited variable true
         self.edited = True
         
+        # Animation callback
         def callback():
+            
+            # Apply effect
             self.image = ImageQt.ImageQt(self.imageProcessor.underwater())
-                
+            
+            # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
             self.out_widget.pixmap().save("GalleryMan/assets/current_edited.png")
             
             self.partial_unhide()
-                
+            
+        # partial hide while the image is being processed
         self.animation = self.partial_hide()
         
+        # Start the animation
         self.animation.start()
         
+        # Callback
         self.animation.finished.connect(callback)
 
     def purple(self):
+        # Make edited variable true
         self.edited = True
         
+        # Animation callback
         def callback():
+            
+            # Apply effect
             self.image = ImageQt.ImageQt(self.imageProcessor.purple())
-                
+            
+            # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
             self.out_widget.pixmap().save("GalleryMan/assets/current_edited.png")
             
             self.partial_unhide()
-                
+            
+        # partial hide while the image is being processed
         self.animation = self.partial_hide()
         
+        # Start the animation
         self.animation.start()
         
+        # Callback
         self.animation.finished.connect(callback)
 
     def pink(self):
+        # Make edited variable true
         self.edited = True
         
+        # Animation callback
         def callback():
+            
+            # Apply effect
             self.image = ImageQt.ImageQt(self.imageProcessor.pink())
-                
+            
+            # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
             self.out_widget.pixmap().save("GalleryMan/assets/current_edited.png")
             
             self.partial_unhide()
-                
+            
+        # partial hide while the image is being processed
         self.animation = self.partial_hide()
         
+        # Start the animation
         self.animation.start()
         
+        # Callback
         self.animation.finished.connect(callback)
 
     def dark(self):
+        # Make edited variable true
         self.edited = True
         
+        # Animation callback
         def callback():
+            
+            # Apply effect
             self.image = ImageQt.ImageQt(self.imageProcessor.dark())
-                
+            
+            # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
             self.out_widget.pixmap().save("GalleryMan/assets/current_edited.png")
             
             self.partial_unhide()
-                
+            
+        # partial hide while the image is being processed
         self.animation = self.partial_hide()
         
+        # Start the animation
         self.animation.start()
         
+        # Callback
         self.animation.finished.connect(callback)
 
     def clear(self):
+        # Make edited variable true
         self.edited = True
         
+        # Animation callback
         def callback():
+            
+            # Apply effect
             self.image = ImageQt.ImageQt(self.imageProcessor.clear())
-                
+            
+            # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
             self.out_widget.pixmap().save("GalleryMan/assets/current_edited.png")
             
             self.partial_unhide()
-                
+            
+        # partial hide while the image is being processed
         self.animation = self.partial_hide()
         
+        # Start the animation
         self.animation.start()
         
+        # Callback
         self.animation.finished.connect(callback)
         
     def realistic(self):
+        # Make edited variable true
         self.edited = True
         
+        # Animation callback
         def callback():
+            
+            # Apply effect
             self.image = ImageQt.ImageQt(self.imageProcessor.realistic())
-                
+            
+            # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
             self.out_widget.pixmap().save("GalleryMan/assets/current_edited.png")
             
             self.partial_unhide()
-                
+            
+        # partial hide while the image is being processed
         self.animation = self.partial_hide()
         
+        # Start the animation
         self.animation.start()
         
+        # Callback
         self.animation.finished.connect(callback)
     
     def cool_filter(self):
+        # Make edited variable true
         self.edited = True
         
+        # Animation callback
         def callback():
+            
+            # Apply effect
             self.image = ImageQt.ImageQt(self.imageProcessor.cool())
-                
+            
+            # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
             self.out_widget.pixmap().save("GalleryMan/assets/current_edited.png")
             
             self.partial_unhide()
-                
+            
+        # partial hide while the image is being processed
         self.animation = self.partial_hide()
         
+        # Start the animation
         self.animation.start()
         
+        # Callback
         self.animation.finished.connect(callback)
         
     def clear_filter(self):
-        if(self.process == 'lock'):
-            self.popup.new_msg("Wait while applying a filter")
-
+        # Make edited variable true
         self.edited = True
         
+        # Animation callback
         def callback():
+            
+            # Apply effect
             self.image = ImageQt.ImageQt(self.imageProcessor.clear())
-                
+            
+            # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
             self.out_widget.pixmap().save("GalleryMan/assets/current_edited.png")
             
             self.partial_unhide()
-                
+            
+        # partial hide while the image is being processed
         self.animation = self.partial_hide()
         
+        # Start the animation
         self.animation.start()
         
+        # Callback
         self.animation.finished.connect(callback)
         
     def show_dialog(self , dialog: QDialog , parent , functions):
-        # self.dialog = QDialog(parent)
         self.dialog = dialog
         
         self.dialog.setParent(parent)
         
+        # Set up the dialog
         layout = QVBoxLayout()
         
         label = QLabel(text="Do you want to apply the viewed filter?")
@@ -562,10 +604,3 @@ class FilterView:
         self.callback()
         
         os.system("rm -rf GalleryMan/assets/current_edited.png")
-
-class Beautify:
-    def __init__(self) -> None:
-        pass
-    
-    def beautify(self):
-        pass

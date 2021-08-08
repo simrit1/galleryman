@@ -3,7 +3,7 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import QParallelAnimationGroup, QPoint, QPropertyAnimation, QRect, QSize, QTimer
 from PyQt5.QtGui import QCursor
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QGraphicsOpacityEffect, QHBoxLayout, QLabel, QLayout, QPushButton, QScrollArea, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QGraphicsEffect, QGraphicsOpacityEffect, QHBoxLayout, QLabel, QLayout, QPushButton, QScrollArea, QVBoxLayout, QWidget
 
 class QtCrossButton:
     def __init__(self, window) -> None:
@@ -314,10 +314,13 @@ class Animation:
         
         return animation
     
-    def fadingAnimation(self , widget , duration, reverse=False , startValue = 0, endValue = 0):
-        opacity = QGraphicsOpacityEffect()
-            
-        widget.setGraphicsEffect(opacity)
+    def fadingAnimation(self , widget: QWidget , duration, reverse=False , startValue = 0, endValue = 0):
+        opacity = widget.graphicsEffect()
+                
+        if(opacity == None):
+            opacity = QGraphicsOpacityEffect()
+                 
+            widget.setGraphicsEffect(opacity)
         
         animation = QPropertyAnimation(opacity , b"opacity")
         
@@ -416,15 +419,18 @@ class QSliderMenu(QLabel):
     def addMenu(self , name , widget , addAsLayout = False):
         childLayout = QVBoxLayout()
         
-        nameLabel = QLabel()
+        print(widget)
         
-        nameLabel.setText(name)
+        if(name != ""):
+            nameLabel = QLabel()
+            
+            nameLabel.setText(name)
+            
+            nameLabel.setGeometry(self.geometry())
+            
+            nameLabel.setStyleSheet("color: white; font-size: 20px; font-family: Comfortaa")
         
-        nameLabel.setGeometry(self.geometry())
-        
-        nameLabel.setStyleSheet("color: white; font-size: 20px; font-family: Comfortaa")
-        
-        childLayout.addWidget(nameLabel)
+            childLayout.addWidget(nameLabel)
         
         if(addAsLayout):
             childLayout.addLayout(widget)

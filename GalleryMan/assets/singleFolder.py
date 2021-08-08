@@ -596,8 +596,10 @@ class singleFolderView():
         
         self.heartWidget = 2
         
-        with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt") as file:
-            dirs = json.loads(file.read())
+        # with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt") as file:
+        #     dirs = json.loads(file.read())
+        
+        dirs = []
 
         # 3. Crop Image
         for icon, icon_color, icon_font_size, icon_family in self.icons:

@@ -7,13 +7,12 @@ import json
 from os import system
 import os
 import sys
-from PyQt5 import QtCore
-from PyQt5.QtCore import QEvent, QObject, QPoint, QRect, QSize, QThread , Qt, pyqtSignal
+from PyQt5.QtCore import QPoint, QRect, QSize , Qt, pyqtSignal
 from PyQt5.QtGui import QCursor, QKeyEvent, QMouseEvent
 from GalleryMan.views.firstPage import FirstPage
 from GalleryMan.utils.readers import read_file , change_with_config
 from GalleryMan.views.folderview import imagesFolder
-from PyQt5.QtWidgets import QApplication, QGraphicsOpacityEffect, QHBoxLayout, QLabel , QMainWindow, QPushButton, QScrollArea, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QApplication, QHBoxLayout, QLabel , QMainWindow, QPushButton, QScrollArea, QVBoxLayout, QWidget
 from GalleryMan.assets.singleFolder import singleFolderView
 
 class ScrollLabel(QScrollArea):
@@ -111,6 +110,8 @@ class Main:
             50
         ))
         
+        self.topbar.setStyleSheet("background-color: transparent")
+        
         self.topbar.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
         
         self.helper.setStyleSheet('background-color: transparent;')
@@ -120,7 +121,7 @@ class Main:
         j = 0
         
         functions = [
-            self.window.showMinimized,
+            lambda : self.window.showMinimized(),
             lambda : self.window.showFullScreen(),
             lambda : app.exit(1)
         ]
@@ -228,7 +229,7 @@ class Main:
         self.curr = new
         
     def keyHandler(self , event: QKeyEvent):        
-        if(event.key() == QtCore.Qt.Key_F11):
+        if(event.key() == Qt.Key_F11):
             if(self.window.isFullScreen()):
                 self.window.showNormal()
             else:

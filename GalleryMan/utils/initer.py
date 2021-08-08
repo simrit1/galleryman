@@ -31,7 +31,7 @@ class Initer:
         try:
             __import__(module)
             
-            print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.OKGREEN + "{} is downloaded".format(module) + bcolors.ENDC))
+            print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.OKGREEN + "{} is already downloaded. Skipping...".format(module) + bcolors.ENDC))
         except:
             res = input("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.WARNING + "You havn't installed {} yet. Do you want to install (Y/n)? ".format(module) + bcolors.ENDC))
             

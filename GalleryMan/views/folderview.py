@@ -1,7 +1,5 @@
 from configparser import ConfigParser
-import functools
-import json, os
-import pathlib
+import functools , json , os , pathlib
 from random import randint
 from PyQt5.QtCore import QObject, QParallelAnimationGroup, QPoint, QRect, QSize, QThread, pyqtSignal
 from PyQt5.QtCore import Qt
@@ -135,6 +133,8 @@ class imagesFolder():
             lambda: self.scroll.horizontalScrollBar().setValue(0)
         )
         
+        self.originalPos = 0
+            
         self.currentWindow = "albums"
 
         self.window = window
@@ -183,11 +183,13 @@ class imagesFolder():
 
         self.dirs = os.listdir(os.path.expanduser("~"))
 
-        self.label_to_change = QLabel(text="Albums", parent=self.main_window)
+        self.label_to_change = QLabel(text="Albums", parent=self.window)
 
         self.label_to_change.setGeometry(label_to_change.geometry())
 
         self.label_to_change.setAlignment(label_to_change.alignment())
+        
+        self.posX = self.label_to_change.y()
         
         self.label_to_change.setStyleSheet("""
             color: {};
@@ -236,9 +238,10 @@ class imagesFolder():
         self.folderHeaderText.show()
 
         # Get all the prevented directory selected during the startup
-        self.prevented_dirs = json.loads(
-            open("/home/strawhat54/.config/galleryman/data/scan_dirs.txt").read()
-        )
+        # self.prevented_dirs = json.loads(
+        #     open("/home/strawhat54/.config/galleryman/data/scan_dirs.txt").read()
+        # )
+        self.prevented_dirs = []
 
         # Create x and y variables which will determine the position of the folder's card
         x, y = 40, self.folderStartValue
@@ -451,10 +454,10 @@ class imagesFolder():
             str: [description]
         """        
         if(dir == "/home/strawhat54/.config/galleryman/data/likedPhotos.txt"):
-            with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt" , 'r') as f:
-                dirs = json.loads(f.read())
+            # with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt" , 'r') as f:
+            #     dirs = json.loads(f.read())
             
-            return dirs[0] if dirs else None
+            return  None
 
         # Iterate through all the files and folders in the directory
         for i in pathlib.Path(dir).rglob("*"):
@@ -758,20 +761,34 @@ class imagesFolder():
             
         self.trashFoldersLayout.show()
     
-    def moveToThrash(self):
+    def moveToThrash(self):        
         if(self.currentWindow == "trash"): return
-        
+            
         self.currentWindow = "trash"
         
         def run_second():
-            self.label_to_change.setText("Thrash")
-            
+            self.label_to_change.hide()
+
             self.animation = QParallelAnimationGroup()
             
             if(self.trashFoldersLayout == None):
                 self.createThrashLayout()
             
+            self.trashFolderHeader = QLabel(self.trashFoldersLayout)
+            
+            self.trashFolderHeader.setGeometry(self.label_to_change.geometry())
+            
+            self.trashFolderHeader.setStyleSheet(self.label_to_change.styleSheet())
+            
+            self.trashFolderHeader.setText("Trash")
+            
+            self.trashFolderHeader.setAlignment(self.label_to_change.alignment())
+            
+            self.trashFolderHeader.show()
+                        
             self.animation.addAnimation(Animation.fadingAnimation(Animation, self.label_to_change , 200 , True))
+            
+            self.animation.finished.connect(self.label_to_change.show)
             
             self.animation.start()
                 
@@ -852,11 +869,13 @@ class imagesFolder():
     
     def switchToAlbums(self):
         if(self.currentWindow == "albums"): return
-        
+                
         self.currentWindow = "albums"
         
         def run_second():
             self.label_to_change.setText("Albums")
+            
+            self.trashFolderHeader.hide()
             
             self.trashFoldersLayout.hide()
             
@@ -873,11 +892,11 @@ class imagesFolder():
         self.animation = QParallelAnimationGroup()
                 
         try:
-            self.animation.addAnimation(Animation.fadingAnimation(Animation , self.trashFoldersLayout , 300))
+            self.animation.addAnimation(Animation.fadingAnimation(Animation , self.trashFolderHeader , 300))
         except:
             pass
         
-        self.animation.addAnimation(Animation.fadingAnimation(Animation , self.label_to_change , 300))
+        self.animation.addAnimation(Animation.fadingAnimation(Animation , self.folderHeaderText , 300))
         
         self.animation.finished.connect(run_second)
         
@@ -886,3 +905,12 @@ class imagesFolder():
         self.albums.setStyleSheet("font-size: 50px; color: #88C")
         
         self.trash.setStyleSheet("font-size: 40px")
+        
+    def handleScrollEvent(self , value):
+        
+        if(self.originalPos > value):
+            self.label_to_change.move(self.label_to_change.x() , self.posX + value)
+        else:
+            self.label_to_change.move(self.label_to_change.x() , self.posX - value)
+            
+        self.originalPos = value

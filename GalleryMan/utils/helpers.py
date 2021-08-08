@@ -98,14 +98,16 @@ class AddToLiked:
         self.remove = remove
 
     def run(self):
-        with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt", "r") as f:
-            data = f.read()
+        # # with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt", "r") as f:
+        # #     data = f.read()
+        
 
-            if data == "":
-                data = []
+        #     if data == "":
+        #         data = []
 
-            else:
-                data = loads(data)
+        #     else:
+        #         data = loads(data)
+        data = []
 
         with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt", "w") as f:
             if self.remove:
@@ -350,40 +352,48 @@ class ResizableRubberBand(QWidget):
             self.move(pos)
             
 class QGripLabel(QLabel):
-    def __init__(self , parent=None):
+    def __init__(self , parent=None , movable=True):
         super().__init__(parent)
         
         self.addGrips()
         
         self.origin = None
         
+        self.movable = movable
+        
         self.mousePos = None
         
     def addGrips(self):
         self.setWindowFlags(Qt.SubWindow)
         
-        grip1 , grip2 = QSizeGrip(self) , QSizeGrip(self)
+        self.grip1 , self.grip2 = QSizeGrip(self) , QSizeGrip(self)
         
         layout = QVBoxLayout()
         
         layout.setContentsMargins(0 , 0 , 0 , 0)
         
-        layout.addWidget(grip1 , alignment=Qt.AlignTop | Qt.AlignLeft)
+        layout.addWidget(self.grip1 , alignment=Qt.AlignTop | Qt.AlignLeft)
         
-        layout.addWidget(grip2 , alignment=Qt.AlignBottom | Qt.AlignRight)
+        layout.addWidget(self.grip2 , alignment=Qt.AlignBottom | Qt.AlignRight)
         
         self.setLayout(layout)
         
     def mousePressEvent(self, event):
+        if(not self.movable): return
+        
         if not self.origin:
             self.origin = self.pos()
         if event.button() == Qt.LeftButton:
             self.mousePos = event.pos()
 
     def mouseMoveEvent(self, event):
+        if(not self.movable): return
+        
         if event.buttons() == Qt.LeftButton:
             self.move(self.pos() + event.pos() - self.mousePos)
 
     def mouseReleaseEvent(self, event):
+        if(not self.movable): return
+        
         if event.button() == Qt.LeftButton:
             self.move(self.pos() + event.pos() - self.mousePos)

@@ -29,6 +29,7 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QPushButton,
     QScrollArea,
+    QSystemTrayIcon,
     QVBoxLayout,
     QWidget,
 )
@@ -622,14 +623,15 @@ class singleFolderView():
         
         self.heartWidget = 2
         
-        with open("/home/strawhat54/.galleryman/data/likedFolders.txt") as file:
-            dirs = json.loads(file.read())
+        # with open("/home/strawhat54/.galleryman/data/likedFolders.txt") as file:
+        #     dirs = json.loads(file.read())
             
         # Iterate through each icon
         for icon, icon_color, icon_font_size, icon_family in self.icons:
             
             # Create a custom redefined label with styling
             item = QCustomButton(icon, self.application, True).create()
+        
             
             # Stylings
             item.setStyleSheet(

@@ -2,8 +2,8 @@ from PyQt5.QtGui import QKeyEvent, QKeySequence, QPixmap
 from GalleryMan.assets.QtHelpers import Animation, PopUpMessage
 import os
 from PIL import Image
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QLabel, QLineEdit, QShortcut, QVBoxLayout
+from PyQt5.QtCore import QRect, Qt
+from PyQt5.QtWidgets import QGraphicsScene, QGraphicsView, QLabel, QLineEdit, QShortcut, QVBoxLayout
 
 
 class getMoreInfo:
@@ -141,16 +141,22 @@ class getMoreInfo:
         pass
     
     def showInFullScreen(self):
-        imageInFull = QLabel(self.application)
+        self.graphics = QGraphicsView(self.application)
+
+        self.graphics.setGeometry(QRect(0 , 0 , 1980 , 1080))
         
-        imageInFull.setGeometry(self.application.geometry())
+        self.graphics.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         
-        imageInFull.setPixmap(QPixmap("GalleryMan/assets/processed_image.png").scaled(self.application.geometry().width() , self.application.geometry().height() , transformMode=Qt.SmoothTransformation))
+        self.scene = QGraphicsScene()
         
-        imageInFull.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        self.graphics.setScene(self.scene)
+                
+        self.graphics.show()
         
-        imageInFull.show()
-    
+        self.scene.addPixmap(QPixmap("GalleryMan/assets/processed_image.png").scaled(self.application.geometry().width() , self.application.geometry().height() , transformMode=Qt.SmoothTransformation))
+        
+        self.graphics.show()
+            
     def rename(self):
         try:
             

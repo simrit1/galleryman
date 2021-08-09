@@ -389,7 +389,7 @@ class QSliderMenu(QLabel):
 
         self.buttons = QWidget(self)
 
-        self.buttons.setGeometry(QRect(100, 0, 400, 1000))
+        self.buttons.setGeometry(QRect(100, 0, 400, 50))
 
         self.scrollArea.setWidget(self.buttons)
 
@@ -401,14 +401,12 @@ class QSliderMenu(QLabel):
     def addMenu(self , name , widget , addAsLayout = False):
         childLayout = QVBoxLayout()
         
-        print(widget)
-        
         if(name != ""):
             nameLabel = QLabel()
             
             nameLabel.setText(name)
             
-            nameLabel.setGeometry(self.geometry())
+            nameLabel.setFixedHeight(80)
             
             nameLabel.setStyleSheet("color: white; font-size: 20px; font-family: Comfortaa")
         
@@ -422,3 +420,5 @@ class QSliderMenu(QLabel):
         widget.setGeometry(self.geometry())
         
         self.second_layout.addLayout(childLayout)
+        
+        self.buttons.setFixedHeight(self.buttons.height() + 135)

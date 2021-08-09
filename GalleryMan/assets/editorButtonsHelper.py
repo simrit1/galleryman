@@ -375,10 +375,8 @@ class QEditorHelper:
         
         # Merge the buttons with the function
         self.func = [
-            moreInfo.castToScreen,
             moreInfo.getInfo,
             moreInfo.rename,
-            moreInfo.searchGoogle,
             moreInfo.showInFullScreen,
             moreInfo.callback,
         ]
@@ -1027,7 +1025,7 @@ class textInImage:
         # Open the image
         self.image = Image.open("GalleryMan/assets/processed_image.png")
         
-        # Get the geomeetry
+        # Get the geometry
         area = self.graphics.geometry()
         
         # Parse the image 

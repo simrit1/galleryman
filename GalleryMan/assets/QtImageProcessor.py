@@ -10,8 +10,6 @@ class ImageProcessor:
     def add_image(self, image):        
         self.image = Image.open(image).convert("RGB")
         
-        print(self.image.size)
-
     def rotate(self):
         self.deg = self.deg + 90
 

@@ -3,7 +3,7 @@ from functools import partial
 from PIL import Image , ImageDraw
 from PyQt5.QtCore import QPoint, QRect, Qt, pyqtBoundSignal, pyqtSignal 
 from PyQt5.QtGui import QColor, QKeySequence, QMouseEvent, QPen
-from PyQt5.QtWidgets import QGraphicsLineItem, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QShortcut
+from PyQt5.QtWidgets import QCheckBox, QGraphicsLineItem, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QShortcut
 
 class customLineItem(QGraphicsLineItem):
     changeStyles = pyqtBoundSignal(QGraphicsLineItem)
@@ -75,7 +75,7 @@ class doodleShape:
         
         self.lineLayers.setLayout(self.layerLayout)
         
-        self.lines = []
+        self.lines: list[QGraphicsLineItem] = []
         
         self.poped = []
         
@@ -168,6 +168,12 @@ class doodleShape:
         
         self.menu.hide()
         
+        pen = line.pen()
+        
+        pen.setColor(QColor("#88C"))
+        
+        line.setPen(pen)
+        
         self.menu = QSliderMenu(self.parent)
         
         self.manageMenu()
@@ -193,6 +199,20 @@ class doodleShape:
             
             self.menu.addMenu(name , inputBox)
             
+        checkBox = QCheckBox(text="Straight line")
+        
+        checkBox.setBaseSize(50 , 50)
+        
+        checkBox.setStyleSheet("""
+            color: #D8DEE9;
+            font-family: SauceCodePro Nerd Font;
+            font-size: 20px                       
+        """)
+                
+        checkBox.clicked.connect(self.makeItStraight)
+        
+        self.menu.addMenu("Other options" , checkBox)   
+            
         self.menu.move(QPoint(2000 , 0))
         
         self.menu.show()
@@ -201,6 +221,52 @@ class doodleShape:
         
         self.animation.start()
     
+    def makeItStraight(self):
+        # Get the index
+        pos = self.lines.index(self.line)
+        
+        # A variable to check if it is needed to change next one too
+        changeNextOne = True
+        
+        # Check if the line is not the last line
+        if(pos == len(self.lines)):
+            
+            # Dont change the next Line if it is the last line
+            changeNextOne = False
+        
+        line = self.line.line()
+        
+        if(abs(line.x1() - line.x2()) > abs(line.y1() - line.y2())):
+            
+            # Set new line
+            self.line.setLine(
+                line.x1(),
+                line.y1(),
+                line.x2(),
+                line.y1()
+            )
+        
+        else:
+            # Set new line
+            self.line.setLine(
+                line.x1(),
+                line.y1(),
+                line.x1(),
+                line.y2()
+            )
+        
+        # Early return if it was last line
+        if(not changeNextOne): return
+        
+        nextLine = self.lines[pos + 1]
+        
+        nextLine.setLine(
+            self.line.line().x2(),
+            self.line.line().y2(),
+            nextLine.line().x2(),
+            nextLine.line().y2()
+        )
+        
     def update(self , Sclass , inputBox):
         self.config[Sclass] = inputBox.text()  
         

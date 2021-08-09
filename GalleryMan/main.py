@@ -170,6 +170,8 @@ class Main:
             
             self.window.show()
             
+            self.topbar.show()
+            
             ui.show_image('/home/strawhat54/Pictures/ONE_P/darker_than_black.jpg' , None)
             
         elif(status == 'NOT REGISTERED'):            

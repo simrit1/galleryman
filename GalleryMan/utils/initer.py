@@ -18,24 +18,36 @@ class Initer:
         pass
     
     def init(self):
-        print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "::" + bcolors.ENDC , bcolors.OKGREEN + "Welcome To GalleryMan!" + bcolors.ENDC))
-        
+        print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.OKGREEN + "Welcome to GalleryMan!" + bcolors.ENDC))
+                
         print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.OKGREEN + "Initing GalleryMan... Please Wait" + bcolors.ENDC))
         
-        print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.OKGREEN + "Checking if all modules are installed..." + bcolors.ENDC))
+        print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.HEADER + "Checking If All Modules Are Installed..." + bcolors.ENDC))
         
         for module in ["pyqt5" , "pillow" , "numpy"]:
             self.tryToDownload(module)
+            
+        print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.OKGREEN + "Creating files..." + bcolors.ENDC))
+        
+        with open("/home/strawhat54/.config/galleryman/config.ini" , "w") as f:
+            with open("GalleryMan/config.ini") as sample:    
+                f.write(sample.read())
+        
+        print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.HEADER + "Config file is located at {}".format("/home/strawhat54/.config/galleryman/config.ini") + bcolors.ENDC))
+        
+        for files in ["/home/strawhat54/.galleryman/data/thrashLogs.txt" , "/home/strawhat54/.galleryman/data/likedFolder.txt"]:
+            with open(files , "w") as file:
+                pass
+        
+        print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.OKGREEN + "Completed! Run `galleryman` to start the application" + bcolors.ENDC))
+        
         
     def tryToDownload(self , module):
         try:
             __import__(module)
             
-            print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.OKGREEN + "{} is already downloaded. Skipping...".format(module) + bcolors.ENDC))
-        except:
-            res = input("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.WARNING + "You havn't installed {} yet. Do you want to install (Y/n)? ".format(module) + bcolors.ENDC))
-            
-            if(res.lower() in ["yes" , "yeah" , "y" , "yup" , ""]):
-                print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.WARNING + "Installing {}. Please Wait (It may take some time depending upon the speed)".format(module) + bcolors.ENDC))
-
-                subprocess.check_call([sys.executable, "-m", "pip", "install", module] , stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+            print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.OKBLUE + "{} is already downloaded. Skipping...".format(module) + bcolors.ENDC))
+        except:            
+            print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.WARNING + "Installing {}. Please Wait (It may take some time depending on the speed)".format(module) + bcolors.ENDC))
+                                
+            subprocess.check_call([sys.executable, "-m", "pip", "install", module] , stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)

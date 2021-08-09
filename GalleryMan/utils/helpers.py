@@ -83,18 +83,18 @@ class AddToLiked:
         self.remove = remove
 
     def run(self):
-        # # with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt", "r") as f:
-        # #     data = f.read()
+        with open("/home/strawhat54/.galleryman/data/likedFolders.txt", "r") as f:
+            data = f.read()
         
 
-        #     if data == "":
-        #         data = []
+            if data == "":
+                data = []
 
-        #     else:
-        #         data = loads(data)
+            else:
+                data = loads(data)
         data = []
 
-        with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt", "w") as f:
+        with open("/home/strawhat54/.galleryman/data/likedFolders.txt", "w") as f:
             if self.remove:
                 data.remove(self.dir)
 

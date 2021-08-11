@@ -9,6 +9,7 @@ from PyQt5.QtCore import (
     QRect,
     QRectF,
     QSize,
+    QTimer,
     Qt,
 )
 from PyQt5.QtGui import (
@@ -23,6 +24,7 @@ from PyQt5.QtGui import (
 from PyQt5.QtWidgets import (
     QCheckBox,
     QGraphicsItem,
+    QGraphicsOpacityEffect,
     QGraphicsPathItem,
     QGraphicsScene,
     QGraphicsView,
@@ -133,6 +135,46 @@ class doodleImageItems:
             textEdit.textChanged.connect(partial(updater, name.lower().replace(' ' , '-'), textEdit))
             
             self.menu.addMenu(name , textEdit)
+            
+    def showHelp(self): 
+        def run_second():
+            self.animation = Animation.fadingAnimation(Animation , self.help , 300)
+            
+            self.timer = QTimer(self.graphics)
+            
+            self.timer.start(500)
+            
+            self.timer.setSingleShot(True)
+            
+            self.animation.finished.connect(self.help.hide)
+            
+            self.timer.timeout.connect(self.animation.start)
+        
+        self.help = QLabel(self.graphics)
+        
+        self.help.setGeometry(self.graphics.geometry())
+        
+        self.help.setText("Press Ctrl+S to save the edited image")
+        
+        self.help.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
+        
+        self.help.setStyleSheet("""
+            background-color: rgba(46, 52, 64, 160);
+            font-size: 30px;                        
+        """)
+        
+        self.help.show()
+        
+        self.animation = Animation.fadingAnimation(Animation , self.help , 300 , True)
+        
+        self.animation.finished.connect(run_second)
+        
+        self.animation.start()
+        
+        self.additionalHelp()
+        
+    def additionalHelp(self):
+        pass
     
 class doodleFreeHand(doodleImageItems):
     def __init__(self, parent, renderArea, outParent):
@@ -377,29 +419,6 @@ class doodleFreeHand(doodleImageItems):
         
         # Remove the shortcut
         self.continueNext.setKey(QKeySequence())
-        
-    def showHelp(self): 
-        pen = QPen()
-        
-        pen.setColor(QColor("#88C0D0"))
-        
-        pen.setWidth(50)
-               
-        self.helpEllipse = self.scene.addEllipse(
-            50 , 50 , 50 , 50 , pen
-        )
-        
-        self.animation = QPropertyAnimation(pen , b"width")
-        
-        self.animation.setStartValue(1)
-        
-        self.animation.setEndValue(1000)
-        
-        self.animation.start()
-        
-        self.startAni.setStyleSheet(
-            "border: 1px solid #D8DEE9; background-color: transparent; float: left; border-radius: 40px"
-        )
                 
 # Rect class
 class doodlerectItem(doodleImageItems):
@@ -442,6 +461,10 @@ class doodlerectItem(doodleImageItems):
             
         # Create a grip label 
         self.rectangle = QGripLabel()
+        
+        self.rectangle.grip1.setToolTip("Drag These To Increase The Width")
+        
+        # self.rectangle.grip1.toolt
         
         # Add to scene
         self.scene.addWidget(self.rectangle)
@@ -505,6 +528,8 @@ class doodlerectItem(doodleImageItems):
         startAni.show()
 
         startAni.clicked.connect(callback)
+        
+        self.showHelp()
     
     def drawRectOnImage(self, label: QGripLabel):
         def callback():

@@ -64,11 +64,10 @@ class ImageCropper(QGraphicsView):
         # Get the original responser so that it could be replaced on removing
         self.originalResponser = mainWindow.resizeEvent
         
-        
         # Create a scene which will contain all the images and rest
         self.graphicsScene = QGraphicsScene(self)
         
-        
+        # Set Alignment
         self.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         
         self.setGeometry(mainWindow.geometry())

@@ -232,7 +232,7 @@ def show_list():
             print("{}: {}".format(bcolors.OKCYAN + str(index) , bcolors.OKGREEN + directory))
 
 def addToScanDirectory(self):
-    print(bcolors.OKGREEN + "\nEnter the folder path (Press enter to select current directory): ", end="")
+    print(bcolors.OKGREEN + "Enter the folder path (Press enter to select current directory): ", end="")
     
     directory = input()
     
@@ -249,8 +249,32 @@ def addToScanDirectory(self):
         
     curr.append(directory)
     
-    print(bcolors.OKGREEN + "Successfully added to scanning list.")
+    print(bcolors.OKGREEN + "\nSuccessfully added to scanning list.")
     
-def removeFromScanDirectory(self , directory):
-    print(directory)
+def removeFromScanDirectory(directory):
+    print(bcolors.OKGREEN + "Enter the folder path (Press enter to select current directory): ", end="")
+    
+    directory = input()
+    
+    if(directory in ["." , ""]):
+        directory = os.getcwd()
+        
+    elif(directory == "~"):
+        directory= os.path.expanduser("~")
+        
+    print(bcolors.WARNING + "\nRemoving {} from scanning list".format(directory))
+    
+    with open("/home/strawhat54/.galleryman/data/scan_dirs.txt") as f:
+        curr = loads(f.read())
+        
+    try:
+        curr.remove(directory)
+        
+        print(bcolors.OKGREEN + "\nSuccessfully added to scanning list.")
+    except:
+        print(bcolors.FAIL + "\nCannot remove directory from the scanning list. Aborting...")
+        
+        print(bcolors.FAIL + "HELP: Directory not in scanning list")
+        
+        
     

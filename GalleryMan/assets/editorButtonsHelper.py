@@ -927,9 +927,10 @@ class textInImage:
         
         # Create a dictionary of the styling
         self.storedValue = {
-            "color": "#88C0D0",
+            "color": "#2E3440",
             "font-family": "Comfortaa",
-            "font-size": 11,
+            "font-size": 60,
+            "text": "Your Text"
         }
         
         # Create a menu
@@ -946,7 +947,7 @@ class textInImage:
 
         self.current = 0
 
-    def updateStyling(self, newValue):
+    def updateStyling(self):
         
         # Change the text with the new text
         self.label.setText(self.storedValue["text"])
@@ -1009,7 +1010,7 @@ class textInImage:
         self.storedValue[property] = label.text()
         
         # Update the styling with the new values
-        self.updateStyling(None)
+        self.updateStyling()
 
     def createGraphics(self):
         # Create a scene
@@ -1059,6 +1060,8 @@ class textInImage:
         continueButton.setGeometry(QRect(0, 0, 500, 100))
 
         continueButton.show()
+        
+        self.updateStyling()
 
     def resizeToContent(self, text):
         
@@ -1119,6 +1122,7 @@ class textInImage:
             padding-left: 10px;
             color: white;
         """
+        self.menu = QSliderMenu(self.graphics)
         
         # Show the menu
         self.menu.show()
@@ -1126,7 +1130,7 @@ class textInImage:
         # Set alignment
         self.menu.setAlignment(Qt.AlignTop | Qt.AlignRight)
         
-        for name in ["Width" , "Text" , "Height" , "Color" , "Font Family" , "Font Size"]:
+        for name in ["Text", "Color" , "Font Family" , "Font Size"]:
             
             # Create a input and set size and styles accordingly
             inputLabel = QLineEdit()

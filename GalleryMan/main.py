@@ -1,4 +1,5 @@
 # Import all the required modules
+from GalleryMan.utils.stickerManager import stickerManager
 from GalleryMan.utils.helpers import addToScanDirectory, removeFromScanDirectory, show_list
 from GalleryMan.utils.initer import Initer
 from functools import partial
@@ -266,6 +267,14 @@ def main():
                 
     parser.add_argument("--init" , dest="init" , help="Initiates GalleryMan" , action="store_true")
     
+    parser.add_argument("--stickers" , dest="stickers" , help="Shows a list of all the stickers downloaded" , action="store_true")
+    
+    parser.add_argument("--create" , dest="create" , help="Creates a new sticker pack to be used in application" , action="store_true")
+    
+    parser.add_argument("--install" , dest="install" , help="Add an image to a sticker pack")
+    
+    parser.add_argument("--delete" , dest="delete" , help="Deletes a sticker pack" , action="store_true")
+    
     parser.add_argument("--show" , dest="show" , help="Shows a particular image")
 
     args = parser.parse_args()
@@ -288,6 +297,15 @@ def main():
         
     elif(args.remove):
         removeFromScanDirectory(args.remove)    
+        
+    elif(args.create):
+        stickerManager().createNew()
+        
+    elif(args.install):
+        stickerManager().addToExisting(args.install)
+    
+    elif(args.delete):
+        stickerManager().deletePack()
     
     else:
         app.createApp()

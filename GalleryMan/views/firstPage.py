@@ -349,7 +349,7 @@ class FirstPage:
     def transfer_control(self):
 
         # Write all the directories that are prevented by the user to read
-        with open("/home/strawhat54/.config/galleryman/data/scan_dirs.txt", "w") as file:
+        with open("/home/strawhat54/.galleryman/data/scan_dirs.txt", "w") as file:
             file.write(json.dumps(list(self.scans)))
 
         # Hide all the widgets that are not required

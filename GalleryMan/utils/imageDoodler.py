@@ -125,6 +125,7 @@ class doodleImageItems:
 class doodleFreeHand(doodleImageItems):
     def __init__(self, parent, renderArea, outParent):
         super().__init__(parent, renderArea, outParent)
+        
     
     def showGraphics(self):
         self.points = []
@@ -139,7 +140,7 @@ class doodleFreeHand(doodleImageItems):
             "height": 2,
             "color": "#88C0D0",
             "outline": "#2E3440",
-            "outline-width": 1,
+            "outline-width": -1,
             "border-radius": 0,
         }
     
@@ -154,7 +155,7 @@ class doodleFreeHand(doodleImageItems):
         self.startAni = QCustomButton(" ", self.parent).create()
         
         # Styles and positioning correctly
-        self.startAni.setGeometry(QRect(1770, 5, 100, 100))
+        self.startAni.setGeometry(QRect(1770, 5, 50, 50))
 
         self.startAni.setStyleSheet(
             "border: 0; background-color: transparent; float: left"
@@ -180,6 +181,12 @@ class doodleFreeHand(doodleImageItems):
         
         self.continueNext.activated.connect(self.printOut)
 
+        with open("/home/strawhat54/.galleryman/data/helpReq.txt") as f:
+            data = loads(f.read())
+        
+        if(data["freeHand"] == "True"):
+            self.showHelp()
+            
     def _reset(self, _):
         self.pressed = False
 
@@ -353,6 +360,13 @@ class doodleFreeHand(doodleImageItems):
         # Remove the shortcut
         self.continueNext.setKey(QKeySequence())
         
+    def showHelp(self):        
+        self.helpEllipse = self.scene.addEllipse(
+            self.graphics.width() - 100,
+            50,
+            50, 50, QColor("#88C0D0"), 
+        )
+                
 # Rect class
 class doodlerectItem(doodleImageItems):
     def __init__(self, parent, renderArea, outParent):
@@ -876,6 +890,7 @@ class doodleImage:
             "height": 2,
             "color": "#88C0D0",
             "outline": "#2E3440",
+            "outline-width": -1,
             "border-radius": 10,
         }
 

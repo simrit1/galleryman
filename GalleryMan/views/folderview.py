@@ -70,39 +70,7 @@ class Worker(QObject):
                         x = 40
 
                         y += height + padding
-            
-        self.panel = QLabel(inst.main_window)
-        
-        self.panel.setStyleSheet("background-color: #2E3440")
-        
-        self.layout = QHBoxLayout()
-        
-        inst.albums = QCustomButton(" " , None).create()
-        
-        inst.albums.setFixedWidth(300)
-        
-        inst.albums.clicked.connect(inst.switchToAlbums)
-        
-        self.layout.addWidget(inst.albums)
-        
-        inst.albums.setStyleSheet("color: #88C0D0; font-size: 30px")
-        
-        inst.trash = QCustomButton(" " , None).create()
-        
-        inst.trash.clicked.connect(inst.moveToThrash)
-        
-        inst.trash.setFixedWidth(300)
-        
-        inst.trash.setStyleSheet("color: #88C0D0; font-size: 40px")
-    
-        self.layout.addWidget(inst.trash)
-        
-        self.panel.setGeometry(QRect(0 , 940 , 1887 , 64))
-        
-        self.panel.show()
-        
-        self.panel.setLayout(self.layout)
-                                
+                        
         self.finished.emit()
 
 class imagesFolder():
@@ -274,6 +242,8 @@ class imagesFolder():
         
         self.worker.finished.connect(self.thread.quit)
         
+        self.worker.finished.connect(self.createBar)
+        
         self.thread.start()
      
         perline = max((self.main_window.size().width() - 100) // width , 1)
@@ -305,6 +275,63 @@ class imagesFolder():
 
         # End of the function by returning True
         return True
+    
+    def createBar(self):
+        print("RAN~")
+        
+        self.panel = QLabel(self.main_window)
+        
+        self.panel.setStyleSheet("background-color: {}".format(self.config.get("folderPage" , "bar-backgroundColor")))
+        
+        self.layout = QHBoxLayout()
+        
+        # self.albums = QCustomButton(" " , None).create()
+        
+        # self.albums.setFixedWidth(300)
+        
+        # self.albums.clicked.connect(self.switchToAlbums)
+        
+        # self.layout.addWidget(self.albums)
+        
+        # self.albums.setStyleSheet("color: #88C0D0; font-size: 30px")
+        
+        # self.trash = QCustomButton(" " , None).create()
+        
+        # self.trash.clicked.connect(self.moveToThrash)
+        
+        # self.trash.setFixedWidth(300)
+        
+        # self.trash.setStyleSheet("color: #88C0D0; font-size: 40px")
+    
+        # self.layout.addWidget(self.trash)
+        func = [self.switchToAlbums , self.moveToThrash]
+        
+        i = 0
+        
+        for icon , color , size , family in json.loads(self.config.get("folderPage" , "bar-icons")):
+            self.albums = QCustomButton(icon , None).create()
+                
+            self.albums.clicked.connect(func[i])
+            
+            i += 1
+            
+            self.layout.addWidget(self.albums)
+            
+            self.albums.setStyleSheet("color: {}; font-size: {}px; font-family: {}".format(
+            
+                color , size , family
+            ))
+        
+        self.panel.setGeometry(QRect(0 , 1000 , 1887 , 64))
+        
+        self.animation = Animation.movingAnimation(Animation , self.panel , QPoint(0 , 940) , 300)
+        
+        self.animation.start()
+        
+        self.panel.show()
+        
+        self.panel.setLayout(self.layout)
+                    
 
     def update(self, dir: str, x: int, y: int, is_pinned: bool, color: str) -> bool:
         """
@@ -664,6 +691,10 @@ class imagesFolder():
 
         self.effects.addAnimation(
             Animation.fadingAnimation(Animation, self.label_to_change, 400)
+        )
+        
+        self.effects.addAnimation(
+            Animation.movingAnimation(Animation , self.panel , QPoint(0 , 1000) , 400)
         )
 
         self.effects.start()

@@ -1,4 +1,5 @@
 # Import all the required modules
+from GalleryMan.utils.helpers import addToScanDirectory, removeFromScanDirectory, show_list
 from GalleryMan.utils.initer import Initer
 from functools import partial
 from GalleryMan.assets.QtHelpers import QCustomButton
@@ -48,7 +49,7 @@ class CustomLabel(QLabel):
 
                       
 class Main:
-    def createApp(self , showOnlyImage=False):
+    def createApp(self , showOnlyImage=False , directory=None):
         self.curr = "Hide"
         
         app = QApplication([])
@@ -128,7 +129,7 @@ class Main:
         
         stylesheet , config = change_with_config(read_file('GalleryMan/sass/styles.txt'))
         
-        for icon , color , size , font in json.loads(config.get("singleFolder" , "topBar-buttons")):            
+        for icon , color , size , font in json.loads(config.get("global" , "topBar-buttons")):            
             button = QPushButton(icon , self.topbar)
             
             button.setCursor(QCursor(Qt.PointingHandCursor))
@@ -172,7 +173,7 @@ class Main:
             
             self.topbar.show()
             
-            ui.show_image('/home/strawhat54/Pictures/ONE_P/darker_than_black.jpg' , None)
+            ui.show_image(directory , None)
             
         elif(status == 'NOT REGISTERED'):            
             ui = FirstPage(contents , self.window , self.scrollArea , config , self.topbar , app)
@@ -257,31 +258,36 @@ def main():
     
     parser = argparse.ArgumentParser(description="A Tool For Managing Your Memories  ")
     
+    parser.add_argument("--list" , dest="list" , action="store_true" , help="Show all the directories that are prevent to be scanned")
+    
     parser.add_argument("--add" , dest="add" , action="store_true" , help="Add A New Directory To the Scanning List")
     
     parser.add_argument("--remove" , dest="remove" , help="Remove A New Directory To the Scanning List" , action="store_true")
-    
-    parser.add_argument("--backup" , dest="remove" , help="Creates a backup of your data and config in current directory ({})".format(os.getcwd()) , action="store_true")
-    
-    parser.add_argument("--restore" , dest="remove" , help="Restores a created backup" , action="store_true")
-    
-    parser.add_argument("--reset" , dest="remove" , help="Resets all configs and data" , action="store_true")
-    
-    parser.add_argument("--open" , dest="open" , help="Opens config file" , action="store_true")
-    
+                
     parser.add_argument("--init" , dest="init" , help="Initiates GalleryMan" , action="store_true")
     
     parser.add_argument("--show" , dest="show" , help="Shows a particular image")
 
     args = parser.parse_args()
     
-    if(args.add):
-        input("Enter the file location (Press enter to select cwd): ")
-    elif(args.open):
-        system("nano config.ini || emacs config.ini || vim config.ini || code config.ini || echo 'Oops! You dont have a preferred editor!'")
-    elif(args.init):
+    if(args.init):
         Initer().init()
+        
     elif(args.show):
-        app.createApp(True)
+        directory = os.getcwd()
+        
+        directory = os.path.join(directory , args.show)
+        
+        app.createApp(True , directory)
+    
+    elif(args.list):
+        show_list()
+    
+    elif(args.add):
+        addToScanDirectory(args.add)
+        
+    elif(args.remove):
+        removeFromScanDirectory(args.remove)    
+    
     else:
         app.createApp()

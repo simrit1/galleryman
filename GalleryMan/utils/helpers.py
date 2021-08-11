@@ -1,4 +1,6 @@
 # Importing the modules
+import os
+from GalleryMan.utils.initer import bcolors
 from math import cos, radians, sin
 from PyQt5.QtCore import  QPoint, QRect, QSize, Qt, pyqtSignal
 from PyQt5.QtGui import QMouseEvent, QPainter , QResizeEvent
@@ -85,17 +87,11 @@ class AddToLiked:
     def run(self):
         with open("/home/strawhat54/.galleryman/data/likedFolders.txt", "r") as f:
             data = f.read()
-        
-
-            if data == "":
-                data = []
-
-            else:
-                data = loads(data)
-        data = []
+  
+            data = loads(data)
 
         with open("/home/strawhat54/.galleryman/data/likedFolders.txt", "w") as f:
-            if self.remove:
+            if self.remove and self.dir in data:
                 data.remove(self.dir)
 
             else:
@@ -134,7 +130,13 @@ class ResizableRubberBand(QWidget):
         self._band = QRubberBand(
             QRubberBand.Rectangle, self)
         
-        self.setStyleSheet('background-color: #2E344050')
+        self.setStyleSheet("""
+            background-color: #2E344050;
+            
+            QSizeGrip{{
+                background-color: #FFF;
+            }}
+        """)
                         
         self._band.show()
         
@@ -218,3 +220,37 @@ class QGripLabel(QLabel):
         
         if event.button() == Qt.LeftButton:
             self.move(self.pos() + event.pos() - self.mousePos)
+            
+            
+def show_list():
+    print(bcolors.HEADER , "\b\nList of Directories Prevented To Be Scanned: \n" , bcolors.ENDC)
+    
+    with open("/home/strawhat54/.galleryman/data/scan_dirs.txt") as f:
+        data = loads(f.read())
+        
+        for index , directory in enumerate(data):
+            print("{}: {}".format(bcolors.OKCYAN + str(index) , bcolors.OKGREEN + directory))
+
+def addToScanDirectory(self):
+    print(bcolors.OKGREEN + "\nEnter the folder path (Press enter to select current directory): ", end="")
+    
+    directory = input()
+    
+    if(directory in ["." , ""]):
+        directory = os.getcwd()
+        
+    elif(directory == "~"):
+        directory= os.path.expanduser("~")
+        
+    print(bcolors.WARNING + "\nAdding {} to scanning list".format(directory))
+    
+    with open("/home/strawhat54/.galleryman/data/scan_dirs.txt") as f:
+        curr = loads(f.read())
+        
+    curr.append(directory)
+    
+    print(bcolors.OKGREEN + "Successfully added to scanning list.")
+    
+def removeFromScanDirectory(self , directory):
+    print(directory)
+    

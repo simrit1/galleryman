@@ -262,12 +262,8 @@ class singleFolderView():
         self.directory = directory
         
         self.copy = directory
-
-        stylesheet, self.config = change_with_config(
-            read_file("GalleryMan/sass/styles.txt"), section="singleFolder"
-        )
         
-        self.window.setStyleSheet(stylesheet)
+        self.config = config
         
         self.start()
 
@@ -618,28 +614,50 @@ class singleFolderView():
             lambda : self.functional.addtoLiked(self.directory_name , self),
             lambda : self.functional.moveToThrash(self.origin),
             lambda : self.functional.moreInfo(self.directory_name),
+            lambda : self.functional.closeWithSave(name)
         ]
         
         
         self.heartWidget = 2
         
-        # with open("/home/strawhat54/.galleryman/data/likedFolders.txt") as file:
-        #     dirs = json.loads(file.read())
+        self.isHeartWidgetParsed = False
+        
+        with open("/home/strawhat54/.galleryman/data/likedFolders.txt") as file:
+            dirs = json.loads(file.read())
+            
+        self.stylingForWidget = False
             
         # Iterate through each icon
         for icon, icon_color, icon_font_size, icon_family in self.icons:
             
             # Create a custom redefined label with styling
             item = QCustomButton(icon, self.application, True).create()
-        
-            
+                    
+            if(self.heartWidget == 0):
+                self.heartWidget = item
+                
+                self.iconStyles = [icon_color , icon_font_size , icon_family]
+                
+            elif(type(self.heartWidget) == int):
+
+                self.heartWidget -= 1
+                
             # Stylings
-            item.setStyleSheet(
-                "color: {}; font-size: {}px; font-family: {}".format(
-                    icon_color, icon_font_size, icon_family
+            if(name in dirs and not self.stylingForWidget and type(self.heartWidget) == QPushButton):
+                item.setStyleSheet(
+                    "color: {}; font-size: {}px; font-family: {}".format(
+                        '#BF616A', icon_font_size, icon_family
+                    )
                 )
-            )
-            
+                
+                self.stylingForWidget = True
+            else:
+                item.setStyleSheet(
+                    "color: {}; font-size: {}px; font-family: {}".format(
+                        icon_color, icon_font_size, icon_family
+                    )
+                )
+                                
             # Connect to the function
             item.clicked.connect(functions[i])
             
@@ -649,24 +667,6 @@ class singleFolderView():
             # Add to layout
             second_layout.addWidget(item)
             
-            # Check if it is a heart Widget
-            if(type(self.heartWidget) == QPushButton):
-                item.setStyleSheet(
-                    "color: {}; font-size: {}px; font-family: {}".format(
-                        "#BF616A", icon_font_size, icon_family
-                    )
-                )
-            
-            else:
-                
-                if(self.heartWidget == 0):
-                    self.heartWidget = item
-                    
-                    self.iconStyles = [icon_color , icon_font_size , icon_family]
-                
-                else:
-                    
-                    self.heartWidget -= 1
                     
         del icon, icon_color, icon_family, icon_font_size, self.pixmap
 

@@ -29,6 +29,7 @@ from PyQt5.QtGui import (
 )
 from PyQt5.QtWidgets import (
     QApplication,
+    QDialog,
     QGraphicsScene,
     QGraphicsView,
     QHBoxLayout,
@@ -323,12 +324,15 @@ class QEditorHelper:
     def moveToThrash(self, directory):
         
         # Relace the directory to the app's trash folder
-        os.replace(
-            directory,
-            "/home/strawhat54/.galleryman/data/thrashFiles/{}".format(
-                directory[directory.rindex("/") + 1 :]
-            ),
-        )
+        try:
+            os.replace(
+                directory,
+                "/home/strawhat54/.galleryman/data/thrashFiles/{}".format(
+                    directory[directory.rindex("/") + 1 :]
+                ),
+            )
+        except:
+            print("IMAGE NOT FOUND!")
         
         # Now open the trash file logs and add a entry
         with open("/home/strawhat54/.galleryman/data/thrashLogs.txt", "r") as f:
@@ -385,6 +389,39 @@ class QEditorHelper:
         self.layout = QLayoutMaker(self.icons, self.func).make()
 
         self.swapLayout(self.layout)
+        
+    def closeWithSave(self , directory):
+        dialog = QDialog(self.application)
+        
+        buttonsLayout = QHBoxLayout()
+        
+        save = QCustomButton("Save and Close" , None).create()
+        
+        save.setStyleSheet("""
+            color: #FFF;
+            font-size: 20px                   
+        """)
+        
+        buttonsLayout.addWidget(save , alignment=Qt.AlignLeft)
+        
+        sep = QLabel(text="|")
+        
+        buttonsLayout.addWidget(sep , alignment=Qt.AlignCenter)
+        
+        discard = QCustomButton("Discard and Close" , None).create()
+        
+        discard.setStyleSheet("""
+            color: #FFF;
+            font-size: 20px                   
+        """)
+        
+        buttonsLayout.addWidget(discard , Qt.AlignRight)
+        
+        dialog.setLayout(buttonsLayout)
+        
+        dialog.setFixedSize(400 , 50)
+        
+        dialog.exec_()
 
 
 class ImageEditButtons:
@@ -415,7 +452,7 @@ class ImageEditButtons:
 
     def rotater(self):
         # Get the preffered icons
-        icons = loads(self.config.get("singleFolder", "editorCropper-icons"))
+        icons = loads(self.config.get("singleFolder", "editorRotater-icons"))
         
         # A input box to show the current degree
         self.sliderValue = QLineEdit()
@@ -444,6 +481,8 @@ class ImageEditButtons:
         self.slider.setMaximum(360)
 
         self.slider.setMinimum(0)
+        
+        self.slider.valueChanged.connect(self.rotateLabel)
         
         # Some Stylings
         self.slider.setStyleSheet(
@@ -478,9 +517,7 @@ class ImageEditButtons:
         self.sliderValue.setText("0")
         
         # Rotate the label when the text is changed
-        self.sliderValue.textChanged.connect(
-            partial(self.rotateLabel, self.sliderValue.text())
-        )
+        self.sliderValue.textChanged.connect(self.rotateLabel)
         
         # Set orientation
         self.slider.setOrientation(Qt.Horizontal)
@@ -488,14 +525,23 @@ class ImageEditButtons:
         # Stylings
         self.sliderValue.setStyleSheet(
             """
-            border-radius: 1px;
-            border: 1px solid #4c566a;
-            color: #d8dee9                         
-        """
-        )
+            border-radius: {}px;
+            border: {}px solid {};
+            color: {};
+            background-color: {}                       
+        """.format(
+            self.config.get("singleFolder" , "input-borderRadius"),
+            self.config.get("singleFolder" , "input-borderWidth"),
+            self.config.get("singleFolder" , "input-borderColor"),
+            self.config.get("singleFolder" , "input-textColor"),
+            self.config.get("singleFolder" , "input-backgroundColor"),
+        ))
         
         # Fixed size
-        self.sliderValue.setFixedSize(QSize(200, 30))
+        self.sliderValue.setFixedSize(QSize(
+            int(self.config.get("singleFolder" , "input-width")),
+            int(self.config.get("singleFolder" , "input-height"))    
+        ))
         
         # Rotate label when slider is changed
         self.sliderValue.textChanged.connect(lambda: self.rotateLabel)
@@ -518,7 +564,7 @@ class ImageEditButtons:
     def cropImage(self):
         
         # Initate the cropper class
-        cropper = ImageCropper(self.parent, self.renderArea)
+        cropper = ImageCropper(self.parent, self.renderArea , self.config)
         
         # Show the cropper
         cropper.show()
@@ -636,11 +682,12 @@ class ImageEditButtons:
         func = [
             lambda: flipper.flipLeft(),
             lambda: flipper.flipTop(),
+            # lambda: flipper.
             lambda: self.callback(),
         ]
         
         # Get the preffered icons
-        icons = loads(self.config.get("singleFolder", "editroFlipper-icons"))
+        icons = loads(self.config.get("singleFolder", "flipper-icons"))
         
         # Swap the layout
         layout = QLayoutMaker(icons, func).make()
@@ -1103,6 +1150,7 @@ class imageFlipper:
         
         # Callback
         def animation_callback():
+            
             # Flip the image and set the pixmap (Updated one)
             new_image = self.image.transpose(method=Image.FLIP_LEFT_RIGHT)
 

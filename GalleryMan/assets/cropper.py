@@ -1,10 +1,11 @@
 # Import All Modules
+from configparser import ConfigParser
 from PyQt5.QtGui import QPixmap, QResizeEvent, QTransform
 from GalleryMan.utils.helpers import ResizableRubberBand
 from GalleryMan.assets.QtHelpers import Animation, QContinueButton
 from PIL import Image
 from PyQt5.QtWidgets import QGraphicsScene, QGraphicsView, QLabel, QMainWindow
-from PyQt5.QtCore import QAbstractAnimation, QPoint, QRect, QVariant, QVariantAnimation, Qt, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QAbstractAnimation, QPoint, QRect, QRectF, QVariant, QVariantAnimation, Qt, pyqtSignal, pyqtSlot
 
 
 class QRotateLabel(QLabel):
@@ -57,20 +58,23 @@ class ImageCropper(QGraphicsView):
     closed = pyqtSignal()
 
     # call the __init__ function of the QGraphicsView Class
-    def __init__(self, mainWindow: QMainWindow, outWidget: QRotateLabel):
+    def __init__(self, mainWindow: QMainWindow, outWidget: QRotateLabel , config: ConfigParser):
         super().__init__(mainWindow)
         
         # Get the original responser so that it could be replaced on removing
         self.originalResponser = mainWindow.resizeEvent
         
-        # Use custom responser
-        mainWindow.resizeEvent = self.resizeEvent
         
         # Create a scene which will contain all the images and rest
         self.graphicsScene = QGraphicsScene(self)
         
+        # Use custom responser
+        self.resizeEvent = self.resizeEvent
+        
         # Set a fixed geometry
-        self.setGeometry(QRect(0, 0, 1980, 1080))
+        self.setSceneRect(QRectF(0, 0, 1980, 1080))
+        
+        self.setGeometry(QRect(0 , 0 , 1980 , 1080))
         
         # Set Scene
         self.setScene(self.graphicsScene)
@@ -85,7 +89,7 @@ class ImageCropper(QGraphicsView):
         
         # Create a resizable label for cropping
         self.cropper = ResizableRubberBand()
-        
+    
         # Add to scene
         self.scene().addWidget(self.cropper)
         

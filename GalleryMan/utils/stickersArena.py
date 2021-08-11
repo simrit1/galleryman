@@ -1,11 +1,11 @@
-from GalleryMan.assets.QEditorButtons import Animation
-from PyQt5.QtCore import QPoint, Qt, pyqtSignal
+
+from PyQt5.QtCore import QPoint, QRect, QSize, QSizeF, Qt, pyqtSignal
 from PyQt5.QtGui import QCursor, QMouseEvent, QPixmap, QTransform
-from PyQt5.QtWidgets import QGraphicsItem, QGraphicsScene, QGraphicsView, QHBoxLayout, QLabel, QScrollArea, QSystemTrayIcon, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QGraphicsItem, QGraphicsProxyWidget, QGraphicsScene, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QScrollArea, QSystemTrayIcon, QVBoxLayout, QWidget
 import functools
 import os
 from GalleryMan.utils.helpers import QGripLabel
-from GalleryMan.assets.QtHelpers import QCustomButton, QSliderMenu
+from GalleryMan.assets.QtHelpers import Animation, QCustomButton, QSliderMenu
 
 class CustomLabel(QLabel):
     clicked = pyqtSignal(QPoint)
@@ -26,7 +26,6 @@ class stickersViewer:
     STOCK_PATH = "/home/strawhat54/.galleryman/stickers"
     
     def __init__(self , parent , renderArea , scrollArea: QScrollArea):
-        
         # Make args global
         self.parent = parent 
         
@@ -76,7 +75,6 @@ class stickersViewer:
         
     def initStock(self):
         directories = os.listdir(self.STOCK_PATH)
-        
         
         # Iterate through all the folders in the folders path
         for dirs in directories:
@@ -135,27 +133,88 @@ class stickersViewer:
         self.switchTo("Beard")
                         
     def useSticker(self , name , event):
-        # Create a grip label
-        preview = QGripLabel(None , False)
+        # # Create a grip label
+        self.preview = QLabel()
         
         # Set geometry
-        preview.setGeometry(500 , 500 , 300 , 300)
+        self.preview.setGeometry(500 , 500 , 300 , 300)
+        
+        self.preview.setStyleSheet("""background-color: transparent""")
         
         # Set pixmap
-        preview.setPixmap(QPixmap(name))
+        self.preview.setPixmap(QPixmap(name))
         
         # Scaled contents
-        preview.setScaledContents(True)
+        self.preview.setScaledContents(True)
         
-        # Add to the scene
-        inst = self.scene.addWidget(preview)
+        self.sticker = self.scene.addWidget(self.preview)
+                
+        self.sticker.setFlag(QGraphicsItem.ItemIsMovable)
         
         self.menu = QSliderMenu(self.graphics)
         
+        crossLabel = QVBoxLayout()
+        
+        cross = QLabel()
+        
+        cross.setFixedSize(QSize(50 , 50))
+        
+        cross.setText("X")
+        
+        self.config = {
+            "Width": 300,
+            "Height":300,
+            "rotation": 0
+        }
+        
+        crossLabel.addWidget(cross , alignment=Qt.AlignTop | Qt.AlignLeft)
+        
+        self.menu.addMenu("" , crossLabel , True)
+        
         for name in ["Width" , "Height" , "Rotation"]:
-            pass
+            inputBox = QLineEdit()
+            
+            inputBox.setPlaceholderText(name)
+            
+            inputBox.setStyleSheet("""
+                color: #D8DEE9;
+                padding-left: 20px;    
+            """)
+            
+            inputBox.setFixedHeight(50)
+            
+            inputBox.textChanged.connect(functools.partial(self.update , inputBox , name))
+            
+            self.menu.addMenu(name , inputBox)
+            
+        self.menu.move(QPoint(2000 , 0))
+        
+        self.menu.show()
+        
+        self.animation = Animation.movingAnimation(Animation , self.menu , QPoint(1877 - self.menu.width(), 0) , 200)
+        
+        self.animation.start()
         
         self.graphics.show()
+        
+    def update(self , inputBox , name):
+        text = int(inputBox.text())
+        
+        self.config[name] = text
+        
+    
+        # self.preview.setFixedSize(
+        #     self.config["Width"],
+        #     self.config["Height"]
+        # )
+    
+        # self.sticker.hide()
+        
+        # self.scene.removeItem(self.sticker)
+        
+        # self.sticker = self.scene.addWidget(self.preview)
+        
+        # self.sticker.setRotation(self.config["Rotation"])
         
     def switchTo(self , name):
         def run_second():        
@@ -181,14 +240,12 @@ class stickersViewer:
         
             self.scrollArea.setWidget(widget)
             
-            self.animation = Animation.unfade(Animation , self.scrollArea.parent())
+            self.animation = Animation.fadingAnimation(Animation , self.scrollArea.parent() , 200 , True)
             
             self.animation.start()
             
-        self.animation = Animation.fade(Animation , self.scrollArea.parent())
+        self.animation = Animation.fadingAnimation(Animation , self.scrollArea.parent() , 200)
         
         self.animation.finished.connect(run_second)
-        
-        
         
         self.animation.start()

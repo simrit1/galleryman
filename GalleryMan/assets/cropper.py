@@ -68,19 +68,15 @@ class ImageCropper(QGraphicsView):
         # Create a scene which will contain all the images and rest
         self.graphicsScene = QGraphicsScene(self)
         
-        # Use custom responser
-        self.resizeEvent = self.resizeEvent
         
-        # Set a fixed geometry
-        self.setSceneRect(QRectF(0, 0, 1980, 1080))
+        self.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         
-        self.setGeometry(QRect(0 , 0 , 1980 , 1080))
+        self.setGeometry(mainWindow.geometry())
         
         # Set Scene
         self.setScene(self.graphicsScene)
         
         # Move it to the top
-        self.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         
         # Add the image
         self.pixmap = self.graphicsScene.addPixmap(

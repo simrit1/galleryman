@@ -5,6 +5,7 @@ from math import atan2, pi
 from PIL import Image, ImageDraw
 from PyQt5.QtCore import (
     QPoint,
+    QPropertyAnimation,
     QRect,
     QRectF,
     QSize,
@@ -43,6 +44,17 @@ class QClickableTextEdit(QLineEdit):
     
     def __init__(self):
         super().__init__()
+        
+    def mousePressEvent(self, a0: QMouseEvent) -> None:
+        self.clicked.emit()
+        
+        return super().mousePressEvent(a0)
+    
+class ClickableLabel(QLabel):
+    clicked = pyqtSignal()
+    
+    def __init__(self , *arg , **kwargs):
+        super().__init__(*arg , **kwargs)
         
     def mousePressEvent(self, a0: QMouseEvent) -> None:
         self.clicked.emit()
@@ -152,13 +164,19 @@ class doodleFreeHand(doodleImageItems):
         self.menu = QSliderMenu(self.parent)
         
         # Button which will toggle the menu
-        self.startAni = QCustomButton(" ", self.parent).create()
+        self.startAni = ClickableLabel("", self.parent)
         
         # Styles and positioning correctly
-        self.startAni.setGeometry(QRect(1770, 5, 50, 50))
-
+        self.startAni.setGeometry(QRect(
+            self.parent.width() - 80 - 10,
+            20,
+            80 , 80
+        ))
+        
+        self.startAni.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
+        
         self.startAni.setStyleSheet(
-            "border: 0; background-color: transparent; float: left"
+            "border: none; background-color: transparent; float: left; border-radius: 40px"
         )
         
         # Open menu onclick
@@ -360,11 +378,27 @@ class doodleFreeHand(doodleImageItems):
         # Remove the shortcut
         self.continueNext.setKey(QKeySequence())
         
-    def showHelp(self):        
+    def showHelp(self): 
+        pen = QPen()
+        
+        pen.setColor(QColor("#88C0D0"))
+        
+        pen.setWidth(50)
+               
         self.helpEllipse = self.scene.addEllipse(
-            self.graphics.width() - 100,
-            50,
-            50, 50, QColor("#88C0D0"), 
+            50 , 50 , 50 , 50 , pen
+        )
+        
+        self.animation = QPropertyAnimation(pen , b"width")
+        
+        self.animation.setStartValue(1)
+        
+        self.animation.setEndValue(1000)
+        
+        self.animation.start()
+        
+        self.startAni.setStyleSheet(
+            "border: 1px solid #D8DEE9; background-color: transparent; float: left; border-radius: 40px"
         )
                 
 # Rect class
@@ -376,7 +410,7 @@ class doodlerectItem(doodleImageItems):
         self.config = {
             "background-color": "#2E3440",
             "border-color": "#2E3440",
-            "border-width": 40,
+            "border-width": 0,
             "border-radius": 0,
         }
         
@@ -395,8 +429,8 @@ class doodlerectItem(doodleImageItems):
                 }}
                 
                 QSizeGrip{{
-                    background-color: {color};
-                    border-radius: {rad}
+                    background-color: #D8DEE9;
+                    border-radius: {rad};
                 }}
             """.format(
                     color=self.config["background-color"],

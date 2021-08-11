@@ -437,6 +437,8 @@ class ImageEditButtons:
         
         # Make all the args global
         self.parent = parent
+        
+        self.originalWidget = outParent.widget()
 
         self.dir = dir
 
@@ -543,9 +545,6 @@ class ImageEditButtons:
             int(self.config.get("singleFolder" , "input-height"))    
         ))
         
-        # Rotate label when slider is changed
-        self.sliderValue.textChanged.connect(lambda: self.rotateLabel)
-        
         # Add to layouts
         childLayout.addWidget(self.slider)
 
@@ -622,6 +621,7 @@ class ImageEditButtons:
             lambda: doodle.circle(),
             lambda: doodle.polygon(),
             lambda: doodle.floodImage(),
+            lambda : self.swapWidget(self.originalWidget)
         ]
         
         # Get the preffered icons
@@ -632,12 +632,30 @@ class ImageEditButtons:
             [" ", "#88C0D0", 40, "SauceCodePro Nerd Font"],
             [" ", "#88C0D0", 40, "SauceCodePro Nerd Font"],
             [" ", "#88C0D0", 40, "SauceCodePro Nerd Font"],
+            [" ", "#88C0D0", 40, "SauceCodePro Nerd Font"]
         ]
         
         # Make the layout and swap
         layout = QLayoutMaker(icons, func).make()
 
         self.swapLayout(layout)
+        
+    def swapWidget(self , newWidget):
+        
+        def run_second():            
+            self.outParent.setWidget(newWidget)
+            
+            self.animation = Animation.fadingAnimation(Animation , self.outParent.parent() , 200 , True)
+            
+            self.animation.finished.connect(self.outParent.show)
+            
+            self.animation.start()
+            
+        self.animation = Animation.fadingAnimation(Animation , self.outParent.parent() , 200)
+        
+        self.animation.finished.connect(run_second)
+        
+        self.animation.start()
 
     def addTextToImage(self):
         # Initate the text in image class

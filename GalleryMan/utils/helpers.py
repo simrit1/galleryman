@@ -2,8 +2,8 @@
 import os
 from GalleryMan.utils.initer import bcolors
 from math import cos, radians, sin
-from PyQt5.QtCore import  QPoint, QRect, QSize, Qt, pyqtSignal
-from PyQt5.QtGui import QMouseEvent, QPainter , QResizeEvent
+from PyQt5.QtCore import  QPoint, QPointF, QRect, QSize, QTimer, Qt, pyqtSignal
+from PyQt5.QtGui import QMouseEvent, QPainter, QPolygonF , QResizeEvent
 from PyQt5.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -107,6 +107,14 @@ class ResizableRubberBand(QWidget):
             
         self.mousePressPos = None
         
+        self.timer = QTimer(self)
+        
+        self.timer.setSingleShot(True)
+        
+        # self.timer.timeout.connect(self.hideHelp)
+        
+        self.needHelp = True
+        
         self.mouseMovePos = None
         
         self.origin = None
@@ -118,13 +126,20 @@ class ResizableRubberBand(QWidget):
         layout = QHBoxLayout(self)
         
         layout.setContentsMargins(0, 0, 0, 0)
+        
+        grip1 , grip2 = QSizeGrip(self) , QSizeGrip(self)
+        
+        grip1.setStyleSheet("""background-color: #FFFFFF""")
+            
+        grip2.setStyleSheet("""background-color: #FFFFFF""")
+
             
         layout.addWidget(
-            QSizeGrip(self), 0,
+            grip1, 0,
             Qt.AlignLeft | Qt.AlignTop)
         
         layout.addWidget(
-            QSizeGrip(self), 0,
+            grip2, 0,
             Qt.AlignRight | Qt.AlignBottom)
         
         self._band = QRubberBand(
@@ -132,10 +147,6 @@ class ResizableRubberBand(QWidget):
         
         self.setStyleSheet("""
             background-color: #2E344050;
-            
-            QSizeGrip{{
-                background-color: #FFF;
-            }}
         """)
                         
         self._band.show()
@@ -145,7 +156,7 @@ class ResizableRubberBand(QWidget):
 
     def paintEvent(self, event):
         window_size = self.size()
-
+            
         qp = QPainter()
 
         qp.begin(self)
@@ -154,9 +165,10 @@ class ResizableRubberBand(QWidget):
 
         qp.drawRoundedRect(0, 0, window_size.width(), window_size.height(),
                            self.borderRadius, self.borderRadius)
-
+        
         qp.end()
-
+        
+        
     def mousePressEvent(self, event):
         if not self.origin:
             self.origin = self.pos()

@@ -462,9 +462,7 @@ class doodlerectItem(doodleImageItems):
         # Create a grip label 
         self.rectangle = QGripLabel()
         
-        self.rectangle.grip1.setToolTip("Drag These To Increase The Width")
         
-        # self.rectangle.grip1.toolt
         
         # Add to scene
         self.scene.addWidget(self.rectangle)

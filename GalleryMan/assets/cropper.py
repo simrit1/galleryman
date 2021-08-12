@@ -1,11 +1,11 @@
 # Import All Modules
 from configparser import ConfigParser
-from PyQt5.QtGui import QPixmap, QResizeEvent, QTransform
+from PyQt5.QtGui import QPaintEvent, QPainter, QPixmap, QPolygonF, QResizeEvent, QTransform
 from GalleryMan.utils.helpers import ResizableRubberBand
 from GalleryMan.assets.QtHelpers import Animation, QContinueButton
 from PIL import Image
 from PyQt5.QtWidgets import QGraphicsScene, QGraphicsView, QLabel, QMainWindow
-from PyQt5.QtCore import QAbstractAnimation, QPoint, QRect, QRectF, QVariant, QVariantAnimation, Qt, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import QAbstractAnimation, QPoint, QPointF, QRect, QRectF, QVariant, QVariantAnimation, Qt, pyqtSignal, pyqtSlot
 
 
 class QRotateLabel(QLabel):
@@ -65,25 +65,19 @@ class ImageCropper(QGraphicsView):
         self.originalResponser = mainWindow.resizeEvent
         
         # Create a scene which will contain all the images and rest
-        self.graphicsScene = QGraphicsScene(self)
+        self.setGeometry(QRect(0 , 0 , 1980 , 1080))
         
-        # Set Alignment
         self.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         
-        self.setGeometry(mainWindow.geometry())
+        self.myScene = QGraphicsScene()
         
-        # Set Scene
-        self.setScene(self.graphicsScene)
+        self.myScene.addPixmap(QPixmap("GalleryMan/assets/processed_image.png"))
         
-        # Move it to the top
-        
-        # Add the image
-        self.pixmap = self.graphicsScene.addPixmap(
-            QPixmap("GalleryMan/assets/processed_image.png")
-        )
+        self.setScene(self.myScene)
         
         # Create a resizable label for cropping
         self.cropper = ResizableRubberBand()
+        
     
         # Add to scene
         self.scene().addWidget(self.cropper)
@@ -98,7 +92,7 @@ class ImageCropper(QGraphicsView):
         self.continueCrop = QContinueButton(self).start()
 
         self.continueCrop.setStyleSheet(
-            """
+            """ResizableRubberBand
             color: #D8DEE9;
             font-size: 20px;                         
             background-color: transparent;         
@@ -172,3 +166,20 @@ class ImageCropper(QGraphicsView):
                     event.height() - 170,
                 )
             )
+            
+    def paintEvent(self, event: QPaintEvent) -> None:
+        # qp = QPainter()
+        
+        # qp.begin(self)
+
+        # polygon = QPolygonF()
+        
+        # for points in [QPoint(500 , 50) , QPoint(500 , 100) , QPoint(500 - 65 , 100) , QPoint(500 - 65 - 10 , 95) , QPoint(500 - 65 , 75) , QPoint(75 , 100) , QPoint(75 , 50)]:
+        #     polygon.append(QPointF(points))
+            
+        # qp.drawPolygon(polygon)
+
+        # qp.end()
+        
+        return super().paintEvent(event)
+        

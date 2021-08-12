@@ -776,16 +776,14 @@ class ImageEditButtons:
 
         self.swapLayout(self.layout)
 
-    def rotateLabel(self, value=None):
+    def rotateLabel(self):
         # Get the scroll value
-        value = int(
-            self.sliderValue.text()
-            if value not in [None, ""]
-            else self.sliderValue.text()
-        )
+        value = self.slider.value()
+        
+        print(value)
         
         # Find the degree according to the rotations
-        self.interiorFunctions.degree = 90 * self.interiorFunctions.rotations
+        self.interiorFunctions.degree = 90 * self.interiorFunctions.rotations + value
 
         self.sliderValue.setText(str(self.interiorFunctions.degree % 360))
         

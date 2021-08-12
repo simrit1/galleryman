@@ -3,7 +3,7 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import QParallelAnimationGroup, QPoint, QPropertyAnimation, QRect, QTimer
 from PyQt5.QtGui import QCursor
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QGraphicsOpacityEffect, QHBoxLayout, QLabel, QPushButton, QScrollArea, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QGraphicsOpacityEffect, QHBoxLayout, QLabel, QPushButton, QScrollArea, QToolTip, QVBoxLayout, QWidget
 
 class QLikeButton:
     """
@@ -319,30 +319,30 @@ class Animation:
         
         return animation
 
-class QBalloonToopTip:
-    def __init__(self , parent , geo: QRect) -> None:
-        self.parent = parent
+# class QBalloonToopTip:
+#     def __init__(self , parent , geo: QRect) -> None:
+#         self.parent = parent
         
-        self.geo = geo
+#         self.geo = geo
         
-        self.text = ""
+#         self.text = ""
         
-    def setText(self , text):
-        self.text = text
+#     def setText(self , text):
+#         self.text = text
     
-    def show(self):
-        tool = QLabel(self.parent)
+#     def show(self):
+#         tool = QLabel(self.parent)
         
-        tool.setText(self.text)
+#         tool.setText(self.text)
         
-        tool.setGeometry(QRect(
-            self.geo.left(),
-            self.geo.top() + self.geo.height() + 20,
-            self.geo.width(),
-            30
-        ))
+#         tool.setGeometry(QRect(
+#             self.geo.left(),
+#             self.geo.top() + self.geo.height() + 20,
+#             self.geo.width(),
+#             30
+#         ))
         
-        tool.show()
+#         tool.show()
         
 class QLayoutMaker:
     def __init__(self , icons: list[list[str]] , functions: list) -> None:

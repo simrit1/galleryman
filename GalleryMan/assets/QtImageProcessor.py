@@ -51,3 +51,8 @@ class ImageProcessor:
         self.image = Image.composite(self.image, color, mask).convert("RGB")
 
         return self.image
+    
+    def smoothen(self):
+        self.image = self.image.filter(SMOOTH)
+        
+        return self.image

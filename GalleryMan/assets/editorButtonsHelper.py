@@ -591,6 +591,7 @@ class ImageEditButtons:
             lambda: filters.clear(),
             lambda: filters.realistic(),
             lambda: filters.cool_filter(),
+            lambda: filters.grayscale(),
             lambda: filters.remove_self(),
         ]
 

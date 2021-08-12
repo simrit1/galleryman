@@ -526,6 +526,32 @@ class FilterView:
         # Callback
         self.animation.finished.connect(callback)
         
+    def grayscale(self):
+        # Make edited variable true
+        self.edited = True
+        
+        # Animation callback
+        def callback():
+            
+            # Apply effect
+            self.image = ImageQt.ImageQt(self.imageProcessor.grayscale())
+            
+            # Apply the updated pixmap to the render area
+            self.out_widget.setPixmap(QPixmap.fromImage(self.image))
+            
+            self.out_widget.pixmap().save("GalleryMan/assets/current_edited.png")
+            
+            self.partial_unhide()
+            
+        # partial hide while the image is being processed
+        self.animation = self.partial_hide()
+        
+        # Start the animation
+        self.animation.start()
+        
+        # Callback
+        self.animation.finished.connect(callback)
+        
     def show_dialog(self , dialog: QDialog , parent , functions):
         self.dialog = dialog
         

@@ -1,4 +1,4 @@
-from PIL import Image
+from PIL import Image , ImageOps
 import numpy as np
 import random
 
@@ -274,3 +274,8 @@ class Filters:
         B = self.transform(R , G , B)
 
         return Image.fromarray(np.array([R, G, B, A]).T, mode="RGBA")
+    
+    def grayscale(self):
+        new_image = ImageOps.grayscale(self.img)
+        
+        return new_image

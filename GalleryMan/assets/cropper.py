@@ -1,11 +1,11 @@
 # Import All Modules
 from configparser import ConfigParser
-from PyQt5.QtGui import QPaintEvent, QPainter, QPixmap, QPolygonF, QResizeEvent, QTransform
+from PyQt5.QtGui import QColor, QFont, QKeySequence, QPaintEvent, QPainter, QPen, QPixmap, QPolygonF, QResizeEvent, QTransform
 from GalleryMan.utils.helpers import ResizableRubberBand
-from GalleryMan.assets.QtHelpers import Animation, QContinueButton
+from GalleryMan.assets.QtHelpers import Animation, QContinueButton, QCustomButton
 from PIL import Image
-from PyQt5.QtWidgets import QGraphicsScene, QGraphicsView, QLabel, QMainWindow
-from PyQt5.QtCore import QAbstractAnimation, QPoint, QPointF, QRect, QRectF, QVariant, QVariantAnimation, Qt, pyqtSignal, pyqtSlot
+from PyQt5.QtWidgets import QGraphicsScene, QGraphicsSimpleTextItem, QGraphicsTextItem, QGraphicsView, QLabel, QMainWindow, QShortcut, QVBoxLayout, QWidget
+from PyQt5.QtCore import QAbstractAnimation, QParallelAnimationGroup, QPoint, QPointF, QRect, QRectF, QTime, QTimer, QVariant, QVariantAnimation, Qt, pyqtSignal, pyqtSlot
 
 
 class QRotateLabel(QLabel):
@@ -61,6 +61,7 @@ class ImageCropper(QGraphicsView):
     def __init__(self, mainWindow: QMainWindow, outWidget: QRotateLabel , config: ConfigParser):
         super().__init__(mainWindow)
         
+        
         # Get the original responser so that it could be replaced on removing
         self.originalResponser = mainWindow.resizeEvent
         
@@ -75,46 +76,104 @@ class ImageCropper(QGraphicsView):
         
         self.setScene(self.myScene)
         
+        # Timer for hiding the tooltip
+        self.timer = QTimer(self)
+        
+        self.timer.setSingleShot(True)
+        
+        self.timer.timeout.connect(self.hideHelp)
+        
+        self.timer.start(3000)
+        
         # Create a resizable label for cropping
         self.cropper = ResizableRubberBand()
-        
     
         # Add to scene
         self.scene().addWidget(self.cropper)
         
         # Set geometry
-        self.cropper.setGeometry(QRect(50, 50, 300, 300))
+        self.cropper.setGeometry(QRect(280, 120, 300, 300))
         
         # Show the cropper
         self.cropper.show()
         
         # A button to save the cropped image
-        self.continueCrop = QContinueButton(self).start()
+        # self.continueCrop = QContinueButton(self).start()
 
-        self.continueCrop.setStyleSheet(
-            """ResizableRubberBand
-            color: #D8DEE9;
-            font-size: 20px;                         
-            background-color: transparent;         
-        """
-        )
+        # self.continueCrop.setStyleSheet("""
+        #     color: #D8DEE9;
+        #     font-size: 20px;                         
+        #     background-color: transparent;         
+        # """)
         
         self.outWidget = outWidget
 
-        self.continueCrop.enterEvent(None)
-
-        self.continueCrop.setGeometry(QRect(
-            mainWindow.width() - 300,
-            mainWindow.height() - 150,
-            250,
-            100
-        ))
-
-        self.continueCrop.clicked.connect(self.continueCropping)
+        # self.continueCrop.enterEvent(None)
         
-        self.continueCrop.show()
-        
+        # self.continueCrop.leaveEvent(None)
 
+        # self.continueCrop.setGeometry(QRect(
+        #     mainWindow.width() - 300,
+        #     mainWindow.height() - 150,
+        #     250,
+        #     100
+        # ))
+        self.shortcut = QShortcut(QKeySequence("Ctrl+S") , self)
+        
+        self.shortcut.activated.connect(self.continueCropping)
+
+        # self.continueCrop.clicked.connect(self.continueCropping)
+        
+        # self.continueCrop.show()
+        
+        self.starter()
+    
+    def showToolTip(self):
+        polygon = QPolygonF()
+        
+        pen = QPen()
+        
+        pen.setColor(QColor("#2E3440"))
+        
+        for points in [QPoint(100 , 100 - 50) , QPoint(500 , 100 - 50) , QPoint(500 , 160 - 50 - 10) , QPoint(300 , 160 - 50 - 10) , QPoint(290 , 170 - 50 - 10) , QPoint(280 , 160 - 50 - 10) , QPoint(280 , 160 - 50 - 10) , QPoint(100 , 160 - 50 - 10) , QPoint(100 , 100 - 50 + 10)]:
+            polygon.append(QPointF(points))
+            
+        self.tooltip = self.scene().addPolygon(polygon , pen)
+        
+        
+        self.tooltip.setBrush(QColor("#2E3440"))
+        
+        pen = QPen()
+        
+        pen.setColor(QColor("#88C0D0"))
+        
+        pen.setWidth(-1)
+        
+        font = QFont("Comfortaa" , 15)
+        
+        text = QGraphicsSimpleTextItem("Drag these to increase the size" , self.tooltip)
+        
+        text.setBrush(QColor("#88C0D0"))
+        
+        text.setPen(pen)
+        
+        text.setFont(font)
+        
+        rect = text.boundingRect()
+        
+        bounding = self.tooltip.boundingRect()
+            
+        rect.moveCenter(QPointF(bounding.center().x() , bounding.center().y() - 5))
+        
+        text.setPos(rect.topLeft())        
+        
+        self.animation = QParallelAnimationGroup()
+        
+        self.animation.addAnimation(Animation.fadingAnimation(Animation , self.tooltip , 200 , True))   
+        
+        self.animation.start()
+
+    
     def continueCropping(self):
         """Saves the cropped image"""
         
@@ -152,34 +211,70 @@ class ImageCropper(QGraphicsView):
         self.animation.start()
 
     def resizeEvent(self, event: QResizeEvent) -> None:
-        try:
-            self.continueCrop.move(
-                QPoint(
-                    event.size().width() - 300,
-                    event.size().height() - 170,
-                )
-            )
-        except:
-            self.continueCrop.move(
-                QPoint(
-                    event.width() - 300,
-                    event.height() - 170,
-                )
-            )
+        # try:
+        #     self.continueCrop.move(
+        #         QPoint(
+        #             event.size().width() - 300,
+        #             event.size().height() - 170,
+        #         )
+        #     )
+        # except:
+            # self.continueCrop.move(
+            #     QPoint(
+            #         event.width() - 300,
+            #         event.height() - 170,
+            #     )
+            # )
+        pass
             
-    def paintEvent(self, event: QPaintEvent) -> None:
-        # qp = QPainter()
+    def hideHelp(self):
+        self.animation = Animation.fadingAnimation(Animation , self.tooltip , 200)
         
-        # qp.begin(self)
-
-        # polygon = QPolygonF()
+        self.animation.start()
         
-        # for points in [QPoint(500 , 50) , QPoint(500 , 100) , QPoint(500 - 65 , 100) , QPoint(500 - 65 - 10 , 95) , QPoint(500 - 65 , 75) , QPoint(75 , 100) , QPoint(75 , 50)]:
-        #     polygon.append(QPointF(points))
+    def starter(self):
+        def run_second():
+            self.animation = Animation.fadingAnimation(Animation , self.helpLabel , 200)
             
-        # qp.drawPolygon(polygon)
-
-        # qp.end()
+            self.animation.start()
+            
+            self.animation.finished.connect(self.helpLabel.hide)
+            
+            self.animation.finished.connect(self.showToolTip)
         
-        return super().paintEvent(event)
+        self.helpLabel = QWidget(self)
+        
+        self.helpLabel.setGeometry(self.geometry())
+        
+        helpLayout = QVBoxLayout()
+        
+        text = QLabel(text="Press Ctrl+S to save and exit")
+        
+        helpLayout.addWidget(text , alignment=Qt.AlignBottom | Qt.AlignCenter)
+        
+        text.setStyleSheet("background-color: transparent; font-size: 30px")
+        
+        helpLayout.setSpacing(40)
+        
+        button = QCustomButton("Okay!" , None).create()
+        
+        button.setFixedHeight(100)
+        
+        button.clicked.connect(run_second)
+        
+        button.setFixedWidth(600)
+        
+        button.setStyleSheet("background-color: rgba(46, 52, 64, 200); border: 1px solid #4C566A; font-size: 30px")
+        
+        helpLayout.addWidget(button , alignment=Qt.AlignTop | Qt.AlignCenter)
+        
+        self.helpLabel.setLayout(helpLayout)
+        
+        self.helpLabel.setStyleSheet("""background-color: rgba(46, 52, 64, 155)""")
+        
+        self.animation = Animation.fadingAnimation(Animation , self.helpLabel , 200 , True)
+        
+        self.animation.start()
+        
+        self.animation.finished.connect(self.helpLabel.show)
         

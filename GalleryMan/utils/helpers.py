@@ -111,7 +111,7 @@ class ResizableRubberBand(QWidget):
         
         self.timer.setSingleShot(True)
         
-        # self.timer.timeout.connect(self.hideHelp)
+        
         
         self.needHelp = True
         
@@ -179,12 +179,16 @@ class ResizableRubberBand(QWidget):
         pos = self.pos() + event.pos() - self.mousePos
         if event.buttons() == Qt.LeftButton:
             self.move(pos)
+            
+            print(event.pos())
 
 
     def mouseReleaseEvent(self, event):
         pos = self.pos() + event.pos() - self.mousePos
         if event.button() == Qt.LeftButton:
             self.move(pos)
+            
+            print(event.pos())
             
 class QGripLabel(QLabel):
     def __init__(self , parent=None , movable=True):

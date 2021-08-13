@@ -4,12 +4,14 @@ from functools import partial
 from math import atan2, pi
 from PIL import Image, ImageDraw
 from PyQt5.QtCore import (
+    QObject,
     QParallelAnimationGroup,
     QPoint,
     QPropertyAnimation,
     QRect,
     QRectF,
     QSize,
+    QThread,
     QTimer,
     Qt,
 )
@@ -142,7 +144,7 @@ class doodleImageItems:
             
             self.menu.addMenu(name , textEdit)
             
-    def showToolTip(self):
+    def showToolTip(self , text):
         polygon = QPolygonF()
         
         pen = QPen()
@@ -165,7 +167,7 @@ class doodleImageItems:
         
         font = QFont("Comfortaa" , 15)
         
-        text = QGraphicsSimpleTextItem("Drag these to increase the size" , self.tooltip)
+        text = QGraphicsSimpleTextItem(text , self.tooltip)
         
         text.setBrush(QColor("#88C0D0"))
         
@@ -186,7 +188,7 @@ class doodleImageItems:
         self.animation.start()
     
             
-    def showHelp(self): 
+    def showHelp(self , text="Drag these to increase the size"): 
         def run_second():
             self.animation = Animation.fadingAnimation(Animation , self.help , 300)
             
@@ -208,7 +210,7 @@ class doodleImageItems:
             
             self.tooltiptimer.timeout.connect(self.hideToolTip)
             
-            self.animation.finished.connect(self.showToolTip)
+            self.animation.finished.connect(partial(self.showToolTip , text))
         
         self.help = QLabel(self.graphics)
         
@@ -893,22 +895,14 @@ class doodleEllipse(doodleImageItems):
         
     def createGraphics(self):
         self.graphics.show()
-        
-        def responser(event: QResizeEvent):
-            button.move(QPoint(event.size().width() - button.width(), button.y()))
 
-            if not self.menu.pos() == self.originalPos:
-                self.menuOpeningPos = QPoint(
-                    event.size().width() - self.menu.width(), 0
-                )
+        self.menu = QSliderMenu(self.graphics)
 
-                button.click()
-
-        self.menu = QSliderMenu(self.parent)
-
-        self.menuOpeningPos = QPoint(1870 - self.menu.width(), 0)
+        self.openNewPos = QPoint(self.parent.width() - self.menu.width() , 0)
 
         self.originalPos = QPoint(2000, 0)
+        
+        self.original = self.parent.width()
 
         self.scene.clear()
 
@@ -939,7 +933,7 @@ class doodleEllipse(doodleImageItems):
         self.pen = QPen(QColor(self.config["outline-color"]), int(self.config["outline-width"]), Qt.SolidLine)
 
         self.ecllipse = self.scene.addEllipse(
-            500, 500, self.config["radius"] * 2, self.config["radius"] * 2, self.pen
+            280, 125, self.config["radius"] * 2, self.config["radius"] * 2, self.pen
         )
 
         self.ecllipse.setFlag(QGraphicsItem.ItemIsMovable)
@@ -948,34 +942,40 @@ class doodleEllipse(doodleImageItems):
         
         crossLabel = QVBoxLayout()
         
-        cross = QLabel()
+        self.cross = QCustomButton("" , None).create()
         
-        cross.setFixedSize(QSize(50 , 50))
+        self.cross.setFixedSize(QSize(50 , 50))
         
-        cross.setText("X")
+        self.cross.clicked.connect(self.hideMenu)
         
-        crossLabel.addWidget(cross , alignment=Qt.AlignTop | Qt.AlignLeft)
+        self.cross.setText("X")
+        
+        crossLabel.addWidget(self.cross , alignment=Qt.AlignTop | Qt.AlignLeft)
         
         self.menu.addMenu("" , crossLabel , True)
         
         self.createMenu(["Radius", "Color", "Outline", "Outline Width"] , stylesheet , self.update_my_styles)
 
-        self.parent.resizeEvent = responser
+        self.startAni = QCustomButton("S", self.parent).create()
 
-        button = QCustomButton("S", self.parent).create()
+        self.startAni.setGeometry(QRect(self.parent.width() - 100, 0, 100, 100))
 
-        button.setGeometry(QRect(self.parent.width() - 100, 0, 100, 100))
-
-        button.show()
+        self.startAni.show()
         
-        button.clicked.connect(self.showMenu)
+        self.startAni.clicked.connect(self.showMenu)
         
         self.continueNext.activated.connect(self.drawCircleOnImage)
 
         self.menu.move(self.originalPos)
+        
+        self.showHelp("Here is your circle")
+        
+        self.graphics.paintEvent = self.responser
     
     def showMenu(self):
-        self.animation = Animation.movingAnimation(Animation , self.menu , QPoint(1870 - self.menu.width(), 0) , 200)
+        self.animation = Animation.movingAnimation(Animation , self.menu , self.openNewPos , 200)
+        
+        self.startAni.hide()
         
         self.animation.start()
         
@@ -1021,6 +1021,13 @@ class doodleEllipse(doodleImageItems):
         self.ecllipse.setRect(
             500, 500, int(self.config["radius"] * 2), int(self.config["radius"] * 2)
         )
+        
+    def hideMenu(self):
+        self.animation = Animation.movingAnimation(Animation , self.menu , QPoint(2000 , 0) , 200)
+        
+        self.animation.start()
+        
+        self.animation.finished.connect(self.startAni.show)
 
 class doodleImage:
     def __init__(self, parent, renderArea, outParent) -> None:
@@ -1041,6 +1048,8 @@ class doodleImage:
         self.draw = ImageDraw.ImageDraw(self.image)
 
         self.graphics = QGraphicsView(self.parent)
+        
+        self.graphics.setStyleSheet("background-color: #2E3440")
 
         self.graphics.setAlignment(Qt.AlignTop | Qt.AlignLeft)
 
@@ -1168,16 +1177,60 @@ class doodleImage:
     def floodImage(self):
         self.graphics.show()
 
-        self.graphics.mousePressEvent = self.floodImageWithDim
+        self.graphics.mousePressEvent = lambda pos : self.floodImageWithDim(pos)
 
         self.graphics.setCursor(Qt.CrossCursor)
 
-    def floodImageWithDim(self, pos):        
-        ImageDraw.floodfill(self.image, (pos.x(), pos.y()), (255, 0, 0 , 255))
+    def floodImageWithDim(self, pos):       
+        self.graphics.setCursor(Qt.BusyCursor)
+         
+        def run_second():
+            self.thread.quit()
+            
+            saveLoc = self.worker.fileSave
+  
+            self.animation = Animation.fadingAnimation(Animation , self.layer , 200)
+            
+            self.animation.finished.connect(self.layer.hide)
+            
+            self.animation.start() 
+            
+            self.animation.finished.connect(lambda : self.pixmap.setPixmap(QPixmap(saveLoc)))
+            
+            self.graphics.setCursor(Qt.CrossCursor)
         
-        self.image.save("new_image.png")
+        self.layer = QLabel(self.graphics)
         
-        self.pixmap.setPixmap(QPixmap("new_image.png"))
+        self.layer.setGeometry(self.graphics.geometry())
+        
+        opacity = QGraphicsOpacityEffect()
+        
+        opacity.setOpacity(1)
+        
+        self.layer.setGraphicsEffect(opacity)
+        
+        self.layer.show()
+        
+        self.thread = QThread()
+        
+        self.worker = floodFiller([] , pos.x() , pos.y() , (255 , 0 , 0 , 255) , 0)
+        
+        self.worker.moveToThread(self.thread)
+        
+        self.thread.started.connect(self.worker.run)
+        
+        self.worker.finished.connect(run_second)
+        
+        self.thread.start()
+        
+        self.animation = Animation.fadingAnimation(Animation , self.layer , 300 , endValue=0.7)
+        
+        self.animation.start()
+        
+        # ImageDraw.floodfill(self.image, (pos.x(), pos.y()), (255, 0, 0 , 255))
+        
+        # self.image.save("new_image.png")
+        
 
     def rotateDraw(self, event: QMouseEvent):
         item_position = self.rect.transformOriginPoint()
@@ -1355,3 +1408,30 @@ class doodleImage:
         self.animation.finished.connect(self.graphics.hide)
 
         self.animation.start()
+
+class floodFiller(QObject):
+    finished = pyqtSignal()
+    
+    def __init__(self , logsArray , x , y , fillColor , currently):
+        super().__init__()
+        
+        self.logsArray = logsArray
+        
+        self.currently = currently
+        
+        self.x = x
+        
+        self.y = y
+        
+        self.fillColor = fillColor
+        
+    def run(self):
+        self.image = Image.open("./GalleryMan/assets/processed_image.png").convert("RGBA")
+                
+        ImageDraw.floodfill(self.image, (self.x, self.y), self.fillColor)
+            
+        self.fileSave = os.path.join(os.path.expanduser("~") , ".galleryman" , "cache" , "edited_{}.{}".format(self.currently , "png"))
+                
+        self.image.save(self.fileSave)
+        
+        self.finished.emit()

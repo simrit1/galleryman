@@ -1061,6 +1061,8 @@ class textInImage:
         continueButton.show()
         
         self.updateStyling()
+        
+        self.showHelp()
 
     def resizeToContent(self, text):
         
@@ -1156,6 +1158,38 @@ class textInImage:
 
     def responser(self, event: QResizeEvent):
         print(event.size())
+        
+    def showHelp(self):
+        def run_second():
+            self.helpLabel.show()
+            
+            self.animation = Animation.fadingAnimation(Animation , self.helpLabel , 300)
+            
+            self.timer = QTimer(self.parent)
+            
+            self.timer.setSingleShot(True)
+            
+            self.timer.timeout.connect(self.animation.start)
+            
+            self.timer.start(500)
+            
+        
+        self.helpLabel = QLabel(self.graphics)
+        
+        self.helpLabel.setGeometry(self.graphics.geometry())
+        
+        self.helpLabel.setStyleSheet("background-color: rgba(46, 52, 64, 155)")
+        
+        self.helpLabel.setText("Press Ctrl+S to save and exit")
+        
+        self.helpLabel.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
+        
+        # self.helpLabel.show()
+        self.animation = Animation.fadingAnimation(Animation , self.helpLabel , 300 , True)
+        
+        self.animation.finished.connect(run_second)
+        
+        self.animation.start()
 
 
 class imageFlipper:

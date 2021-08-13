@@ -1,9 +1,9 @@
 from GalleryMan.assets.QtHelpers import Animation, QCustomButton, QSliderMenu
 from functools import partial
 from PIL import Image , ImageDraw
-from PyQt5.QtCore import QPoint, QRect, Qt, pyqtBoundSignal, pyqtSignal 
-from PyQt5.QtGui import QColor, QKeySequence, QMouseEvent, QPen
-from PyQt5.QtWidgets import QCheckBox, QGraphicsLineItem, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QShortcut
+from PyQt5.QtCore import QParallelAnimationGroup, QPoint, QPointF, QRect, QTimer, Qt, pyqtBoundSignal, pyqtSignal 
+from PyQt5.QtGui import QColor, QFont, QKeySequence, QMouseEvent, QPen, QPolygonF
+from PyQt5.QtWidgets import QCheckBox, QGraphicsLineItem, QGraphicsSimpleTextItem, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QScrollArea, QShortcut, QVBoxLayout, QWidget
 
 class customLineItem(QGraphicsLineItem):
     changeStyles = pyqtBoundSignal(QGraphicsLineItem)
@@ -30,6 +30,10 @@ class doodleShape:
             "outline-color": "#2E3440",
             "outline-width": 5
         }
+        
+        self.shortcut = QShortcut(QKeySequence("Ctrl+X") , self.parent)
+        
+        self.shortcut.activated.connect(self._breakSupport)
         
         self.parent.setMouseTracking(True)
         
@@ -61,11 +65,25 @@ class doodleShape:
         
         self.label.hide()
         
-        self.lineLayers = QLabel(parent)
+        self.lineLayersParent = QLabel(parent)
         
-        self.lineLayers.setGeometry(QRect(0 , 0 , 0 , 40))
+        layout = QVBoxLayout()
         
-        self.lineLayers.setStyleSheet("background-color: transparent")
+        self.lineLayers = QWidget()
+        
+        self.scrollArea = QScrollArea()
+        
+        self.scrollArea.setGeometry(self.lineLayersParent.geometry())
+        
+        self.scrollArea.setWidget(self.lineLayers)
+        
+        layout.addWidget(self.scrollArea)
+        
+        self.lineLayersParent.setLayout(layout)
+        
+        self.lineLayersParent.setGeometry(QRect(0 , 0 , 0 , 40))
+        
+        self.lineLayersParent.setStyleSheet("background-color: transparent")
         
         self.width = self.height = 0 
         
@@ -80,12 +98,29 @@ class doodleShape:
         self.poped = []
         
         self.label.setGeometry(QRect(0 , 0 , 1000 , 50))
-    
-    def flood(self , event: QMouseEvent):
         
-        ImageDraw.floodfill(self.image , (event.x() , event.y()) , (255 , 255 , 0 , 255) , thresh=50)
+        self.showHelp()
         
-        self.image.save("LOLCAT.PNG")
+        self.lineLayersParent.hide()
+        
+    def _breakSupport(self):
+        self.breakSupport = True
+        
+        try:
+            self.lines.pop(self.line)
+            
+        except:
+            pass
+        
+        self.line.hide()
+        
+        self.lineLayers.setStyleSheet("background-color: #2E3440")
+        
+        self.lineLayersParent.move(QPoint(0 , 100))
+        
+        self.lineLayersParent.show()
+        
+        self.showToolTip()
     
     def initPointLine(self , position: QPoint , followMouse=False):
         if(self.breakSupport): return
@@ -95,14 +130,6 @@ class doodleShape:
         position.setY(position.y() + self.parent.verticalScrollBar().value())
         
         scene = self.parent.scene()
-        
-        if(self.pointsLocation):
-            firstPointLocation = self.pointsLocation[0]
-                                 
-            if(abs(position.x() - firstPointLocation.x()) <= 30 and abs(position.y() - firstPointLocation.y()) <= 30):
-                self.isHandleAvail = True
-            else:
-                self.isHandleAvail = False
                 
         self.pen = QPen()
         
@@ -116,34 +143,31 @@ class doodleShape:
         
         self.lineInited = True
         
-        if(self.isHandleAvail):
-            self.breakSupport = True
+
+        self.line = customLineItem(position.x() , position.y() , position.x() + 0.5 , position.y() + 0.5, self.pen , self.updateSingleLine)
         
-        else:
-            self.line = customLineItem(position.x() , position.y() , position.x() + 0.5 , position.y() + 0.5, self.pen , self.updateSingleLine)
+        scene.addItem(self.line)
+        
+        self.lines.append(self.line)
+        
+        button = QCustomButton(str(self.count) , None).create()
             
-            scene.addItem(self.line)
-            
-            self.lines.append(self.line)
-            
-            button = QCustomButton(str(self.count) , None).create()
-                
-            button.setFixedSize(30 , 30)
-            
-            button.setStyleSheet("""
-                color: #D8DEE9;
-                font-size: 20px;
-            """)
-            
-            button.clicked.connect(partial(self.updateSingleLine , self.line))
-            
-            self.width += len(str(self.count)) * 30
-            
-            self.lineLayers.setFixedWidth(self.width)
-            
-            self.layerLayout.addWidget(button , alignment=Qt.AlignCenter | Qt.AlignCenter)
-            
-            self.count += 1
+        button.setFixedSize(30 , 30)
+        
+        button.setStyleSheet("""
+            color: #D8DEE9;
+            font-size: 20px;
+        """)
+        
+        button.clicked.connect(partial(self.updateSingleLine , self.line))
+        
+        self.width += len(str(self.count)) * 30
+        
+        self.scrollArea.setFixedWidth(self.width)
+        
+        self.layerLayout.addWidget(button , alignment=Qt.AlignCenter | Qt.AlignCenter)
+        
+        self.count += 1
                     
     def increase(self , event: QMouseEvent):
         if(not self.lineInited or self.breakSupport): return
@@ -286,6 +310,145 @@ class doodleShape:
         self.poped.append(self.lines.pop(-1))
         
         self.line = self.lines[-1]
+    
+    def showToolTip(self):
+        polygon = QPolygonF()
+        
+        pen = QPen()
+        
+        pen.setColor(QColor("#2E3440"))
+        
+        for points in [QPoint(100 , 100 - 50) , QPoint(700 , 100 - 50) , QPoint(700 , 160 - 50 - 10) , QPoint(400 , 160 - 50 - 10) , QPoint(390 , 170 - 50 - 10) , QPoint(380 , 160 - 50 - 10) , QPoint(280 , 160 - 50 - 10) , QPoint(100 , 160 - 50 - 10) , QPoint(100 , 100 - 50 + 10)]:
+            polygon.append(QPointF(points))
+            
+        self.tooltip = self.parent.scene().addPolygon(polygon , pen)
+        
+        self.tooltip.setBrush(QColor("#2E3440"))
+        
+        pen = QPen()
+        
+        pen.setColor(QColor("#88C0D0"))
+        
+        pen.setWidth(-1)
+        
+        font = QFont("Comfortaa" , 15)
+        
+        text = QGraphicsSimpleTextItem("Here are your layers, click the layer to customize" , self.tooltip)
+        
+        text.setBrush(QColor("#88C0D0"))
+        
+        text.setPen(pen)
+        
+        text.setFont(font)
+        
+        rect = text.boundingRect()
+        
+        bounding = self.tooltip.boundingRect()
+            
+        rect.moveCenter(QPointF(bounding.center().x() , bounding.center().y() - 5))
+        
+        text.setPos(rect.topLeft())        
+        
+        self.animation = QParallelAnimationGroup()
+        
+        self.animation.addAnimation(Animation.fadingAnimation(Animation , self.tooltip , 200 , True))   
+        
+        self.animation.start()
+        
+        self.tooltip.setPos(QPoint(555 , 555))
+
+        
+    def showHelp(self):
+        def run_second():
+            self.animation = Animation.fadingAnimation(Animation , self.help , 300)
+            
+            # self.timer = QTimer(self.parent)
+            
+            # self.timer.start(700)
+            
+            # self.timer.setSingleShot(True)
+            
+            self.animation.finished.connect(self.help.hide)
+            
+            self.animation.start()
+            
+            # self.timer.timeout.connect(self.animation.start)
+            
+            # self.tooltiptimer = QTimer(self.parent)
+            
+            # self.tooltiptimer.setSingleShot(True)
+            
+            # self.tooltiptimer.start(2000)
+            
+            # self.animation.finished.connect(self.showToolTip)
+            
+            # self.tooltiptimer.timeout.connect(self.hideToolTip)
+        
+        self.help = QLabel(self.parent)
+        
+        self.help.setGeometry(self.parent.geometry())
+        
+        helpLayouts = QVBoxLayout()
+        
+        for _ in range(25):
+            sep = QLabel()
+            
+            sep.setStyleSheet("background-color: transparent")
+            
+            sep.setFixedHeight(10)
+            
+            helpLayouts.addWidget(sep)
+        
+        for data in ["1. Press Ctrl+S to save and exit" , "2. Click and drag the mouse to draw lines", "3. Press Ctrl+X to customize the lines drawn"]:
+            label = QLabel(data , None)
+            
+            label.setFixedHeight(50)
+            
+            label.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
+            
+            label.setStyleSheet("""background-color: transparent; font-size: 20px""")
+            
+            helpLayouts.addWidget(label)
+            
+        okay = QCustomButton("Okay!" , None).create()
+        
+        okay.setStyleSheet("background-color: #2E3440; border: 1px solid white")
+        
+        okay.clicked.connect(run_second)
+        
+        okay.setFixedSize(200 , 50)
+        
+        helpLayouts.addWidget(okay , alignment=Qt.AlignCenter | Qt.AlignCenter)
+        
+        for _ in range(25):
+            sep = QLabel()
+            
+            sep.setStyleSheet("background-color: transparent")
+            
+            sep.setFixedHeight(10)
+            
+            helpLayouts.addWidget(sep)
+            
+            
+        self.help.setLayout(helpLayouts)
+                
+        self.help.setStyleSheet("""
+            background-color: rgba(46, 52, 64, 160);
+            font-size: 30px;                        
+        """)
+        
+        self.help.show()
+        
+        self.animation = Animation.fadingAnimation(Animation , self.help , 300 , True)
+        
+        # self.animation.finished.connect(run_second)
+        
+        self.animation.start()
+        
+    def hideToolTip(self):
+        self.animation = Animation.fadingAnimation(Animation , self.tooltip , 200)
+        
+        self.animation.start()
 
 class PolyGon(doodleShape):
     def __init__(self , parent):

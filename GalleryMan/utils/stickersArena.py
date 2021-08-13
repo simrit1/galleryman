@@ -23,7 +23,7 @@ class CustomLabel(QLabel):
 
 
 class stickersViewer:
-    STOCK_PATH = "/home/strawhat54/.galleryman/stickers"
+    STOCK_PATH = "/home/strawhat54/.galleryman/stickers/"
     
     def __init__(self , parent , renderArea , scrollArea: QScrollArea):
         # Make args global
@@ -42,7 +42,7 @@ class stickersViewer:
         
         self.scene = QGraphicsScene()
         
-        self.pixmap = self.scene.addPixmap(QPixmap("GalleryMan/assets/processed_image.png"))
+        self.pixmap = self.scene.addPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
         
         self.graphics.setScene(self.scene)
         
@@ -130,7 +130,7 @@ class stickersViewer:
                 
             self.stickersDict[dirs] = self.preview
             
-        self.switchTo("Beard")
+        self.switchTo("Emoji")
                         
     def useSticker(self , name , event):
         # # Create a grip label

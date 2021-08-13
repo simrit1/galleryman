@@ -215,6 +215,8 @@ class PopUpMessage:
         
         self.start()
         
+        return self.popup_window
+        
         
     def start(self):
         self.animation.start()
@@ -377,6 +379,8 @@ class QSliderMenu(QLabel):
         
         self.head = parent
         
+        self.setProperty("class" , "need")
+        
         self.setGeometry(QRect(2000, 0, 400, 1000))
 
         self.show()
@@ -396,6 +400,8 @@ class QSliderMenu(QLabel):
         self.second_layout = QVBoxLayout(self.buttons)
 
         self.buttons.setLayout(self.second_layout)
+        
+        self.setStyleSheet("""QLabel[class="need"] { border: 3px solid #3B4252 }""")
 
         
     def addMenu(self , name , widget , addAsLayout = False):

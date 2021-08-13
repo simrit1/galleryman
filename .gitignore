@@ -1,13 +1,18 @@
-# Byte-compiled / optimized / DLL files
+# PyCache Files 
 __pycache__/
 
+# Vscode
 .vscode/
 
-
 test.py
-GalleryMan/assets/processed_image.png
-GalleryMan/data/*
 
+# Processed Image   
+GalleryMan/assets/processed_image.png
+
+# Data
+GalleryMan/data
+
+# Image files
 *.png
 
 *.jpg

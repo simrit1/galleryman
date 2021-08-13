@@ -72,7 +72,7 @@ class ImageCropper(QGraphicsView):
         
         self.myScene = QGraphicsScene()
         
-        self.myScene.addPixmap(QPixmap("GalleryMan/assets/processed_image.png"))
+        self.myScene.addPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
         
         self.setScene(self.myScene)
         
@@ -187,7 +187,7 @@ class ImageCropper(QGraphicsView):
             self.outWidget.set_pixmap(QPixmap('GalleryMan/assets/processed_image.png'))
         
         # Open the image using PIL
-        image = Image.open("GalleryMan/assets/processed_image.png")
+        image = Image.open("./GalleryMan/assets/processed_image.png")
         
         # Get cropping coordinates
         x, y, width, height = (
@@ -201,7 +201,7 @@ class ImageCropper(QGraphicsView):
         image = image.crop((x, y, width + x, height + y))
         
         # Save
-        image.save("GalleryMan/assets/processed_image.png")
+        image.save("./GalleryMan/assets/processed_image.png")
         
         # Animation
         self.animation = Animation.fadingAnimation(Animation , self , 300)

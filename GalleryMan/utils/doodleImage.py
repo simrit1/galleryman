@@ -49,7 +49,7 @@ class doodleShape:
         
         self.breakSupport = False
 
-        self.image = Image.open("GalleryMan/assets/processed_image.png").convert("RGBA")
+        self.image = Image.open("./GalleryMan/assets/processed_image.png").convert("RGBA")
         
         self.draw = ImageDraw.ImageDraw(self.image)
         

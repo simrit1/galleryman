@@ -558,7 +558,7 @@ class singleFolderView():
         # Set The Pixmap
         os.system('cp "{}" GalleryMan/assets/processed_image.png'.format(self.directory_name))
     
-        self.pixmap = QPixmap("GalleryMan/assets/processed_image.png")
+        self.pixmap = QPixmap("./GalleryMan/assets/processed_image.png")
 
         self.image.set_pixmap(self.pixmap)
 

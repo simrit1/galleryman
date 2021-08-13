@@ -672,7 +672,7 @@ class ImageEditButtons:
         # Initate the handler class 
         view = PaletteView(
             None,
-            "GalleryMan/assets/processed_image.png",
+            "./GalleryMan/assets/processed_image.png",
             self.renderArea,
             self.config,
             lambda: print("NONE"),
@@ -751,7 +751,7 @@ class ImageEditButtons:
         
         self.icons = loads(self.config.get("singleFolder", "editButtons-icons"))
 
-        self.renderArea.setPixmap(QPixmap("GalleryMan/assets/processed_image.png"))
+        self.renderArea.setPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
 
         self.functions = [
             self.flipImage,
@@ -801,7 +801,7 @@ class ImageEditButtons:
 
 
 class cropImage:
-    SAVE_DIR = "GalleryMan/assets/processed_image.png"
+    SAVE_DIR = "./GalleryMan/assets/processed_image.png"
 
     def __init__(
         self, dir: str, newParent, renderArea: QRotateLabel, outDisplay
@@ -855,7 +855,7 @@ class cropImage:
 
     def updateImage(self):
         # Update the pillow image
-        self.image = Image.open("GalleryMan/assets/processed_image.png")
+        self.image = Image.open("./GalleryMan/assets/processed_image.png")
 
     def swapLayout(self, layout):
         # Get the central widget of the QScrollArea
@@ -893,13 +893,13 @@ class cropImage:
 
     def save(self, callback):
         # Open the image using PIL
-        image = Image.open("GalleryMan/assets/processed_image.png")
+        image = Image.open("./GalleryMan/assets/processed_image.png")
         
         # Rotate the image
         image = image.rotate(-(self.degree % 360), expand=1, fillcolor=(255, 0, 0, 1))
         
         # Save the image
-        image.save("GalleryMan/assets/processed_image.png")
+        image.save("./GalleryMan/assets/processed_image.png")
         
         # Call the callback
         callback()
@@ -1022,7 +1022,7 @@ class textInImage:
         self.graphics.setScene(self.scene)
         
         # Add pixmap
-        self.scene.addPixmap(QPixmap("GalleryMan/assets/processed_image.png"))
+        self.scene.addPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
         
         # Show the graphics
         self.graphics.show()
@@ -1087,10 +1087,10 @@ class textInImage:
         def callback():
             self.graphics.hide()
             
-            self.out_widget.set_pixmap(QPixmap("GalleryMan/assets/processed_image.png"))
+            self.out_widget.set_pixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
         
         # Open the image
-        self.image = Image.open("GalleryMan/assets/processed_image.png")
+        self.image = Image.open("./GalleryMan/assets/processed_image.png")
         
         # Get the geometry
         area = self.graphics.geometry()
@@ -1105,7 +1105,7 @@ class textInImage:
         painter.end()
         
         # Save the new image
-        image.save("GalleryMan/assets/processed_image.png")
+        image.save("./GalleryMan/assets/processed_image.png")
         
         # Hide the graphics
         self.animation = Animation.fadingAnimation(Animation , self.graphics , 200)
@@ -1165,7 +1165,7 @@ class imageFlipper:
 
         self.outParent = outParent
 
-        self.image = Image.open("GalleryMan/assets/processed_image.png")
+        self.image = Image.open("./GalleryMan/assets/processed_image.png")
 
     def flipLeft(self):
         
@@ -1177,9 +1177,9 @@ class imageFlipper:
 
             self.renderArea.set_pixmap(self.createPixmap(new_image))
 
-            new_image.save("GalleryMan/assets/processed_image.png")
+            new_image.save("./GalleryMan/assets/processed_image.png")
 
-            self.image = Image.open("GalleryMan/assets/processed_image.png")
+            self.image = Image.open("./GalleryMan/assets/processed_image.png")
             
             # Show the label after a partial hide
             self.animation = Animation.fadingAnimation(
@@ -1208,9 +1208,9 @@ class imageFlipper:
 
             self.renderArea.set_pixmap(self.createPixmap(new_image))
 
-            new_image.save("GalleryMan/assets/processed_image.png")
+            new_image.save("./GalleryMan/assets/processed_image.png")
 
-            self.image = Image.open("GalleryMan/assets/processed_image.png")
+            self.image = Image.open("./GalleryMan/assets/processed_image.png")
             
             # Partial unhide  
             self.animation = Animation.fadingAnimation(

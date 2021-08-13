@@ -14,5 +14,5 @@ setup(
         ],
     },
     install_requires=['PyQt5' , 'pillow'],
-    packages=["GalleryMan/assets" , "GalleryMan/data" , "GalleryMan/sass" , "GalleryMan/themes" , "GalleryMan/utils" , "GalleryMan/views" , "GalleryMan/"],
+    packages=["GalleryMan/assets/" , "GalleryMan/data/" , "GalleryMan/sass/" , "GalleryMan/themes/" , "GalleryMan/utils/" , "GalleryMan/views/" , "GalleryMan/"]
 )

@@ -4,6 +4,7 @@ from functools import partial
 from math import atan2, pi
 from PIL import Image, ImageDraw
 from PyQt5.QtCore import (
+    QParallelAnimationGroup,
     QPoint,
     QPropertyAnimation,
     QRect,
@@ -14,6 +15,8 @@ from PyQt5.QtCore import (
 )
 from PyQt5.QtGui import (
     QColor,
+    QCursor,
+    QFont,
     QImage,
     QKeySequence,
     QMouseEvent,
@@ -27,6 +30,7 @@ from PyQt5.QtWidgets import (
     QGraphicsOpacityEffect,
     QGraphicsPathItem,
     QGraphicsScene,
+    QGraphicsSimpleTextItem,
     QGraphicsView,
     QHBoxLayout,
     QLabel,
@@ -36,10 +40,12 @@ from PyQt5.QtWidgets import (
 )
 from GalleryMan.assets.QtHelpers import (
     Animation,
+    PopUpMessage,
     QCustomButton,
     QSliderMenu,
 )
 from GalleryMan.utils.helpers import *
+import random
 
 class QClickableTextEdit(QLineEdit):
     clicked = pyqtSignal()
@@ -87,7 +93,7 @@ class doodleImageItems:
         
         self.menu = QSliderMenu(self.parent)
         
-        self.image = Image.open("GalleryMan/assets/processed_image.png").convert("RGBA")
+        self.image = Image.open("./GalleryMan/assets/processed_image.png").convert("RGBA")
         
         self.currentIndex = -1
         
@@ -136,6 +142,50 @@ class doodleImageItems:
             
             self.menu.addMenu(name , textEdit)
             
+    def showToolTip(self):
+        polygon = QPolygonF()
+        
+        pen = QPen()
+        
+        pen.setColor(QColor("#2E3440"))
+        
+        for points in [QPoint(100 , 100 - 50) , QPoint(500 , 100 - 50) , QPoint(500 , 160 - 50 - 10) , QPoint(300 , 160 - 50 - 10) , QPoint(290 , 170 - 50 - 10) , QPoint(280 , 160 - 50 - 10) , QPoint(280 , 160 - 50 - 10) , QPoint(100 , 160 - 50 - 10) , QPoint(100 , 100 - 50 + 10)]:
+            polygon.append(QPointF(points))
+            
+        self.tooltip = self.scene.addPolygon(polygon , pen)
+        
+        
+        self.tooltip.setBrush(QColor("#2E3440"))
+        
+        pen = QPen()
+        
+        pen.setColor(QColor("#88C0D0"))
+        
+        pen.setWidth(-1)
+        
+        font = QFont("Comfortaa" , 15)
+        
+        text = QGraphicsSimpleTextItem("Drag these to increase the size" , self.tooltip)
+        
+        text.setBrush(QColor("#88C0D0"))
+        
+        text.setPen(pen)
+        
+        text.setFont(font)
+        
+        rect = text.boundingRect()
+        
+        bounding = self.tooltip.boundingRect()
+            
+        rect.moveCenter(QPointF(bounding.center().x() , bounding.center().y() - 5))
+        
+        text.setPos(rect.topLeft())        
+                
+        self.animation = Animation.fadingAnimation(Animation , self.tooltip , 200 , True) 
+        
+        self.animation.start()
+    
+            
     def showHelp(self): 
         def run_second():
             self.animation = Animation.fadingAnimation(Animation , self.help , 300)
@@ -149,6 +199,16 @@ class doodleImageItems:
             self.animation.finished.connect(self.help.hide)
             
             self.timer.timeout.connect(self.animation.start)
+            
+            self.tooltiptimer = QTimer(self.graphics)
+            
+            self.tooltiptimer.setSingleShot(True)
+            
+            self.tooltiptimer.start(2000)
+            
+            self.tooltiptimer.timeout.connect(self.hideToolTip)
+            
+            self.animation.finished.connect(self.showToolTip)
         
         self.help = QLabel(self.graphics)
         
@@ -176,6 +236,32 @@ class doodleImageItems:
     def additionalHelp(self):
         pass
     
+    def hideToolTip(self):
+        self.animation = Animation.fadingAnimation(Animation , self.tooltip , 300)
+        
+        self.animation.start()
+        
+    def responser(self , event):
+        if(self.parent.geometry() == self.original): return QGraphicsView.paintEvent(self.graphics , event)
+        
+        self.original = self.parent.geometry()
+        
+        self.startAni.move(QPoint(
+            self.parent.width() - self.startAni.width() - 10,
+            10
+        ))
+        
+        self.openNewPos = QPoint(self.parent.width() - self.menu.width() , 0)
+        
+        # TODO: Change ME!
+        if(self.menu.pos().x() != 2000):
+            self.animation = Animation.movingAnimation(Animation , self.menu , self.openNewPos , 200)
+            
+            self.animation.start()
+            
+
+        return QGraphicsView.paintEvent(self.graphics , event)
+    
 class doodleFreeHand(doodleImageItems):
     def __init__(self, parent, renderArea, outParent):
         super().__init__(parent, renderArea, outParent)
@@ -197,10 +283,9 @@ class doodleFreeHand(doodleImageItems):
             "outline-width": -1,
             "border-radius": 0,
         }
-    
         
         # Add the image
-        self.pixmap = self.scene.addPixmap(QPixmap("GalleryMan/assets/processed_image.png"))
+        self.pixmap = self.scene.addPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
                 
         # Slider menu where the user can change the brush
         self.menu = QSliderMenu(self.parent)
@@ -214,6 +299,8 @@ class doodleFreeHand(doodleImageItems):
             20,
             80 , 80
         ))
+        
+        self.original = self.graphics.geometry()
         
         self.startAni.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
         
@@ -231,10 +318,14 @@ class doodleFreeHand(doodleImageItems):
         self.graphics.mousePressEvent = lambda event: self.mouseHandler(
             event, "pressEvent"
         )
+        
+        self.graphics.resizeEvent = lambda event: print("Are you sure about this?")
 
         self.graphics.mouseMoveEvent = lambda event: self.mouseHandler(
             event, "moveEvent"
         )
+        
+        self.graphics.paintEvent = lambda event: self.responser(event)
         
         # Stop drawing when the user stops stops dragging
         self.graphics.mouseReleaseEvent = self._reset
@@ -246,6 +337,12 @@ class doodleFreeHand(doodleImageItems):
         
         if(data["freeHand"] == "True"):
             self.showHelp()
+            
+        # msg = PopUpMessage().new_msg(self.parent , "TIP: Drag Mouse To Draw On Image" , 500)
+        
+        # msg.setParent(None)
+        
+        # self.scene.addWidget(msg)
             
     def _reset(self, _):
         self.pressed = False
@@ -404,9 +501,9 @@ class doodleFreeHand(doodleImageItems):
                 outlineWidth,
             )
 
-        self.image.save("GalleryMan/assets/processed_image.png")
+        self.image.save("./GalleryMan/assets/processed_image.png")
 
-        self.renderArea.set_pixmap(QPixmap("GalleryMan/assets/processed_image.png"))
+        self.renderArea.set_pixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
 
         self.animation = Animation.fadingAnimation(Animation, self.graphics, 300)
 
@@ -419,6 +516,8 @@ class doodleFreeHand(doodleImageItems):
         
         # Remove the shortcut
         self.continueNext.setKey(QKeySequence())
+        
+    
                 
 # Rect class
 class doodlerectItem(doodleImageItems):
@@ -432,6 +531,7 @@ class doodlerectItem(doodleImageItems):
             "border-width": 0,
             "border-radius": 0,
         }
+        
         
         
         self.pixmap = self.scene.addPixmap(QPixmap('GalleryMan/assets/processed_image.png'))
@@ -462,18 +562,20 @@ class doodlerectItem(doodleImageItems):
         # Create a grip label 
         self.rectangle = QGripLabel()
         
-        
-        
         # Add to scene
         self.scene.addWidget(self.rectangle)
     
         # Set geometry
-        self.rectangle.setGeometry(QRect(100, 100, 500, 500))
+        self.rectangle.setGeometry(QRect(280, 120, 500, 500))
         
         # Show
         self.rectangle.show()        
         
-        # Set stylings according to te config
+        self.original = self.parent.geometry()
+        
+        self.graphics.paintEvent = self.responser
+        
+        # Set stylings according to the config
         updateConfig("" , None)
         
         self.menu = QSliderMenu(self.graphics)
@@ -490,11 +592,13 @@ class doodlerectItem(doodleImageItems):
         
         crossLabel = QVBoxLayout()
         
-        cross = QLabel()
+        cross = QCustomButton("" , None).create()
         
         cross.setFixedSize(QSize(50 , 50))
         
-        cross.setText("X")
+        cross.setText("")
+        
+        cross.clicked.connect(self.hideMenu)
         
         crossLabel.addWidget(cross , alignment=Qt.AlignTop | Qt.AlignLeft)
         
@@ -502,40 +606,44 @@ class doodlerectItem(doodleImageItems):
             
         self.createMenu(["Background Color", "Border Color", "Border Width", "Border Radius"] , stylesheet , updateConfig)
         
+        self.openNewPos = QPoint(self.graphics.width() - self.menu.width() , 0)
 
         def callback():
             self.menu.show()
+            
+            self.startAni.hide()
 
             self.menu.move(QPoint(2000, 0))
 
             self.animation = Animation.movingAnimation(
-                Animation, self.menu, QPoint(1900 - self.menu.width(), 0), 300
+                Animation, self.menu, self.openNewPos, 300
             )
 
             self.animation.start()
+            
 
-        startAni = QCustomButton(" ", self.graphics).create()
+        self.startAni = QCustomButton(" ", self.graphics).create()
 
-        startAni.setGeometry(QRect(1700, 0, 100, 100))
+        self.startAni.setGeometry(QRect(1700, 0, 100, 100))
 
-        startAni.setStyleSheet("""
+        self.startAni.setStyleSheet("""
             background-color: transparent;
             color: #88C0D0;
         """)
 
-        startAni.show()
+        self.startAni.show()
 
-        startAni.clicked.connect(callback)
+        self.startAni.clicked.connect(callback)
         
         self.showHelp()
-    
+        
     def drawRectOnImage(self, label: QGripLabel):
         def callback():
             self.graphics.hide()
             
-            self.renderArea.set_pixmap(QPixmap("GalleryMan/assets/processed_image.png"))
+            self.renderArea.set_pixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
             
-        self.image = Image.open("GalleryMan/assets/processed_image.png").convert("RGBA")
+        self.image = Image.open("./GalleryMan/assets/processed_image.png").convert("RGBA")
 
         draw = ImageDraw.ImageDraw(self.image)
 
@@ -552,7 +660,7 @@ class doodlerectItem(doodleImageItems):
             int(self.config["border-width"]),
         )
 
-        self.image.save("GalleryMan/assets/processed_image.png")
+        self.image.save("./GalleryMan/assets/processed_image.png")
         
         self.animation = Animation.fadingAnimation(Animation , self.graphics , 300)
         
@@ -561,6 +669,13 @@ class doodlerectItem(doodleImageItems):
         self.animation.start()
         
         self.continueNext.setKey(QKeySequence())
+        
+    def hideMenu(self):
+        self.animation = Animation.movingAnimation(Animation , self.menu , QPoint(2000 , 0) , 200)
+        
+        self.animation.start()
+        
+        self.animation.finished.connect(self.startAni.show)
 
 class doodleLineItem(doodleImageItems):
     def __init__(self, parent, renderArea, outParent):
@@ -569,7 +684,7 @@ class doodleLineItem(doodleImageItems):
         self.posOptions = []
         
     def createGraphics(self):
-        self.pixmap = self.scene.addPixmap(QPixmap("GalleryMan/assets/processed_image.png"))
+        self.pixmap = self.scene.addPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
         
         def makeItEven(checked: bool):
             self.lineRect.setLine(self.lineRect.line().x1() , self.lineRect.line().y1() , self.lineRect.line().x2() , self.lineRect.line().y1())
@@ -579,8 +694,10 @@ class doodleLineItem(doodleImageItems):
             self.posOptions[0].setText("{} x {}".format(int(self.lineRect.line().x2()) , int(self.lineRect.line().y2())))
 
         self.scene.clear()
+        
+        self.original = self.parent.geometry()
 
-        self.scene.addPixmap(QPixmap("GalleryMan/assets/processed_image.png"))
+        self.scene.addPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
 
         pen = QPen()
 
@@ -590,7 +707,7 @@ class doodleLineItem(doodleImageItems):
 
         self.lineRect = self.scene.addLine(500, 500, 700, 700, pen)
 
-        self.menu = QSliderMenu(self.parent)
+        self.menu = QSliderMenu(self.graphics)
 
         stylesheet = """
             border: 1px solid #4C566A;
@@ -607,18 +724,6 @@ class doodleLineItem(doodleImageItems):
             "color": "#88C0D0",
         }
         
-        crossLabel = QVBoxLayout()
-        
-        cross = QLabel()
-        
-        cross.setFixedSize(QSize(50 , 50))
-        
-        cross.setText("X")
-        
-        crossLabel.addWidget(cross , alignment=Qt.AlignTop | Qt.AlignLeft)
-        
-        self.menu.addMenu("" , crossLabel , True)
-
         for name, propertyName in zip(
             ["Start Position", "End Position", "Color", "Width"],
             ["start-position", "end-position", "color", "width"],
@@ -670,6 +775,10 @@ class doodleLineItem(doodleImageItems):
         )
 
         self.animation.start()
+        
+        self.graphics.paintEvent = self.responser
+        
+        # self.showToolTip()
 
     def askForPos(self, inputt: QLineEdit, cordinates: QPoint):
         self.animation = Animation.movingAnimation(
@@ -688,11 +797,20 @@ class doodleLineItem(doodleImageItems):
 
         self.outerLabel.show()
 
-        self.outerLabel.setStyleSheet("font-size: 30px; background-color: #2E344050")
+        self.outerLabel.setStyleSheet("font-size: 30px; background-color: rgba(46, 52, 64, 170)")
+        
+        self.animation = QParallelAnimationGroup()
+        
+        self.animation.addAnimation(Animation.fadingAnimation(Animation , self.outerLabel , 300 , True))
+        
+        self.animation.addAnimation(Animation.movingAnimation(Animation , self.menu , QPoint(2000 , 0) , 300))
+        
+        self.animation.start()
 
         self.graphics.setCursor(Qt.CrossCursor)
 
         self.outerLabel.mousePressEvent = lambda pos: self.setPos(pos, inputt)
+        
 
     def setPos(self, pos, inputt: QLineEdit):
         inputt.setText("{} x {}".format(pos.x(), pos.y()))
@@ -757,7 +875,7 @@ class doodleLineItem(doodleImageItems):
             lineGeo.y2()
         ) , self.config["color"] , int(self.config["width"]))
         
-        self.image.save("GalleryMan/assets/processed_image.png")
+        self.image.save("./GalleryMan/assets/processed_image.png")
         
         self.animation = Animation.fadingAnimation(Animation , self.graphics , 200)
         
@@ -765,7 +883,7 @@ class doodleLineItem(doodleImageItems):
         
         self.animation.start()
         
-        self.renderArea.set_pixmap(QPixmap("GalleryMan/assets/processed_image.png"))
+        self.renderArea.set_pixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
         
         self.continueNext.setKey(QKeySequence())
 
@@ -794,7 +912,7 @@ class doodleEllipse(doodleImageItems):
 
         self.scene.clear()
 
-        self.scene.addPixmap(QPixmap("GalleryMan/assets/processed_image.png"))
+        self.scene.addPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
 
         pen = QPen()
 
@@ -876,7 +994,7 @@ class doodleEllipse(doodleImageItems):
         
         painter.end()
         
-        image.save("GalleryMan/assets/processed_image.png")
+        image.save("./GalleryMan/assets/processed_image.png")
         
         self.animation = Animation.fadingAnimation(Animation , self.graphics , 200)
         
@@ -884,7 +1002,7 @@ class doodleEllipse(doodleImageItems):
         
         self.animation.start()
         
-        self.renderArea.set_pixmap(QPixmap("GalleryMan/assets/processed_image.png"))
+        self.renderArea.set_pixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
     
         self.continueNext.setKey(QKeySequence())
         
@@ -907,6 +1025,8 @@ class doodleEllipse(doodleImageItems):
 class doodleImage:
     def __init__(self, parent, renderArea, outParent) -> None:
         self.parent = parent
+        
+        self.popup = PopUpMessage()
 
         self.renderArea = renderArea
 
@@ -916,7 +1036,7 @@ class doodleImage:
         
         self.posOptions = []
 
-        self.image = Image.open("GalleryMan/assets/processed_image.png").convert("RGBA")
+        self.image = Image.open("./GalleryMan/assets/processed_image.png").convert("RGBA")
 
         self.draw = ImageDraw.ImageDraw(self.image)
 
@@ -938,7 +1058,7 @@ class doodleImage:
         
         self.shortcut.activated.connect(self.printOut)
 
-        self.pixmap = self.scene.addPixmap(QPixmap("GalleryMan/assets/processed_image.png"))
+        self.pixmap = self.scene.addPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
 
         self.graphics.setGeometry(QRect(0, 0, 1980, 1080))
 
@@ -978,7 +1098,7 @@ class doodleImage:
     def polygon(self):
         self.scene.clear()
 
-        self.scene.addPixmap(QPixmap("GalleryMan/assets/processed_image.png"))
+        self.scene.addPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
 
         polygon = PolyGon(self.graphics)
 
@@ -1199,7 +1319,7 @@ class doodleImage:
 
 
     def printOut(self):
-        image = Image.open("GalleryMan/assets/processed_image.png").convert("RGBA")
+        image = Image.open("./GalleryMan/assets/processed_image.png").convert("RGBA")
 
         drawing = ImageDraw.ImageDraw(image)
 
@@ -1226,9 +1346,9 @@ class doodleImage:
                 outlineWidth,
             )
 
-        image.save("GalleryMan/assets/processed_image.png")
+        image.save("./GalleryMan/assets/processed_image.png")
 
-        self.renderArea.set_pixmap(QPixmap("GalleryMan/assets/processed_image.png"))
+        self.renderArea.set_pixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
 
         self.animation = Animation.fadingAnimation(Animation, self.graphics, 300)
 

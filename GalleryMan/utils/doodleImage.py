@@ -68,7 +68,7 @@ class doodleShape:
         
         self.draw = ImageDraw.ImageDraw(self.image)
         
-        self.menu = QSliderMenu(parent)
+        self.menu = QSliderMenu(self.parent)
         
         self.label = QLabel("Right click to connect to the starting point" , self.parent)
         
@@ -82,7 +82,11 @@ class doodleShape:
         
         self.lineLayers = QWidget()
         
-        self.lineLayersParent.setGeometry(QRect(0 , 0 , self.parent.width() , 40))
+        self.lineLayers.setProperty("class" , "need")
+        
+        self.lineLayers.setFixedHeight(50)
+        
+        self.lineLayersParent.setGeometry(QRect(0 , 0 , self.parent.width() , 70))
         
         self.lineLayersParent.setLayout(layout)
         
@@ -93,6 +97,10 @@ class doodleShape:
         self.scrollArea = QScrollArea()
         
         self.scrollArea.setGeometry(self.lineLayersParent.geometry())
+        
+        self.scrollArea.setFixedWidth(self.parent.width() - 500)
+        
+        self.scrollArea.widget()
         
         self.scrollArea.setWidget(self.lineLayers)
         
@@ -127,13 +135,15 @@ class doodleShape:
         
         self.line.hide()
         
-        # self.lineLayers.setStyleSheet("background-color: #2E3440")
+        self.lineLayers.setProperty("class" , "need")
         
-        self.lineLayersParent.move(QPoint(0 , 100))
+        self.lineLayers.setStyleSheet(""" QWidget[class="need"]{ background-color: #2E3440; border: 2px solid #3B4252 }""")
+        
+        self.lineLayersParent.move(QPoint(
+            0 , self.parent.height() - self.lineLayersParent.height() - 72
+        ))
         
         self.lineLayersParent.show()
-        
-        print(self.lineLayersParent.geometry() , self.scrollArea.geometry() , self.scrollArea.widget().geometry())
         
         self.showToolTip()
     
@@ -165,22 +175,24 @@ class doodleShape:
         
         self.lines.append(self.line)
         
-        button = QCustomButton(str(self.count) , None).create()
+        self.button = ClickableLabel(str(self.count) , None)
             
-        button.setFixedSize(30 , 30)
+        self.button.setFixedSize(30 , 30)
         
-        button.setStyleSheet("""
+        self.button.setStyleSheet("""
             color: #D8DEE9;
             font-size: 20px;
         """)
         
-        button.clicked.connect(partial(self.updateSingleLine , self.line))
+        self.button.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
+        
+        self.button.clicked.connect(partial(self.updateSingleLine , self.line))
         
         self.width += len(str(self.count)) * 30
         
         self.lineLayers.setFixedWidth(self.width)
         
-        self.layerLayout.addWidget(button , alignment=Qt.AlignCenter | Qt.AlignCenter)
+        self.layerLayout.addWidget(self.button , alignment=Qt.AlignCenter | Qt.AlignCenter)
         
         self.count += 1
                     
@@ -331,7 +343,9 @@ class doodleShape:
         
         pen = QPen()
         
-        pen.setColor(QColor("#2E3440"))
+        pen.setColor(QColor("#88C0D0"))
+        
+        pen.setWidth(2)
         
         for points in [QPoint(100 , 100 - 50) , QPoint(700 , 100 - 50) , QPoint(700 , 160 - 50 - 10) , QPoint(400 , 160 - 50 - 10) , QPoint(390 , 170 - 50 - 10) , QPoint(380 , 160 - 50 - 10) , QPoint(280 , 160 - 50 - 10) , QPoint(100 , 160 - 50 - 10) , QPoint(100 , 100 - 50 + 10)]:
             polygon.append(QPointF(points))
@@ -370,8 +384,12 @@ class doodleShape:
         
         self.animation.start()
         
-        self.tooltip.setPos(QPoint(555 , 555))
-
+        self.tooltip.setPos(QPoint(
+            self.scrollArea.width() // 2 - self.tooltip.boundingRect().width() // 2,
+            self.lineLayersParent.pos().y() - 110
+        ))
+        
+        self.button.setParent(None)
         
     def showHelp(self):
         def run_second():

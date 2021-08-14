@@ -188,7 +188,7 @@ class doodleImageItems:
         self.animation.start()
     
             
-    def showHelp(self , text="Drag these to increase the size"): 
+    def showHelp(self , text="Drag these to increase the size" , withoutToolTip = False): 
         def run_second():
             self.animation = Animation.fadingAnimation(Animation , self.help , 300)
             
@@ -210,7 +210,9 @@ class doodleImageItems:
             
             self.tooltiptimer.timeout.connect(self.hideToolTip)
             
-            self.animation.finished.connect(partial(self.showToolTip , text))
+            if(not withoutToolTip):
+            
+                self.animation.finished.connect(partial(self.showToolTip , text))
         
         self.help = QLabel(self.graphics)
         
@@ -338,7 +340,7 @@ class doodleFreeHand(doodleImageItems):
             data = loads(f.read())
         
         if(data["freeHand"] == "True"):
-            self.showHelp()
+            self.showHelp(withoutToolTip = True)
             
         # msg = PopUpMessage().new_msg(self.parent , "TIP: Drag Mouse To Draw On Image" , 500)
         
@@ -866,18 +868,19 @@ class doodleLineItem(doodleImageItems):
         self.updateStylings()
     
     def drawLineOnImage(self):
-        draw = ImageDraw.Draw(self.image)
+        # Get the geometry
+        area = self.graphics.geometry()
         
-        lineGeo = self.lineRect.line()
+        # Parse the image 
+        image = QImage(area.size(), QImage.Format_ARGB32_Premultiplied)
         
-        draw.line((
-            lineGeo.x1(),
-            lineGeo.y1(),
-            lineGeo.x2(),
-            lineGeo.y2()
-        ) , self.config["color"] , int(self.config["width"]))
+        painter = QPainter(image)
         
-        self.image.save("./GalleryMan/assets/processed_image.png")
+        self.scene.render(painter, QRectF(image.rect()), QRectF(area))
+        
+        painter.end()
+        
+        image.save("./GalleryMan/assets/processed_image.png")
         
         self.animation = Animation.fadingAnimation(Animation , self.graphics , 200)
         
@@ -948,7 +951,7 @@ class doodleEllipse(doodleImageItems):
         
         self.cross.clicked.connect(self.hideMenu)
         
-        self.cross.setText("X")
+        self.cross.setText("")
         
         crossLabel.addWidget(self.cross , alignment=Qt.AlignTop | Qt.AlignLeft)
         
@@ -956,7 +959,7 @@ class doodleEllipse(doodleImageItems):
         
         self.createMenu(["Radius", "Color", "Outline", "Outline Width"] , stylesheet , self.update_my_styles)
 
-        self.startAni = QCustomButton("S", self.parent).create()
+        self.startAni = QCustomButton(" ", self.parent).create()
 
         self.startAni.setGeometry(QRect(self.parent.width() - 100, 0, 100, 100))
 
@@ -1435,3 +1438,5 @@ class floodFiller(QObject):
         self.image.save(self.fileSave)
         
         self.finished.emit()
+        
+# #C88 , #C88FFF

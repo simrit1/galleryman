@@ -277,8 +277,6 @@ class imagesFolder():
         return True
     
     def createBar(self):
-        print("RAN~")
-        
         self.panel = QLabel(self.main_window)
         
         self.panel.setStyleSheet("background-color: {}".format(self.config.get("folderPage" , "bar-backgroundColor")))
@@ -605,7 +603,12 @@ class imagesFolder():
 
         # Start the animation
         self.an.start()
-    
+        
+        try:
+            self.panel.setFixedWidth(self.main_window.width())
+        except:
+            pass    
+        
     def pushDown(self):
         # Pushing down effect of the info
         self.anim = QParallelAnimationGroup()
@@ -831,7 +834,11 @@ class imagesFolder():
         
         self.animation.finished.connect(run_second)
         
-        self.trash.setStyleSheet("font-size: 60px; color: #88C")
+        try:
+            self.trash.setStyleSheet("font-size: 60px; color: #88C")
+        except:
+            pass
+        
         
         self.albums.setStyleSheet("font-size: 30px")
         
@@ -935,4 +942,7 @@ class imagesFolder():
         
         self.albums.setStyleSheet("font-size: 50px; color: #88C")
         
-        self.trash.setStyleSheet("font-size: 40px")
+        try:
+            self.trash.setStyleSheet("font-size: 40px")
+        except:
+            pass

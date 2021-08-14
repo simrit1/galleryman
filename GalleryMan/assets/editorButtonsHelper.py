@@ -23,6 +23,7 @@ from PyQt5.QtGui import (
     QFont,
     QFontMetrics,
     QImage,
+    QKeySequence,
     QMouseEvent,
     QPixmap,
     QTransform,
@@ -37,6 +38,7 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QMainWindow,
     QScrollArea,
+    QShortcut,
     QSizeGrip,
     QSlider,
     QVBoxLayout,
@@ -220,17 +222,12 @@ class QEditorHelper:
                     "#BF616A", icons[1], icons[2]
                 )
             )
-            
-            # Throw some hearts on click
-            Thrower(
-                self.central.pos().x() + self.heartWidget.pos().x() + 50,
-                self.central.pos().y() - self.heartWidget.pos().y() - 10,
-                self.application,
-            ).throw()
 
     def copyToClipboard(self, fileName):
         # Add the image to the application's clipboard
         self.parent.clipboard().setPixmap(QPixmap(fileName))
+        
+        self.popup.new_msg(self.application , "Image Copied To Clipboard" , 300)
 
     def showEditButtons(self, directory):
         
@@ -242,7 +239,7 @@ class QEditorHelper:
 
             new_label.setGeometry(self.newParent.takeWidget().geometry())
 
-            new_label.setLayout(self.layout)
+            new_label.setLayout(self.globalLayout)
 
             self.newParent.setWidget(new_label)
             
@@ -281,10 +278,10 @@ class QEditorHelper:
             lambda: self.swapLayout(self.original),
         ]
 
-        self.layout = QLayoutMaker(self.icons, self.functions).make()
+        self.globalLayout = QLayoutMaker(self.icons, self.functions).make()
         
         # Change the layout
-        editButtons.inst = self.layout
+        editButtons.inst = self.globalLayout
         
         # Animate 
         new_label = QLabel()
@@ -622,7 +619,7 @@ class ImageEditButtons:
             lambda: doodle.circle(),
             lambda: doodle.polygon(),
             lambda: doodle.floodImage(),
-            lambda : self.swapWidget(self.originalWidget)
+            lambda : self.swapLayout(self.outParent.widget().layout())
         ]
         
         # Get the preffered icons
@@ -926,7 +923,7 @@ class textInImage:
         
         # Create a dictionary of the styling
         self.storedValue = {
-            "color": "#2E3440",
+            "color": "#D8DEE9",
             "font-family": "Comfortaa",
             "font-size": 60,
             "text": "Your Text"
@@ -936,13 +933,13 @@ class textInImage:
         self.menu = QSliderMenu(self.graphics)
         
         # A button which will show the menui
-        startAni = QCustomButton("S", self.graphics).create()
+        self.startAni = QCustomButton(" ", self.graphics).create()
 
-        startAni.setGeometry(QRect(1800, 10, 100, 100))
+        self.startAni.setGeometry(QRect(1800, 10, 100, 100))
 
-        startAni.clicked.connect(lambda: self.manageMenu())
+        self.startAni.clicked.connect(lambda: self.manageMenu())
 
-        startAni.show()
+        self.startAni.show()
 
         self.current = 0
 
@@ -1040,6 +1037,7 @@ class textInImage:
         self.label.setStyleSheet("""
             background-color: transparent;
             font-size: 40px;
+            color: #88C0D0;
             font-family: Comfortaa                         
         """)
         
@@ -1052,17 +1050,24 @@ class textInImage:
         # Show the label
         self.label.show()
 
-        continueButton = QCustomButton("Continue", self.graphics).create()
+        # continueButton = QCustomButton("Continue", self.graphics).create()
 
-        continueButton.clicked.connect(lambda: self.saveText())
+        # continueButton.clicked.connect(lambda: self.saveText())
 
-        continueButton.setGeometry(QRect(0, 0, 500, 100))
+        # continueButton.setGeometry(QRect(0, 0, 500, 100))
 
-        continueButton.show()
+        # continueButton.show()
+        self.shortcut = QShortcut(QKeySequence("Ctrl+S") , self.graphics)
+        
+        self.shortcut.activated.connect(self.saveText)
         
         self.updateStyling()
         
         self.showHelp()
+        
+        self.original = self.parent.geometry()
+        
+        self.graphics.paintEvent = self.responser
 
     def resizeToContent(self, text):
         
@@ -1156,9 +1161,6 @@ class textInImage:
 
         self.animation.start()
 
-    def responser(self, event: QResizeEvent):
-        print(event.size())
-        
     def showHelp(self):
         def run_second():
             self.helpLabel.show()
@@ -1171,6 +1173,8 @@ class textInImage:
             
             self.timer.timeout.connect(self.animation.start)
             
+            self.animation.finished.connect(self.helpLabel.hide)
+            
             self.timer.start(500)
             
         
@@ -1178,19 +1182,43 @@ class textInImage:
         
         self.helpLabel.setGeometry(self.graphics.geometry())
         
-        self.helpLabel.setStyleSheet("background-color: rgba(46, 52, 64, 155)")
+        self.helpLabel.setStyleSheet("background-color: rgba(46, 52, 64, 155); font-size: 30px")
         
         self.helpLabel.setText("Press Ctrl+S to save and exit")
         
         self.helpLabel.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
         
-        # self.helpLabel.show()
+        self.helpLabel.show()
+        
         self.animation = Animation.fadingAnimation(Animation , self.helpLabel , 300 , True)
         
         self.animation.finished.connect(run_second)
         
         self.animation.start()
+    
+    def responser(self , event):
+        try:
+            if(self.parent.geometry() == self.original): return QGraphicsView.paintEvent(self.graphics , event)
+        except:
+            return
+        
+        self.original = self.parent.geometry()
+        
+        self.startAni.move(QPoint(
+            self.parent.width() - self.startAni.width() - 10,
+            10
+        ))
+        
+        self.openNewPos = QPoint(self.parent.width() - self.menu.width() , 0)
+        
+        # TODO: Change ME!
+        if(self.menu.pos().x() != 2000):
+            self.animation = Animation.movingAnimation(Animation , self.menu , self.openNewPos , 200)
+            
+            self.animation.start()
+            
 
+        return QGraphicsView.paintEvent(self.graphics , event)
 
 class imageFlipper:
     def __init__(self, renderArea, outParent) -> None:

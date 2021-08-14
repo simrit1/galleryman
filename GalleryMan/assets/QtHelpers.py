@@ -356,20 +356,23 @@ class QLayoutMaker:
         
         i = 0
         
-        for icon, icon_color, icon_font_size, icon_family in self.icons:
-            item = QCustomButton(icon, None).create()
-            
-            item.setStyleSheet(
-                "color: {}; font-size: {}px; font-family: {}".format(
-                    icon_color, icon_font_size, icon_family
+        try:
+            for icon, icon_color, icon_font_size, icon_family in self.icons:
+                item = QCustomButton(icon, None).create()
+                
+                item.setStyleSheet(
+                    "color: {}; font-size: {}px; font-family: {}".format(
+                        icon_color, icon_font_size, icon_family
+                    )
                 )
-            )
 
-            item.clicked.connect(self.functions[i])
+                item.clicked.connect(self.functions[i])
 
-            i += 1
+                i += 1
 
-            layout.addWidget(item)
+                layout.addWidget(item)
+        except:
+            pass
         
         return layout
 

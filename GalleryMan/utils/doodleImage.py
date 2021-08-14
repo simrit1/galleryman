@@ -5,6 +5,17 @@ from PyQt5.QtCore import QParallelAnimationGroup, QPoint, QPointF, QRect, QTimer
 from PyQt5.QtGui import QColor, QFont, QKeySequence, QMouseEvent, QPen, QPolygonF
 from PyQt5.QtWidgets import QCheckBox, QGraphicsLineItem, QGraphicsSimpleTextItem, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QScrollArea, QShortcut, QVBoxLayout, QWidget
 
+class ClickableLabel(QLabel):
+    clicked = pyqtSignal()
+    
+    def __init__(self , *arg , **kwargs):
+        super().__init__(*arg , **kwargs)
+        
+    def mousePressEvent(self, a0: QMouseEvent) -> None:
+        self.clicked.emit()
+        
+        return super().mousePressEvent(a0)
+
 class customLineItem(QGraphicsLineItem):
     changeStyles = pyqtBoundSignal(QGraphicsLineItem)
     
@@ -65,11 +76,19 @@ class doodleShape:
         
         self.label.hide()
         
-        self.lineLayersParent = QLabel(parent)
+        self.lineLayersParent = QLabel(self.parent)
         
         layout = QVBoxLayout()
         
         self.lineLayers = QWidget()
+        
+        self.lineLayersParent.setGeometry(QRect(0 , 0 , self.parent.width() , 40))
+        
+        self.lineLayersParent.setLayout(layout)
+        
+        self.lineLayersParent.show()
+        
+        self.lineLayersParent.setStyleSheet("background-color: transparent")
         
         self.scrollArea = QScrollArea()
         
@@ -79,12 +98,6 @@ class doodleShape:
         
         layout.addWidget(self.scrollArea)
         
-        self.lineLayersParent.setLayout(layout)
-        
-        self.lineLayersParent.setGeometry(QRect(0 , 0 , 0 , 40))
-        
-        self.lineLayersParent.setStyleSheet("background-color: transparent")
-        
         self.width = self.height = 0 
         
         self.count = 1
@@ -92,7 +105,7 @@ class doodleShape:
         self.layerLayout = QHBoxLayout()
         
         self.lineLayers.setLayout(self.layerLayout)
-        
+
         self.lines: list[QGraphicsLineItem] = []
         
         self.poped = []
@@ -114,11 +127,13 @@ class doodleShape:
         
         self.line.hide()
         
-        self.lineLayers.setStyleSheet("background-color: #2E3440")
+        # self.lineLayers.setStyleSheet("background-color: #2E3440")
         
         self.lineLayersParent.move(QPoint(0 , 100))
         
         self.lineLayersParent.show()
+        
+        print(self.lineLayersParent.geometry() , self.scrollArea.geometry() , self.scrollArea.widget().geometry())
         
         self.showToolTip()
     
@@ -163,7 +178,7 @@ class doodleShape:
         
         self.width += len(str(self.count)) * 30
         
-        self.scrollArea.setFixedWidth(self.width)
+        self.lineLayers.setFixedWidth(self.width)
         
         self.layerLayout.addWidget(button , alignment=Qt.AlignCenter | Qt.AlignCenter)
         
@@ -390,46 +405,26 @@ class doodleShape:
         
         helpLayouts = QVBoxLayout()
         
-        for _ in range(25):
-            sep = QLabel()
-            
-            sep.setStyleSheet("background-color: transparent")
-            
-            sep.setFixedHeight(10)
-            
-            helpLayouts.addWidget(sep)
+        helpLayouts.setSpacing(30)
         
-        for data in ["1. Press Ctrl+S to save and exit" , "2. Click and drag the mouse to draw lines", "3. Press Ctrl+X to customize the lines drawn"]:
-            label = QLabel(data , None)
-            
-            label.setFixedHeight(50)
-            
-            label.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
-            
-            label.setStyleSheet("""background-color: transparent; font-size: 20px""")
-            
-            helpLayouts.addWidget(label)
-            
-        okay = QCustomButton("Okay!" , None).create()
+        self.details = QLabel()
         
-        okay.setStyleSheet("background-color: #2E3440; border: 1px solid white")
+        self.details.setText("1. Press Ctrl+S to save and exit \n\n2. Click and drag the mouse to draw line \n\n3. Press Ctrl+X to customize the lines drawn")
+        
+        self.details.setStyleSheet("background-color: transparent; color: white; font-size: 20px")
+        
+        helpLayouts.addWidget(self.details , alignment=Qt.AlignBottom | Qt.AlignCenter)
+        
+        okay = ClickableLabel("Okay" , None)
+        
+        okay.setStyleSheet("background-color: transparent; border: 1px solid #3B4252")
         
         okay.clicked.connect(run_second)
         
         okay.setFixedSize(200 , 50)
+            
+        helpLayouts.addWidget(okay , alignment=Qt.AlignTop | Qt.AlignCenter)
         
-        helpLayouts.addWidget(okay , alignment=Qt.AlignCenter | Qt.AlignCenter)
-        
-        for _ in range(25):
-            sep = QLabel()
-            
-            sep.setStyleSheet("background-color: transparent")
-            
-            sep.setFixedHeight(10)
-            
-            helpLayouts.addWidget(sep)
-            
-            
         self.help.setLayout(helpLayouts)
                 
         self.help.setStyleSheet("""

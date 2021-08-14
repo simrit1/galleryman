@@ -172,7 +172,7 @@ class getMoreInfo:
         
         try:
             
-            self.animation = Animation.fadingAnimation(Animation , self.renameParent , 100)
+            self.animation = Animation.fadingAnimation(Animation , self.parent , 100)
             
             self.animation.finished.connect(self.parent.hide)
             

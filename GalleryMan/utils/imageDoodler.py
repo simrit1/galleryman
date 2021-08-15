@@ -1,5 +1,6 @@
 # Importing the modules
-from os import path as p
+from PIL import ImageFile
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 from GalleryMan.utils.doodleImage import PolyGon
 from functools import partial
 from math import atan2, pi
@@ -8,7 +9,6 @@ from PyQt5.QtCore import (
     QObject,
     QParallelAnimationGroup,
     QPoint,
-    QPropertyAnimation,
     QRect,
     QRectF,
     QSize,
@@ -18,7 +18,6 @@ from PyQt5.QtCore import (
 )
 from PyQt5.QtGui import (
     QColor,
-    QCursor,
     QFont,
     QImage,
     QKeySequence,
@@ -31,7 +30,6 @@ from PyQt5.QtWidgets import (
     QCheckBox,
     QGraphicsItem,
     QGraphicsOpacityEffect,
-    QGraphicsPathItem,
     QGraphicsScene,
     QGraphicsSimpleTextItem,
     QGraphicsView,
@@ -48,7 +46,6 @@ from GalleryMan.assets.QtHelpers import (
     QSliderMenu,
 )
 from GalleryMan.utils.helpers import *
-import random
 import shutil
 
 class QClickableTextEdit(QLineEdit):
@@ -697,7 +694,7 @@ class doodleLineItem(doodleImageItems):
     def createGraphics(self):
         self.pixmap = self.scene.addPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
         
-        def makeItEven(checked: bool):
+        def makeItEven():
             self.lineRect.setLine(self.lineRect.line().x1() , self.lineRect.line().y1() , self.lineRect.line().x2() , self.lineRect.line().y1())
             
             self.posOptions[0].setText("{} x {}".format(int(self.lineRect.line().x1()) , int(self.lineRect.line().y1())))
@@ -1244,7 +1241,7 @@ class doodleImage:
         
         self.layer.show()
         
-        self.thread = QThread()
+        self.thread = QThread(self.parent)
         
         self.worker = floodFiller(pos.x() , pos.y() , (255 , 0 , 0 , 255) , self.currently)
         

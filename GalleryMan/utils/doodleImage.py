@@ -409,9 +409,11 @@ class doodleShape:
         
         text.setPos(rect.topLeft())        
         
-        self.animation = Animation.fadingAnimation(Animation , self.tooltip , 200 , True)
+        # self.animation = Animation.fadingAnimation(Animation , self.tooltip , 200 , True)
         
-        self.animation.start()
+        # self.animation.finished.connect(self.tooltip.show)
+        
+        # self.animation.start()
         
         self.tooltip.setPos(QPoint(
             self.lineLayersParent.width() // 2 - self.tooltip.boundingRect().width() // 2,

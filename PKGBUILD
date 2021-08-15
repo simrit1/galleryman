@@ -1,35 +1,26 @@
 # Maintainer: 0xsapphir3 <0xsapphir3@gmail.com>
-pkgname=galleryman
+
+pkgname=galleryman-git
 pkgver=0.1
 pkgrel=1
-epoch=
+provides=("${pkgname%-git}")
+conflicts=("${pkgname%-git}")
 pkgdesc="Gallery written in Python for managing your photos"
-arch=(x86_64)
-url="https://github.com/0xsapphir3/GalleryMan.git"
-license=('MIT')
-groups=()
-depends=(python-setuptools)
-makedepends=(python-setuptools)
-checkdepends=()
-optdepends=()
-provides=()
-conflicts=()
-replaces=()
-backup=()
-options=()
-install=
-changelog=
-source=("git+$url")
-noextract=()
+url="https://github.com/0xsapphir3/GalleryMan"
+arch=("any")
+license=("MIT")
+depends=("python>=3.6" "python-setuptools" )
+source=("git+https://github.com/0xsapphir3/GalleryMan.git")
 md5sums=("SKIP")
-validpgpkeys=()
 
-
-build() {
-	python3 setup.py build
+pkgver()
+{
+  cd "${pkgname%-git}"
+  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
 }
 
-
-package() {
-	python3 setup.py install --root="$pkgdir" --optimize=1 
+package()
+{
+  cd "${pkgname%-git}"
+  python setup.py install --optimize="1" --root="$pkgdir"
 }

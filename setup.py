@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='GalleryMan',
@@ -14,5 +14,5 @@ setup(
         ],
     },
     install_requires=['PyQt5' , 'pillow'],
-    packages=["src/GalleryMan/GalleryMan/assets/" , "src/GalleryMan/GalleryMan/data/" , "src/GalleryMan/GalleryMan/sass/" , "src/GalleryMan/GalleryMan/themes/" , "src/GalleryMan/GalleryMan/utils/" , "src/GalleryMan/GalleryMan/views/" , "GalleryMan/"]
+    packages=["GalleryMan/GalleryMan/assets/" , "GalleryMan/GalleryMan/data/" , "GalleryMan/GalleryMan/sass/" , "GalleryMan/GalleryMan/themes/" , "GalleryMan/GalleryMan/utils/" , "GalleryMan/GalleryMan/views/" , "GalleryMan/"]
 )

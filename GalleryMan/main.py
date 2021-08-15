@@ -4,8 +4,8 @@ from GalleryMan.utils.helpers import addToScanDirectory, removeFromScanDirectory
 from GalleryMan.utils.initer import Initer
 from functools import partial
 import argparse , json , os , sys
-from PyQt5.QtCore import QPoint, QRect, QSize , Qt, pyqtSignal
-from PyQt5.QtGui import QCursor, QKeyEvent, QMouseEvent
+from PyQt5.QtCore import QPoint, QRect, QSize, QThread , Qt, pyqtSignal
+from PyQt5.QtGui import QCloseEvent, QCursor, QKeyEvent, QMouseEvent
 from GalleryMan.views.firstPage import FirstPage
 from GalleryMan.utils.readers import read_file , change_with_config
 from GalleryMan.views.folderview import imagesFolder
@@ -30,8 +30,12 @@ class Main:
         
         # Create a application and a window
         app = QApplication([])
-                
+        
         self.window = QMainWindow()
+        
+        self.window.emergenceSituation = pyqtSignal()
+        
+        self.window.closeEvent = self.cleanClose
         
         # Set window title
         self.window.setWindowTitle("GalleryMan")
@@ -44,7 +48,7 @@ class Main:
         # Prevent exiting of the program when a error breaks
         def except_hook(cls, exception, traceback):
             # sys.__excepthook__(cls, exception, traceback)
-            pass
+           raise AttributeError(exception).with_traceback(traceback)
             
         # Use a custom function to handle errors
         sys.excepthook = except_hook
@@ -248,6 +252,9 @@ class Main:
         
     def messageHandler(self , msg_type , msg_log_content , msg_string):
         pass
+    
+    def cleanClose(self , event: QCloseEvent):
+        return QMainWindow.closeEvent(self.window , event)
         
 def main():
     app = Main()

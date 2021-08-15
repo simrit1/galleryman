@@ -83,6 +83,10 @@ class doodleImageItems:
         self.pointsPath = []
                 
         self.graphics = QGraphicsView(parent)
+        
+        self.graphics.verticalScrollBar().valueChanged.connect(partial(self.handle , "vertical"))
+        
+        self.graphics.horizontalScrollBar().valueChanged.connect(partial(self.handle , "horizontal"))
 
         self.graphics.setGeometry(QRect(0 , 0 , 1980 , 1080))
         
@@ -109,6 +113,14 @@ class doodleImageItems:
         self.continueNext = QShortcut(QKeySequence("Ctrl+S") , self.parent)
                 
         self.graphics.show()
+        
+    def handle(self , scroll , value):
+        if(scroll == "vertical"):
+            self.graphics.verticalScrollBar().setValue(0 if value < 0 else value)
+            
+        else:
+
+            self.graphics.horizontalScrollBar().setValue(0 if value < 0 else value)
     
     def undoHandler(self):
         pass

@@ -226,8 +226,8 @@ class imagesFolder():
 
         self.no = 0
         
-        self.thread = QThread()
-        
+        self.thread = QThread(self.main_window)
+                
         self.worker = Worker()
         
         self.worker.moveToThread(self.thread)
@@ -402,7 +402,7 @@ class imagesFolder():
         worker = PixmapHeaderMaker()
     
         self.another = QThread(self.window)
-        
+            
         self.another.started.connect(lambda : worker.run(self , label , imageArea , border , width , height , dir))
         
         self.worker.finished.connect(self.another.quit)

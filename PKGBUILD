@@ -1,10 +1,9 @@
 # Maintainer: 0xsapphir3 <0xsapphir3@gmail.com>
-
-pkgname=galleryman-git
+pkgname=galleryman
 pkgver=0.1
 pkgrel=1
-provides=("${pkgname%-git}")
-conflicts=("${pkgname%-git}")
+provides=("galleryman")
+conflicts=("galleryman")
 pkgdesc="Gallery written in Python for managing your photos"
 url="https://github.com/0xsapphir3/GalleryMan"
 arch=("any")
@@ -15,12 +14,10 @@ md5sums=("SKIP")
 
 pkgver()
 {
-  cd "${pkgname%-git}"
-  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+  printf "9.6.4"
 }
 
 package()
 {
-  cd "${pkgname%-git}"
-  python setup.py install --optimize="1" --root="$pkgdir"
+  python GalleryMan/setup.py install --root="$pkgdir"
 }

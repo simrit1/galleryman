@@ -705,7 +705,10 @@ class singleFolderView():
         # Get required files   
         self.width = self.application.size().width()
         
-        self.main_window.setFixedSize(self.application.size())
+        try:
+            self.main_window.setFixedSize(self.application.size())
+        except:
+            pass
 
         card_width = int(self.config.get("singleFolder", "card-width"))
 

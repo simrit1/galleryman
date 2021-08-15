@@ -193,6 +193,8 @@ class doodleShape:
         self.lines.append(self.line)
         
         self.button = ClickableLabel(str(self.count) , None)
+        
+        self.button.setCursor(Qt.PointingHandCursor)
             
         self.button.setFixedSize(30 , 30)
         
@@ -269,6 +271,10 @@ class doodleShape:
         """
         
         for name in ["Width" , "Color"]:
+            layout = QVBoxLayout()
+            
+            layout.setSpacing(20)
+            
             inputBox = QLineEdit()
             
             inputBox.setPlaceholderText(name)
@@ -279,8 +285,20 @@ class doodleShape:
             
             inputBox.textChanged.connect(partial(self.update , name.lower().replace(' ' , '-') , inputBox))
             
-            self.menu.addMenu(name , inputBox)
+            layout.addWidget(inputBox)
             
+            checkbox = QCheckBox(text="Apply this {} to all the lines".format(name.lower()))
+            
+            checkbox.clicked.connect(partial(self.applyAll , name))
+            
+            checkbox.setStyleSheet("color: #D8DEE9")
+            
+            layout.addWidget(checkbox)
+            
+            self.menu.addMenu(name , layout , True)
+        
+        layout = QVBoxLayout()
+        
         checkBox = QCheckBox(text="Straight line")
         
         checkBox.setBaseSize(50 , 50)
@@ -293,7 +311,23 @@ class doodleShape:
                 
         checkBox.clicked.connect(self.makeItStraight)
         
-        self.menu.addMenu("Other options" , checkBox)   
+        layout.addWidget(checkBox)
+        
+        checkBox = QCheckBox(text="Remove partial hide effect")
+        
+        checkBox.setBaseSize(50 , 50)
+        
+        checkBox.setStyleSheet("""
+            color: #D8DEE9;
+            font-family: SauceCodePro Nerd Font;
+            font-size: 20px                       
+        """)
+                
+        checkBox.clicked.connect(self.removePartial)
+        
+        layout.addWidget(checkBox)
+        
+        self.menu.addMenu("Other options" , layout , True)   
             
         self.menu.move(QPoint(2000 , 0))
         
@@ -522,6 +556,30 @@ class doodleShape:
         self.renderArea.set_pixmap(QPixmap("GalleryMan/assets/processed_image.png"))
     
         self.shortcut.setKey(QKeySequence())
+        
+    def applyAll(self , name):
+        for line in self.lines:
+            
+            pen = line.pen()
+            
+            if(name == "Width"):
+                
+                pen.setWidth(int(self.config["width"]))
+            
+            else:
+                
+                pen.setColor(QColor(self.config["color"]))
+                
+            
+            line.setPen(pen)
+            
+    def removePartial(self):
+        self.animation = QParallelAnimationGroup()
+        
+        for line in self.lines:
+            self.animation.addAnimation(Animation.fadingAnimation(Animation , line , 200 , True , 0.4))
+            
+        self.animation.start()
 
 class PolyGon(doodleShape):
     def __init__(self , parent , renderArea , directory):

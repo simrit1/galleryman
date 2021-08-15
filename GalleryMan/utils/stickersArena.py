@@ -1,7 +1,8 @@
 
-from PyQt5.QtCore import QPoint, QRect, QSize, QSizeF, Qt, pyqtSignal
-from PyQt5.QtGui import QCursor, QKeySequence, QMouseEvent, QPixmap, QTransform
-from PyQt5.QtWidgets import QGraphicsItem, QGraphicsProxyWidget, QGraphicsScene, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QScrollArea, QShortcut, QSystemTrayIcon, QVBoxLayout, QWidget
+from PIL import Image
+from PyQt5.QtCore import QPoint, QPointF, QRect, QRectF, QSize, QSizeF, Qt, pyqtSignal
+from PyQt5.QtGui import QCursor, QImage, QKeySequence, QMouseEvent, QPainter, QPixmap, QTransform
+from PyQt5.QtWidgets import QGraphicsItem, QGraphicsProxyWidget, QGraphicsScene, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QScrollArea, QShortcut, QSizePolicy, QSystemTrayIcon, QVBoxLayout, QWidget
 import functools
 import os
 from GalleryMan.utils.helpers import QGripLabel
@@ -33,14 +34,21 @@ class stickersViewer:
         
         self.scrollArea = scrollArea
         
-        # QGraphics and QScene
-        self.graphics = QGraphicsView(self.parent)
+        self.grandparentsLayout = QHBoxLayout()
         
-        self.graphics.setGeometry(self.parent.geometry())
+        
+        # QGraphics and QScene
+        self.graphics = QGraphicsView(parent)
+
+        self.graphics.move(QPoint(0 , 0))
+        
+        self.graphics.setFixedSize(parent.size())
         
         self.graphics.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         
         self.scene = QGraphicsScene()
+        
+        self.graphics.setScene(self.scene)
         
         self.pixmap = self.scene.addPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
         
@@ -64,18 +72,27 @@ class stickersViewer:
         
         self.shortcut = QShortcut(QKeySequence("Ctrl+S") , self.graphics)
         
-        # self.shortcut.activated.connect(self.attachSticker)
+        self.shortcut.activated.connect(self.attachSticker)
         
         # Parent layout to store both the name and the stickers preview
         self.parentlayout = QVBoxLayout()
         
-        self.widget.setLayout(self.parentlayout)
+        self.grandparentsLayout.addLayout(self.parentlayout)
         
         self.nameLayout = QHBoxLayout()
         
         self.parentlayout.addLayout(self.nameLayout)
         
+        self.cross = QCustomButton("X" , None).create()
+        
+        self.cross.setBaseSize(50 , 50)
+        
+        self.grandparentsLayout.addWidget(self.cross)
+        
+        self.widget.setLayout(self.grandparentsLayout)
+        
         self.scrollArea.setWidget(self.widget)
+        
         
     def initStock(self):
         directories = os.listdir(self.STOCK_PATH)
@@ -137,21 +154,6 @@ class stickersViewer:
         self.switchTo("Emoji")
                         
     def useSticker(self , name , event):
-        # # Create a grip label
-        # self.preview = QLabel()
-        
-        # # Set geometry
-        # self.preview.setGeometry(500 , 500 , 300 , 300)
-        
-        # self.preview.setStyleSheet("""background-color: transparent""")
-        
-        # # Set pixmap
-        # self.preview.setPixmap(QPixmap(name))
-        
-        # # Scaled contents
-        # self.preview.setScaledContents(True)
-        
-        # self.sticker = self.scene.addWidget(self.preview)
         self.currentlyUsing = name
         
         self.sticker = self.scene.addPixmap(QPixmap(name))
@@ -173,7 +175,7 @@ class stickersViewer:
         self.config = {
             "Width": 300,
             "Height":300,
-            "rotation": 0
+            "Rotation": 0
         }
         
         crossLabel.addWidget(cross , alignment=Qt.AlignTop | Qt.AlignLeft)
@@ -225,6 +227,8 @@ class stickersViewer:
         
         self.sticker.show()
         
+        print(self.sticker.boundingRect().center() , QPointF(self.config["Width"] / 2 , self.config["Height"] / 2))
+        
         self.sticker.setTransformOriginPoint(self.sticker.boundingRect().center())
         
         self.sticker.setTransform(QTransform().rotate(self.config["Rotation"]))
@@ -239,6 +243,8 @@ class stickersViewer:
             
             widget.setGeometry(oldWidget.geometry())
             
+            grandlayout = QHBoxLayout()
+            
             layout = QVBoxLayout()
             
             self.nameLayout.setParent(None)
@@ -248,8 +254,16 @@ class stickersViewer:
             layout.addLayout(self.stickersDict[name])
             
             widget.setFixedWidth(self.stickersDict[name].count() * 130)
+            
+            grandlayout.addLayout(layout)
+            
+            self.cross.setParent(None)
+            
+            self.cross.setSizePolicy(QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed))
+            
+            grandlayout.addWidget(self.cross)
                 
-            widget.setLayout(layout)
+            widget.setLayout(grandlayout)
         
             self.scrollArea.setWidget(widget)
             
@@ -262,3 +276,23 @@ class stickersViewer:
         self.animation.finished.connect(run_second)
         
         self.animation.start()
+        
+    def attachSticker(self):
+         
+        
+        self.menu.hide()
+        
+        before = Image.open("GalleryMan/assets/processed_image.png")
+        
+        sticker = Image.open(self.currentlyUsing)
+        
+        try:
+            before.paste(sticker , (50 , 50 , 700 , 700))
+        except Exception as e:
+            print(e)
+            
+        before.save("GalleryMan/assets/processed_image.png")
+        
+        print("<3")
+        
+        before.show()

@@ -134,21 +134,24 @@ class stickersViewer:
                         
     def useSticker(self , name , event):
         # # Create a grip label
-        self.preview = QLabel()
+        # self.preview = QLabel()
         
-        # Set geometry
-        self.preview.setGeometry(500 , 500 , 300 , 300)
+        # # Set geometry
+        # self.preview.setGeometry(500 , 500 , 300 , 300)
         
-        self.preview.setStyleSheet("""background-color: transparent""")
+        # self.preview.setStyleSheet("""background-color: transparent""")
         
-        # Set pixmap
-        self.preview.setPixmap(QPixmap(name))
+        # # Set pixmap
+        # self.preview.setPixmap(QPixmap(name))
         
-        # Scaled contents
-        self.preview.setScaledContents(True)
+        # # Scaled contents
+        # self.preview.setScaledContents(True)
         
-        self.sticker = self.scene.addWidget(self.preview)
-                
+        # self.sticker = self.scene.addWidget(self.preview)
+        self.sticker = self.scene.addPixmap(QPixmap(name))
+    
+        self.sticker.setPos(QPoint(75 , 75))    
+        
         self.sticker.setFlag(QGraphicsItem.ItemIsMovable)
         
         self.menu = QSliderMenu(self.graphics)
@@ -202,19 +205,13 @@ class stickersViewer:
         
         self.config[name] = text
         
-    
-        # self.preview.setFixedSize(
-        #     self.config["Width"],
-        #     self.config["Height"]
-        # )
-    
-        # self.sticker.hide()
+        original = self.sticker.pixmap()
         
-        # self.scene.removeItem(self.sticker)
+        original.scaled(70 , 70)
         
-        # self.sticker = self.scene.addWidget(self.preview)
+        self.sticker.setPixmap(original)
         
-        # self.sticker.setRotation(self.config["Rotation"])
+        self.sticker.setRotation(0)
         
     def switchTo(self , name):
         def run_second():        

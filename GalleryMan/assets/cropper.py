@@ -18,6 +18,8 @@ class QRotateLabel(QLabel):
         self.initial = 0
 
         self.init_ani()
+        
+        self.setScaledContents(True)
 
     def init_ani(self):
         self._animation = QVariantAnimation(

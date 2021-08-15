@@ -168,7 +168,7 @@ class Main:
         if(showOnlyImage):
             ui = singleFolderView()
             
-            ui.init(self.window , "./themes" , config , self.scrollArea , self.window , app , label)
+            ui.init(self.window , None , config , self.scrollArea , self.window , app , label)
             
             self.window.show()
             
@@ -278,6 +278,11 @@ def main():
     parser.add_argument("--show" , dest="show" , help="Shows a particular image")
 
     args = parser.parse_args()
+    
+    try:
+        os.remove("~/.galleryman/currentlyOpened.png")
+    except:
+        pass
     
     if(args.init):
         Initer().init()

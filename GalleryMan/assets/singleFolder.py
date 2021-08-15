@@ -240,24 +240,26 @@ class singleFolderView():
         self.args = args
 
         self.popup = PopUpMessage()
+        
+        if(directory != None):
+        
+            self.name = QLabel(self.window)
 
-        self.name = QLabel(self.window)
+            self.name.setGeometry(self.args[0].geometry())
 
-        self.name.setGeometry(self.args[0].geometry())
+            self.name.setText(directory[directory.rindex("/") + 1 :])
 
-        self.name.setText(directory[directory.rindex("/") + 1 :])
+            self.name.setAlignment(Qt.AlignCenter)
 
-        self.name.setAlignment(Qt.AlignCenter)
+            self.name.show()
 
-        self.name.show()
-
-        self.name.setStyleSheet(
-            "color: {}; font-family: {}; font-size: {}".format(
-                self.config.get("singleFolder", "headerText-color"),
-                self.config.get("singleFolder", "headerText-fontFamily"),
-                self.config.get("singleFolder", "headerText-fontSize") + "px",
+            self.name.setStyleSheet(
+                "color: {}; font-family: {}; font-size: {}".format(
+                    self.config.get("singleFolder", "headerText-color"),
+                    self.config.get("singleFolder", "headerText-fontFamily"),
+                    self.config.get("singleFolder", "headerText-fontSize") + "px",
+                )
             )
-        )
 
         self.directory = directory
         
@@ -316,6 +318,8 @@ class singleFolderView():
             )
 
         self.window.setGeometry(self.original)
+        
+        self.window.setStyleSheet("background-color: #88C0D0")
         
         self.scroll.setGeometry(self.original)
         
@@ -427,9 +431,11 @@ class singleFolderView():
             with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt" , "r") as file:
                 dirs = json.loads(file.read())
         else:
-            
-            dirs = Path(self.copy).rglob("*")
-        
+            try:
+                dirs = Path(self.copy).rglob("*")
+            except:
+                dirs = []
+                
         # A loader which will show the track of processing
         self.loader = QLabel(self.application)
         
@@ -535,7 +541,7 @@ class singleFolderView():
         self.main_window = QLabel(self.application)
 
         # Set Geometry
-        self.main_window.setGeometry(QRect(0, 100, 1980, 1000))
+        self.main_window.setGeometry(QRect(0, 50, 1980, 1000))
 
         # QLabel for image
         self.image = QRotateLabel(self.main_window)
@@ -788,8 +794,10 @@ class singleFolderView():
             pass
         
         # Set additional sizes
-        self.name.setFixedWidth(self.width)
+        try:
+            self.name.setFixedWidth(self.width)
 
-        self.name.setAlignment(Qt.AlignCenter)
-
+            self.name.setAlignment(Qt.AlignCenter)
+        except:
+            pass
         self.animations.start()

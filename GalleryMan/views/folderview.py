@@ -140,7 +140,7 @@ class imagesFolder():
         self.scroll.verticalScrollBar().show()
 
         if not self.isshown:
-            self.popup.new_msg(self.window, "Welcome To GalleryMan!", 200)
+            self.popup.new_msg(self.window, "Welcome To GalleryMan!", 400)
 
             self.isshown = True
 
@@ -900,7 +900,7 @@ class imagesFolder():
         
         os.replace(directory , dest)
         
-        self.popup.new_msg(self.main_window , "File restored" , 200)
+        self.popup.new_msg(self.main_window , "File restored" , 400)
     
     def deleteForever(self):
         pass

@@ -188,7 +188,7 @@ class getMoreInfo:
         self.renameParent.setProperty("class" , "need")
         
         # New message
-        self.message.new_msg(self.application , "Press Enter To Rename File" , 300)
+        self.message.new_msg(self.application , "Press Enter To Rename File" , 400)
         
         # Listen for Enter click events
         key = QShortcut(QKeySequence("Return") , self.renameParent)

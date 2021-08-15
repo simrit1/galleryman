@@ -1,4 +1,5 @@
 # Importing the modules
+from os import path as p
 from GalleryMan.utils.doodleImage import PolyGon
 from functools import partial
 from math import atan2, pi
@@ -48,6 +49,7 @@ from GalleryMan.assets.QtHelpers import (
 )
 from GalleryMan.utils.helpers import *
 import random
+import shutil
 
 class QClickableTextEdit(QLineEdit):
     clicked = pyqtSignal()
@@ -213,6 +215,8 @@ class doodleImageItems:
             if(not withoutToolTip):
             
                 self.animation.finished.connect(partial(self.showToolTip , text))
+                
+            self.animation.finished.connect(self.help.hide)
         
         self.help = QLabel(self.graphics)
         
@@ -241,9 +245,12 @@ class doodleImageItems:
         pass
     
     def hideToolTip(self):
-        self.animation = Animation.fadingAnimation(Animation , self.tooltip , 300)
-        
-        self.animation.start()
+        try:
+            self.animation = Animation.fadingAnimation(Animation , self.tooltip , 300)
+            
+            self.animation.start()
+        except:
+            pass
         
     def responser(self , event):
         if(self.parent.geometry() == self.original): return QGraphicsView.paintEvent(self.graphics , event)
@@ -893,8 +900,10 @@ class doodleLineItem(doodleImageItems):
         self.continueNext.setKey(QKeySequence())
 
 class doodleEllipse(doodleImageItems):
-    def __init__(self, parent, renderArea, outParent):
+    def __init__(self, parent, renderArea, outParent , dir):
         super().__init__(parent, renderArea, outParent)
+        
+        self.dir = dir
         
     def createGraphics(self):
         self.graphics.show()
@@ -931,6 +940,7 @@ class doodleEllipse(doodleImageItems):
             "outline-width": 10,
         }
         
+        
         self.continueNext.activated.connect(self.drawCircleOnImage)
 
         self.pen = QPen(QColor(self.config["outline-color"]), int(self.config["outline-width"]), Qt.SolidLine)
@@ -938,7 +948,7 @@ class doodleEllipse(doodleImageItems):
         self.ecllipse = self.scene.addEllipse(
             280, 125, self.config["radius"] * 2, self.config["radius"] * 2, self.pen
         )
-
+        
         self.ecllipse.setFlag(QGraphicsItem.ItemIsMovable)
 
         self.ecllipse.setBrush(QColor(self.config["color"]))
@@ -986,18 +996,28 @@ class doodleEllipse(doodleImageItems):
     
     def drawCircleOnImage(self):
         # Get the geometry
-        area = self.graphics.geometry()
+        width , height = Image.open(self.dir).size
+        
+        size = QRect(0 , 0 , width , height)
+        
+        self.help.hide()
+        
+        self.menu.hide()
+        
+        self.tooltip.hide()
         
         # Parse the image 
-        image = QImage(area.size(), QImage.Format_ARGB32_Premultiplied)
+        image = QImage(size.size() , QImage.Format_ARGB32_Premultiplied)
         
         painter = QPainter(image)
         
-        self.scene.render(painter, QRectF(image.rect()), QRectF(area))
+        self.scene.render(painter, QRectF(image.rect()), QRectF(size))
         
         painter.end()
         
-        image.save("./GalleryMan/assets/processed_image.png")
+        # image = image.copy(QRect(0 , 0 , width , height))
+        
+        image.save("./GalleryMan/assets/processed_image.png" , quality=100)
         
         self.animation = Animation.fadingAnimation(Animation , self.graphics , 200)
         
@@ -1009,11 +1029,13 @@ class doodleEllipse(doodleImageItems):
     
         self.continueNext.setKey(QKeySequence())
         
-    def update_my_styles(self, key, label):
-        try:
-            self.config[key] = int(label.text())
-        except:
-            self.config[key] = label.text()
+    def update_my_styles(self, key=None, label=None):
+        
+        if(key != None):
+            try:
+                self.config[key] = int(label.text())
+            except:
+                self.config[key] = label.text()
 
         self.ecllipse.setBrush(QColor(self.config["color"]))
 
@@ -1033,12 +1055,18 @@ class doodleEllipse(doodleImageItems):
         self.animation.finished.connect(self.startAni.show)
 
 class doodleImage:
-    def __init__(self, parent, renderArea, outParent) -> None:
+    def __init__(self, parent, renderArea, outParent , dir) -> None:
         self.parent = parent
+        
+        self.dir = dir
         
         self.popup = PopUpMessage()
 
         self.renderArea = renderArea
+        
+        self.logs = []
+        
+        self.currently = 0
 
         self.outParent = outParent
 
@@ -1094,7 +1122,7 @@ class doodleImage:
         lineItem.createGraphics()
 
     def circle(self):
-        ellipse = doodleEllipse(self.parent , self.renderArea , self.outParent)
+        ellipse = doodleEllipse(self.parent , self.renderArea , self.outParent , self.dir)
         
         ellipse.createGraphics()
         
@@ -1112,7 +1140,7 @@ class doodleImage:
 
         self.scene.addPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
 
-        polygon = PolyGon(self.graphics)
+        polygon = PolyGon(self.graphics , self.renderArea , self.dir)
 
         self.graphics.show()
 
@@ -1190,7 +1218,7 @@ class doodleImage:
         def run_second():
             self.thread.quit()
             
-            saveLoc = self.worker.fileSave
+            self.saveLoc = self.worker.fileSave
   
             self.animation = Animation.fadingAnimation(Animation , self.layer , 200)
             
@@ -1198,7 +1226,9 @@ class doodleImage:
             
             self.animation.start() 
             
-            self.animation.finished.connect(lambda : self.pixmap.setPixmap(QPixmap(saveLoc)))
+            self.animation.finished.connect(lambda : self.pixmap.setPixmap(QPixmap(self.saveLoc)))
+            
+            self.currently += 1
             
             self.graphics.setCursor(Qt.CrossCursor)
         
@@ -1216,10 +1246,10 @@ class doodleImage:
         
         self.thread = QThread()
         
-        self.worker = floodFiller([] , pos.x() , pos.y() , (255 , 0 , 0 , 255) , 0)
+        self.worker = floodFiller(pos.x() , pos.y() , (255 , 0 , 0 , 255) , self.currently)
         
         self.worker.moveToThread(self.thread)
-        
+            
         self.thread.started.connect(self.worker.run)
         
         self.worker.finished.connect(run_second)
@@ -1229,11 +1259,6 @@ class doodleImage:
         self.animation = Animation.fadingAnimation(Animation , self.layer , 300 , endValue=0.7)
         
         self.animation.start()
-        
-        # ImageDraw.floodfill(self.image, (pos.x(), pos.y()), (255, 0, 0 , 255))
-        
-        # self.image.save("new_image.png")
-        
 
     def rotateDraw(self, event: QMouseEvent):
         item_position = self.rect.transformOriginPoint()
@@ -1415,11 +1440,9 @@ class doodleImage:
 class floodFiller(QObject):
     finished = pyqtSignal()
     
-    def __init__(self , logsArray , x , y , fillColor , currently):
+    def __init__(self , x , y , fillColor , currently):
         super().__init__()
-        
-        self.logsArray = logsArray
-        
+    
         self.currently = currently
         
         self.x = x
@@ -1428,15 +1451,37 @@ class floodFiller(QObject):
         
         self.fillColor = fillColor
         
+        try:
+            with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "currentlyOpened.png")) as f:
+                pass
+        except:
+            shutil.copy("GalleryMan/assets/processed_image.png" , os.path.join(os.path.expanduser("~") , ".galleryman" , "currentlyOpened.png"))
+            
+        
+        
     def run(self):
-        self.image = Image.open("./GalleryMan/assets/processed_image.png").convert("RGBA")
+        self.image = Image.open(os.path.join(os.path.expanduser("~") , ".galleryman" , "currentlyOpened.png")).convert("RGBA")
                 
         ImageDraw.floodfill(self.image, (self.x, self.y), self.fillColor)
             
-        self.fileSave = os.path.join(os.path.expanduser("~") , ".galleryman" , "cache" , "edited_{}.{}".format(self.currently , "png"))
+        self.fileSave = os.path.join(os.path.join(os.path.expanduser("~") , ".galleryman" , "currentlyOpened.png"))
                 
         self.image.save(self.fileSave)
         
         self.finished.emit()
+            
+    def undo(self):
+        self.__init__(self.x , self.y , self.fillColor , self.currently)
         
+        self.fileSave = self.logs[self.currently - 1]
+        
+        self.finished.emit()   
+    
+    def redo(self):
+        self.__init__(self.x , self.y , self.fillColor , self.currently)
+        
+        self.fileSave = self.logs[self.currently + 1]
+        
+        self.finished.emit()   
+    
 # #C88 , #C88FFF

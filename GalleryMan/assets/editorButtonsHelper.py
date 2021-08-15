@@ -227,7 +227,7 @@ class QEditorHelper:
         # Add the image to the application's clipboard
         self.parent.clipboard().setPixmap(QPixmap(fileName))
         
-        self.popup.new_msg(self.application , "Image Copied To Clipboard" , 300)
+        self.popup.new_msg(self.application , "Image Copied To Clipboard" , 400)
 
     def showEditButtons(self, directory):
         
@@ -363,7 +363,7 @@ class QEditorHelper:
         self.animation.finished.connect(self.central.hide)
         
         # Add a new message when its completed
-        self.popup.new_msg(self.application, "Item Moved To Thrash", 500)
+        self.popup.new_msg(self.application, "Item Moved To Thrash", 400)
 
     def moreInfo(self, directory):
         # Get preferred icons
@@ -609,7 +609,7 @@ class ImageEditButtons:
     def doodleImage(self):
         
         # Initate the class
-        doodle = doodleImage(self.parent, self.renderArea, self.outParent)
+        doodle = doodleImage(self.parent, self.renderArea, self.outParent , self.dir)
         
         # get all the respective functions
         func = [
@@ -657,7 +657,7 @@ class ImageEditButtons:
 
     def addTextToImage(self):
         # Initate the text in image class
-        textToImage = textInImage(self.parent, self.renderArea, self.outParent)
+        textToImage = textInImage(self.parent, self.renderArea, self.outParent , self.dir)
         
         # Create the graphics
         textToImage.createGraphics()
@@ -903,9 +903,11 @@ class cropImage:
 
 
 class textInImage:
-    def __init__(self, parent, out_widget, scrollArea) -> None:
+    def __init__(self, parent, out_widget, scrollArea , dir) -> None:
         
         # Make every argument global
+        self.dir = dir
+        
         self.parent = parent
 
         self.out_widget = out_widget
@@ -1097,10 +1099,10 @@ class textInImage:
             self.out_widget.set_pixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
         
         # Open the image
-        self.image = Image.open("./GalleryMan/assets/processed_image.png")
+        self.image = Image.open(self.dir)
         
         # Get the geometry
-        area = self.graphics.geometry()
+        area = QRect(0 , 0 , self.image.width , self.image.height)
         
         # Parse the image 
         image = QImage(area.size(), QImage.Format_ARGB32_Premultiplied)

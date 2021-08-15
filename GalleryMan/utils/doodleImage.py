@@ -1,9 +1,10 @@
 from GalleryMan.assets.QtHelpers import Animation, QCustomButton, QSliderMenu
 from functools import partial
 from PIL import Image , ImageDraw
-from PyQt5.QtCore import QParallelAnimationGroup, QPoint, QPointF, QRect, QTimer, Qt, pyqtBoundSignal, pyqtSignal 
-from PyQt5.QtGui import QColor, QFont, QKeySequence, QMouseEvent, QPen, QPolygonF
+from PyQt5.QtCore import QParallelAnimationGroup, QPoint, QPointF, QRect, QRectF, QTimer, Qt, pyqtBoundSignal, pyqtSignal 
+from PyQt5.QtGui import QColor, QFont, QImage, QKeySequence, QMouseEvent, QPainter, QPen, QPixmap, QPolygonF
 from PyQt5.QtWidgets import QCheckBox, QGraphicsLineItem, QGraphicsSimpleTextItem, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QScrollArea, QShortcut, QVBoxLayout, QWidget
+from GalleryMan.assets.cropper import QRotateLabel
 
 class ClickableLabel(QLabel):
     clicked = pyqtSignal()
@@ -31,15 +32,16 @@ class customLineItem(QGraphicsLineItem):
 class doodleShape:
     drawingCompleted = pyqtSignal(list)
     
-    def __init__(self , parent: QGraphicsView):
+    def __init__(self , parent: QGraphicsView , renderArea: QRotateLabel , dir: str):
         self.parent = parent
+        
+        self.renderArea = renderArea
+        
+        self.areTheyShown = False
             
         self.config = {
             "width": 5,
             "color": "#88C0D0",
-            "border-radius": 10,
-            "outline-color": "#2E3440",
-            "outline-width": 5
         }
         
         self.shortcut = QShortcut(QKeySequence("Ctrl+X") , self.parent)
@@ -124,6 +126,8 @@ class doodleShape:
         
         self.lineLayersParent.hide()
         
+        self.dir = dir
+        
     def _breakSupport(self):
         self.breakSupport = True
         
@@ -150,6 +154,8 @@ class doodleShape:
     def initPointLine(self , position: QPoint , followMouse=False):
         if(self.breakSupport): return
         
+        print(position.__pos__())
+        
         position.setX(position.x() + self.parent.horizontalScrollBar().value())
         
         position.setY(position.y() + self.parent.verticalScrollBar().value())
@@ -167,7 +173,6 @@ class doodleShape:
         self.pointsLocation.append(position.__pos__())
         
         self.lineInited = True
-        
 
         self.line = customLineItem(position.x() , position.y() , position.x() + 0.5 , position.y() + 0.5, self.pen , self.updateSingleLine)
         
@@ -215,19 +220,33 @@ class doodleShape:
             self.label.hide()
         
     def updateSingleLine(self , line: QGraphicsLineItem):
-        self.line = line
+        def run_second():
+            
+            self.menu.hide()
         
-        self.menu.hide()
+            self.menu = QSliderMenu(self.parent)
+            
+            self.manageMenu()
+            
+        self.animation = QParallelAnimationGroup()
         
-        pen = line.pen()
+        if(self.areTheyShown == False):
+            for items in self.lines:
+                self.animation.addAnimation(Animation.fadingAnimation(Animation , items , 200 , True , 0.4))
+            
+            self.areTheyShown = True
+                
+        self.animation.addAnimation(Animation.fadingAnimation(Animation , self.line , 200 , endValue=0.4))
         
-        pen.setColor(QColor("#88C"))
+        self.animation.addAnimation(Animation.fadingAnimation(Animation , line , 200 , True , 0.4))
         
-        line.setPen(pen)
+        self.animation.finished.connect(run_second)
         
-        self.menu = QSliderMenu(self.parent)
+        self.animation.start()
+
         
-        self.manageMenu()
+        self.line = line        
+            
                 
     def manageMenu(self):
         stylesheet = """
@@ -237,7 +256,7 @@ class doodleShape:
             color: white;
         """
         
-        for name in ["Width" , "Color" , "Border Radius" , "Outline Color" , "Outline Width"]:
+        for name in ["Width" , "Color"]:
             inputBox = QLineEdit()
             
             inputBox.setPlaceholderText(name)
@@ -388,34 +407,30 @@ class doodleShape:
             self.scrollArea.width() // 2 - self.tooltip.boundingRect().width() // 2,
             self.lineLayersParent.pos().y() - 110
         ))
-        
-        self.button.setParent(None)
-        
+                
     def showHelp(self):
         def run_second():
             self.animation = Animation.fadingAnimation(Animation , self.help , 300)
             
-            # self.timer = QTimer(self.parent)
+            self.timer = QTimer(self.parent)
             
-            # self.timer.start(700)
+            self.timer.start(700)
             
-            # self.timer.setSingleShot(True)
+            self.timer.setSingleShot(True)
             
             self.animation.finished.connect(self.help.hide)
             
             self.animation.start()
             
-            # self.timer.timeout.connect(self.animation.start)
+            self.timer.timeout.connect(self.animation.start)
             
-            # self.tooltiptimer = QTimer(self.parent)
+            self.tooltiptimer = QTimer(self.parent)
             
-            # self.tooltiptimer.setSingleShot(True)
+            self.tooltiptimer.setSingleShot(True)
             
-            # self.tooltiptimer.start(2000)
-            
-            # self.animation.finished.connect(self.showToolTip)
-            
-            # self.tooltiptimer.timeout.connect(self.hideToolTip)
+            self.tooltiptimer.start(2000)
+                        
+            self.tooltiptimer.timeout.connect(self.hideToolTip)
         
         self.help = QLabel(self.parent)
         
@@ -427,7 +442,13 @@ class doodleShape:
         
         self.details = QLabel()
         
-        self.details.setText("1. Press Ctrl+S to save and exit \n\n2. Click and drag the mouse to draw line \n\n3. Press Ctrl+X to customize the lines drawn")
+        print("SETTING")
+        
+        self.another = QShortcut(QKeySequence("Return") , self.parent)
+        
+        self.another.activated.connect(self.savePronto)
+        
+        self.details.setText("1. Press Enter to save and exit \n\n2. Click and drag the mouse to draw line \n\n3. Press Ctrl+X to customize the lines drawn")
         
         self.details.setStyleSheet("background-color: transparent; color: white; font-size: 20px")
         
@@ -459,13 +480,54 @@ class doodleShape:
         self.animation.start()
         
     def hideToolTip(self):
-        self.animation = Animation.fadingAnimation(Animation , self.tooltip , 200)
+        try:
+            self.animation = Animation.fadingAnimation(Animation , self.tooltip , 200)
+        
+            self.animation.start()
+        except:
+            pass
+        
+    def savePronto(self):
+        self.lineLayersParent.hide()
+        
+        self.menu.hide()
+        
+        try:
+            self.tooltip.hide()
+        except:
+            pass
+        
+        self.help.hide()
+        
+        width , height = Image.open(self.dir).size
+        
+        # Get the geometry
+        area = QRect(0 , 0 , width , height)
+        
+        # Parse the image 
+        image = QImage(area.size(), QImage.Format_ARGB32_Premultiplied)
+        
+        painter = QPainter(image)
+        
+        self.parent.scene().render(painter, QRectF(image.rect()), QRectF(area))
+        
+        painter.end()
+                        
+        image.save("GalleryMan/assets/processed_image.png" , quality=100)
+        
+        self.animation = Animation.fadingAnimation(Animation , self.parent , 200)
+        
+        self.animation.finished.connect(self.parent.hide)
         
         self.animation.start()
+        
+        self.renderArea.set_pixmap(QPixmap("GalleryMan/assets/processed_image.png"))
+    
+        self.shortcut.setKey(QKeySequence())
 
 class PolyGon(doodleShape):
-    def __init__(self , parent):
-        super().__init__(parent)
+    def __init__(self , parent , renderArea , directory):
+        super().__init__(parent , renderArea , directory)
         
     def onClick(self, event: QMouseEvent):
         self.initPointLine(event.pos() , True)

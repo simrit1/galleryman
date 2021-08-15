@@ -1,4 +1,4 @@
-from GalleryMan.assets.QtHelpers import Animation, QCustomButton, QSliderMenu
+from GalleryMan.assets.QtHelpers import Animation, QSliderMenu
 from functools import partial
 from PIL import Image , ImageDraw
 from PyQt5.QtCore import QParallelAnimationGroup, QPoint, QPointF, QRect, QRectF, QTimer, Qt, pyqtBoundSignal, pyqtSignal 
@@ -137,6 +137,8 @@ class doodleShape:
         except:
             pass
         
+        self.shortcut.setKey(QKeySequence())
+        
         self.line.hide()
         
         self.lineLayers.setProperty("class" , "need")
@@ -150,12 +152,22 @@ class doodleShape:
         self.lineLayersParent.show()
         
         self.showToolTip()
+
+        
+        self.timer = QTimer(self.parent)
+        
+        self.timer.setSingleShot(True)
+        
+        self.animation = Animation.fadingAnimation(Animation , self.tooltip , 300)
+        
+        self.timer.timeout.connect(self.animation.start)
+        
+        self.timer.start(3000)
+        
     
     def initPointLine(self , position: QPoint , followMouse=False):
         if(self.breakSupport): return
-        
-        print(position.__pos__())
-        
+                
         position.setX(position.x() + self.parent.horizontalScrollBar().value())
         
         position.setY(position.y() + self.parent.verticalScrollBar().value())
@@ -397,14 +409,12 @@ class doodleShape:
         
         text.setPos(rect.topLeft())        
         
-        self.animation = QParallelAnimationGroup()
-        
-        self.animation.addAnimation(Animation.fadingAnimation(Animation , self.tooltip , 200 , True))   
+        self.animation = Animation.fadingAnimation(Animation , self.tooltip , 200 , True)
         
         self.animation.start()
         
         self.tooltip.setPos(QPoint(
-            self.scrollArea.width() // 2 - self.tooltip.boundingRect().width() // 2,
+            self.lineLayersParent.width() // 2 - self.tooltip.boundingRect().width() // 2,
             self.lineLayersParent.pos().y() - 110
         ))
                 
@@ -419,18 +429,8 @@ class doodleShape:
             self.timer.setSingleShot(True)
             
             self.animation.finished.connect(self.help.hide)
-            
-            self.animation.start()
-            
-            self.timer.timeout.connect(self.animation.start)
-            
-            self.tooltiptimer = QTimer(self.parent)
-            
-            self.tooltiptimer.setSingleShot(True)
-            
-            self.tooltiptimer.start(2000)
                         
-            self.tooltiptimer.timeout.connect(self.hideToolTip)
+            self.timer.timeout.connect(self.animation.start)
         
         self.help = QLabel(self.parent)
         
@@ -441,9 +441,7 @@ class doodleShape:
         helpLayouts.setSpacing(30)
         
         self.details = QLabel()
-        
-        print("SETTING")
-        
+                
         self.another = QShortcut(QKeySequence("Return") , self.parent)
         
         self.another.activated.connect(self.savePronto)
@@ -474,9 +472,7 @@ class doodleShape:
         self.help.show()
         
         self.animation = Animation.fadingAnimation(Animation , self.help , 300 , True)
-        
-        # self.animation.finished.connect(run_second)
-        
+                
         self.animation.start()
         
     def hideToolTip(self):

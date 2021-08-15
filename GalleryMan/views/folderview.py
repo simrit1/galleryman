@@ -127,7 +127,6 @@ class imagesFolder():
         self.allFolders = []
         
     def start(self, label_to_change: QLabel) -> True:
-        LIKED_FOLDERS = ".config/galleryman/data/likedPhotos.txt"
         
         """Creates The Ui And Renders To The MainWindow passes during __init__
 
@@ -138,11 +137,6 @@ class imagesFolder():
         self.scroll.verticalScrollBar().setEnabled(True)
 
         self.scroll.verticalScrollBar().show()
-
-        if not self.isshown:
-            self.popup.new_msg(self.window, "Welcome To GalleryMan!", 400)
-
-            self.isshown = True
 
         # Initing all the variables that will be used
         self.folders_pinned = []
@@ -267,11 +261,11 @@ class imagesFolder():
         self.main_window.resizeEvent = self.responser
         
         self.main_window.show()
-        
-        
 
         # Final touches, call the responser to position the cards accurately, if it's not
         self.responser(None)
+        
+
 
         # End of the function by returning True
         return True

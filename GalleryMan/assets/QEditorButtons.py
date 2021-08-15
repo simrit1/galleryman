@@ -1,12 +1,10 @@
 # Importing all modules
 from PIL import Image , ImageQt
 from GalleryMan.themes.filters import Filters
-import json
-from GalleryMan.assets.cropper import ImageCropper
-from GalleryMan.assets.QtHelpers import PopUpMessage, QCustomButton
-from PyQt5.QtCore import QParallelAnimationGroup, QPropertyAnimation, QRect, Qt
+from GalleryMan.assets.QtHelpers import PopUpMessage
+from PyQt5.QtCore import QPropertyAnimation, Qt
 from PyQt5.QtGui import QCursor, QImage, QPixmap
-from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QGraphicsOpacityEffect, QHBoxLayout, QLabel, QPushButton, QVBoxLayout
+from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QGraphicsOpacityEffect, QLabel, QPushButton, QVBoxLayout
 from GalleryMan.assets.QtImageProcessor import ImageProcessor
 import os
 

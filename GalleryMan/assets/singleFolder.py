@@ -4,7 +4,6 @@ from math import ceil
 import functools, gc, json
 from configparser import ConfigParser
 from random import randint
-from GalleryMan.utils.readers import change_with_config, read_file
 from GalleryMan.assets.QtHelpers import Animation, PopUpMessage, QCustomButton
 from PyQt5.QtCore import (
     QAbstractAnimation,
@@ -29,7 +28,6 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QPushButton,
     QScrollArea,
-    QSystemTrayIcon,
     QVBoxLayout,
     QWidget,
 )
@@ -403,7 +401,7 @@ class singleFolderView():
         self.labelArea.hide()
         
         # Geometry
-        self.labelArea.setGeometry(QRect(0, 150 , 1980, 1080))
+        self.labelArea.setGeometry(QRect(0, 150 , self.application.width() , self.application.height()))
         
         # Get card properties
         padding = int(self.config.get("singleFolder", "card-padding"))
@@ -540,7 +538,7 @@ class singleFolderView():
         # Center Area (Main)
         self.main_window = QLabel(self.application)
 
-        # Set Geometry
+        # Set Geometry        
         self.main_window.setGeometry(QRect(0, 50, 1980, 1000))
 
         # QLabel for image
@@ -706,6 +704,8 @@ class singleFolderView():
         
         # Get required files   
         self.width = self.application.size().width()
+        
+        self.main_window.setFixedSize(self.application.size())
 
         card_width = int(self.config.get("singleFolder", "card-width"))
 

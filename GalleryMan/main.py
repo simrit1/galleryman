@@ -3,12 +3,7 @@ from GalleryMan.utils.stickerManager import stickerManager
 from GalleryMan.utils.helpers import addToScanDirectory, removeFromScanDirectory, show_list
 from GalleryMan.utils.initer import Initer
 from functools import partial
-from GalleryMan.assets.QtHelpers import QCustomButton
-import argparse
-import json
-from os import system
-import os
-import sys
+import argparse , json , os , sys
 from PyQt5.QtCore import QPoint, QRect, QSize , Qt, pyqtSignal
 from PyQt5.QtGui import QCursor, QKeyEvent, QMouseEvent
 from GalleryMan.views.firstPage import FirstPage
@@ -16,27 +11,6 @@ from GalleryMan.utils.readers import read_file , change_with_config
 from GalleryMan.views.folderview import imagesFolder
 from PyQt5.QtWidgets import QApplication, QHBoxLayout, QLabel , QMainWindow, QPushButton, QScrollArea, QVBoxLayout, QWidget
 from GalleryMan.assets.singleFolder import singleFolderView
-
-class ScrollLabel(QScrollArea):
-    def __init__(self, *args, **kwargs):
-        QScrollArea.__init__(self, *args, **kwargs)
- 
-        self.setWidgetResizable(True)
- 
-        content = QWidget(self)
-        
-        self.setWidget(content)
- 
-        lay = QVBoxLayout(content)
- 
-        self.label = QLabel(content)
- 
-        self.label.setAlignment(Qt.AlignLeft | Qt.AlignTop)
- 
-        self.label.setWordWrap(True)
- 
-        lay.addWidget(self.label)
-
     
 class CustomLabel(QLabel):
     clicked = pyqtSignal(QMouseEvent)
@@ -51,37 +25,50 @@ class CustomLabel(QLabel):
                       
 class Main:
     def createApp(self , showOnlyImage=False , directory=None):
+        # A Variable which will handle the current window
         self.curr = "Hide"
         
+        # Create a application and a window
         app = QApplication([])
                 
         self.window = QMainWindow()
         
+        # Set window title
         self.window.setWindowTitle("GalleryMan")
         
+        # Mouse events
         self.window.mousePressEvent = self.mouseHandler
         
         self.window.keyPressEvent = self.keyHandler
-                
+        
+        # Prevent exiting of the program when a error breaks
         def except_hook(cls, exception, traceback):
-            sys.__excepthook__(cls, exception, traceback)
+            # sys.__excepthook__(cls, exception, traceback)
+            pass
             
+        # Use a custom function to handle errors
         sys.excepthook = except_hook
         
+        # Create central widget and layout
         central = QWidget(self.window)
         
         layout = QVBoxLayout(central)
         
+        # Main window should be a scrollable
         self.scrollArea = QScrollArea(central)
-                        
+        
+        # Add to screen
         layout.addWidget(self.scrollArea)
         
+        # A Widget where the contents will be rendered
         contents = QWidget(self.window)
         
+        # Adjustments
         contents.setGeometry(self.window.geometry())
                 
         self.scrollArea.setWidget(contents)
-                
+        
+        
         self.scrollArea.verticalScrollBar().setEnabled(False)
         
         self.scrollArea.verticalScrollBar().hide()
@@ -89,13 +76,16 @@ class Main:
         self.scrollArea.horizontalScrollBar().setEnabled(False)
         
         self.scrollArea.horizontalScrollBar().hide()
-    
+        
         layout = QHBoxLayout(contents)
         
+        # Add a topbar to the window
         self.helper = CustomLabel(self.window)
         
         self.helper.clicked.connect(self.show_hides)
         
+        
+        # Stylings and ajustments
         self.helper.setGeometry(QRect(
             0 , 0,
             1980,
@@ -104,6 +94,7 @@ class Main:
         
         self.helper.show()
         
+        # Create a topbar
         self.topbar = QLabel(self.window)
         
         self.topbar.setGeometry(QRect(
@@ -118,6 +109,7 @@ class Main:
         
         self.helper.setStyleSheet('background-color: transparent;')
         
+        # Create a lyout and add all the widgets 
         layoout = QHBoxLayout()
         
         j = 0
@@ -130,6 +122,7 @@ class Main:
         
         stylesheet , config = change_with_config(read_file('GalleryMan/sass/styles.txt'))
         
+        # Iterate through all the user's preferred icons
         for icon , color , size , font in json.loads(config.get("global" , "topBar-buttons")):            
             button = QPushButton(icon , self.topbar)
             
@@ -144,7 +137,8 @@ class Main:
             ))
             
             layoout.addWidget(button , alignment=Qt.AlignTop | Qt.AlignRight)
-            
+        
+        # Print some thanks when the user presses the exit key (as the last key is indeed the cross key)
         button.clicked.connect(lambda : print("Thanks for using GalleryMan!"))
         
         button.clicked.connect(exit)
@@ -152,7 +146,8 @@ class Main:
         self.topbar.setLayout(layoout)
                 
         self.window.setCentralWidget(central)
-            
+        
+        # Read status
         status = read_file('GalleryMan/galleryman.status')
                 
         label = QLabel(contents)
@@ -284,6 +279,7 @@ def main():
     except:
         pass
     
+    # Handle args
     if(args.init):
         Initer().init()
         

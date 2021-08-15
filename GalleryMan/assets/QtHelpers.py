@@ -3,71 +3,11 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import QParallelAnimationGroup, QPoint, QPropertyAnimation, QRect, QTimer
 from PyQt5.QtGui import QCursor
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QGraphicsOpacityEffect, QHBoxLayout, QLabel, QPushButton, QScrollArea, QToolTip, QVBoxLayout, QWidget
-
-class QLikeButton:
-    """
-    Creates A Heart Button With A Heart Throwing Effect!
-    """
-
-    def __init__(self, location, window: QLabel) -> None:
-        self.location = location
-        self.window = window
-
-    def start(self):
-
-        likeButton = QPushButton(parent=self.window)
-
-        likeButton.setText("  ")
-
-        likeButton.setIconSize(QtCore.QSize(50, 50))
-
-        likeButton.setProperty("class", "like")
-
-        likeButton.setCursor(QCursor(Qt.PointingHandCursor))
-
-        likeButton.setFlat(True)
-
-        return likeButton
-
-
-class QToolPushButton:
-    def __init__(self, window) -> None:
-        self.window = window
-
-    def create(self):
-        button = QPushButton(self.window)
-
-        button.setText("")
-
-        button.move(QPoint(400, 850))
-
-        button.setFlat(True)
-
-        button.setCursor(QCursor(Qt.PointingHandCursor))
-
-        return button
-
-
-class Exposure:
-    def __init__(self, window) -> None:
-        self.window = window
-
-    def create(self):
-        button = QPushButton(self.window)
-
-        button.setText("+")
-
-        button.move(QPoint(600, 850))
-
-        button.setFlat(True)
-
-        button.setCursor(QCursor(Qt.PointingHandCursor))
-
-        return button
+from PyQt5.QtWidgets import QGraphicsOpacityEffect, QHBoxLayout, QLabel, QMainWindow, QPushButton, QScrollArea, QVBoxLayout, QWidget
 
 
 class Thrower:
+    """This function does indeed works on a fixed font size, so this has been excluded for the time being."""
     def __init__(self, x, y, window) -> None:
         self.x = x - 10
         self.y = y
@@ -172,6 +112,11 @@ class PopUpMessage:
     def new_msg(self , window , msg , duration):        
         self.window = window
         
+        if(type(self.window) != QMainWindow):
+            self.window = self.window.parent().parent().parent().parent()
+            
+        print(repr(self.window.size()))
+        
         try:
             self.popup_window.hide()
         except:
@@ -183,7 +128,7 @@ class PopUpMessage:
                 
         self.popup_window.setFixedHeight(60)
         
-        self.popup_window.setAlignment(Qt.AlignCenter)
+        self.popup_window.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
                 
         self.popup_window.setText(msg)
         
@@ -199,9 +144,10 @@ class PopUpMessage:
         
         self.animation = QPropertyAnimation(self.popup_window, b"pos")
 
-        self.animation.setStartValue(QPoint(20, 1200))
+        self.animation.setStartValue(QPoint(20, self.window.height() + 100))
+        
 
-        self.animation.setEndValue(QPoint(20, 900))
+        self.animation.setEndValue(QPoint(20, self.window.height() - 60))
 
         self.animation.setDuration(duration)
     

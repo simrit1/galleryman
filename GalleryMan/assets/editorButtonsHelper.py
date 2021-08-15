@@ -39,7 +39,6 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QScrollArea,
     QShortcut,
-    QSizeGrip,
     QSlider,
     QVBoxLayout,
     QWidget,
@@ -50,7 +49,6 @@ from GalleryMan.assets.QtHelpers import (
     QCustomButton,
     QLayoutMaker,
     QSliderMenu,
-    Thrower,
 )
 from json import loads
 from GalleryMan.utils.helpers import *
@@ -135,8 +133,12 @@ class QRotateLabel(QLabel):
 
     @pyqtSlot(QVariant)
     def on_valueChanged(self, value):
+        
+        # Rotate the pixmap
         t = QTransform()
+         
         t.rotate(value)
+        
         self.setPixmap(self._pixmap.transformed(t))
 
 
@@ -937,7 +939,10 @@ class textInImage:
         # A button which will show the menui
         self.startAni = QCustomButton(" ", self.graphics).create()
 
-        self.startAni.setGeometry(QRect(1800, 10, 100, 100))
+        self.startAni.move(QPoint(
+            self.parent.width() - self.startAni.width() - 10,
+            10
+        ))
 
         self.startAni.clicked.connect(lambda: self.manageMenu())
 
@@ -1015,7 +1020,7 @@ class textInImage:
         self.scene = QGraphicsScene()
         
         # Set geometry
-        self.graphics.setGeometry(QRect(0, 0, 1980, 1080))
+        self.graphics.setGeometry(QRect(0, 0, self.parent.width() , self.parent.height()))
         
         # Add scene
         self.graphics.setScene(self.scene)
@@ -1052,13 +1057,6 @@ class textInImage:
         # Show the label
         self.label.show()
 
-        # continueButton = QCustomButton("Continue", self.graphics).create()
-
-        # continueButton.clicked.connect(lambda: self.saveText())
-
-        # continueButton.setGeometry(QRect(0, 0, 500, 100))
-
-        # continueButton.show()
         self.shortcut = QShortcut(QKeySequence("Ctrl+S") , self.graphics)
         
         self.shortcut.activated.connect(self.saveText)
@@ -1154,11 +1152,11 @@ class textInImage:
             self.menu.addMenu(name , inputLabel)
         
         # Move the menu to outside of the screen
-        self.menu.move(QPoint(2000, 0))
+        self.menu.move(QPoint(self.graphics.width() + 100, 0))
         
         # Move it inside the screen with animation
         self.animation = Animation.movingAnimation(
-            Animation, self.menu, QPoint(1900 - self.menu.width(), 0), 300
+            Animation, self.menu, QPoint(self.parent.width() - self.menu.width(), 0), 300
         )
 
         self.animation.start()
@@ -1214,7 +1212,7 @@ class textInImage:
         self.openNewPos = QPoint(self.parent.width() - self.menu.width() , 0)
         
         # TODO: Change ME!
-        if(self.menu.pos().x() != 2000):
+        if(self.menu.pos().x() != self.graphics.width() + 100):
             self.animation = Animation.movingAnimation(Animation , self.menu , self.openNewPos , 200)
             
             self.animation.start()

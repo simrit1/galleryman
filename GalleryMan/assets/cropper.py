@@ -1,11 +1,11 @@
 # Import All Modules
 from configparser import ConfigParser
-from PyQt5.QtGui import QColor, QFont, QKeySequence, QPaintEvent, QPainter, QPen, QPixmap, QPolygonF, QResizeEvent, QTransform
+from PyQt5.QtGui import QColor, QFont, QKeySequence, QPen, QPixmap, QPolygonF, QTransform
 from GalleryMan.utils.helpers import ResizableRubberBand
-from GalleryMan.assets.QtHelpers import Animation, QContinueButton, QCustomButton
+from GalleryMan.assets.QtHelpers import Animation, QCustomButton
 from PIL import Image
-from PyQt5.QtWidgets import QGraphicsScene, QGraphicsSimpleTextItem, QGraphicsTextItem, QGraphicsView, QLabel, QMainWindow, QShortcut, QVBoxLayout, QWidget
-from PyQt5.QtCore import QAbstractAnimation, QParallelAnimationGroup, QPoint, QPointF, QRect, QRectF, QTime, QTimer, QVariant, QVariantAnimation, Qt, pyqtSignal, pyqtSlot
+from PyQt5.QtWidgets import QGraphicsScene, QGraphicsSimpleTextItem, QGraphicsView, QLabel, QMainWindow, QShortcut, QVBoxLayout, QWidget
+from PyQt5.QtCore import QAbstractAnimation, QParallelAnimationGroup, QPoint, QPointF, QRect, QTimer, QVariant, QVariantAnimation, Qt, pyqtSignal, pyqtSlot
 
 
 class QRotateLabel(QLabel):
@@ -63,7 +63,6 @@ class ImageCropper(QGraphicsView):
     def __init__(self, mainWindow: QMainWindow, outWidget: QRotateLabel , config: ConfigParser):
         super().__init__(mainWindow)
         
-        
         # Get the original responser so that it could be replaced on removing
         self.originalResponser = mainWindow.resizeEvent
         
@@ -77,6 +76,10 @@ class ImageCropper(QGraphicsView):
         self.myScene.addPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
         
         self.setScene(self.myScene)
+        
+        self.verticalScrollBar().setValue(0) 
+        
+        self.horizontalScrollBar().setValue(0)
         
         # Timer for hiding the tooltip
         self.timer = QTimer(self)
@@ -98,53 +101,37 @@ class ImageCropper(QGraphicsView):
         
         # Show the cropper
         self.cropper.show()
-        
-        # A button to save the cropped image
-        # self.continueCrop = QContinueButton(self).start()
 
-        # self.continueCrop.setStyleSheet("""
-        #     color: #D8DEE9;
-        #     font-size: 20px;                         
-        #     background-color: transparent;         
-        # """)
-        
         self.outWidget = outWidget
 
-        # self.continueCrop.enterEvent(None)
-        
-        # self.continueCrop.leaveEvent(None)
-
-        # self.continueCrop.setGeometry(QRect(
-        #     mainWindow.width() - 300,
-        #     mainWindow.height() - 150,
-        #     250,
-        #     100
-        # ))
         self.shortcut = QShortcut(QKeySequence("Ctrl+S") , self)
         
         self.shortcut.activated.connect(self.continueCropping)
-
-        # self.continueCrop.clicked.connect(self.continueCropping)
-        
-        # self.continueCrop.show()
         
         self.starter()
     
     def showToolTip(self):
+        
+        # A Custom, Beautiful Tooltip is getting drawn!
         polygon = QPolygonF()
         
         pen = QPen()
         
+        # Set color of the pen (border)
         pen.setColor(QColor("#2E3440"))
         
+        
+        # Iterate over the points that will be used for deviation
         for points in [QPoint(100 , 100 - 50) , QPoint(500 , 100 - 50) , QPoint(500 , 160 - 50 - 10) , QPoint(300 , 160 - 50 - 10) , QPoint(290 , 170 - 50 - 10) , QPoint(280 , 160 - 50 - 10) , QPoint(280 , 160 - 50 - 10) , QPoint(100 , 160 - 50 - 10) , QPoint(100 , 100 - 50 + 10)]:
             polygon.append(QPointF(points))
             
+        # Add tooltip
         self.tooltip = self.scene().addPolygon(polygon , pen)
         
-        
+        # Fill
         self.tooltip.setBrush(QColor("#2E3440"))
         
+        # Set custom font and pen of the text inside
         pen = QPen()
         
         pen.setColor(QColor("#88C0D0"))
@@ -161,14 +148,17 @@ class ImageCropper(QGraphicsView):
         
         text.setFont(font)
         
+        # Align 
         rect = text.boundingRect()
         
         bounding = self.tooltip.boundingRect()
             
         rect.moveCenter(QPointF(bounding.center().x() , bounding.center().y() - 5))
         
-        text.setPos(rect.topLeft())        
+        text.setPos(rect.topLeft())      
         
+          
+        # Show the tooltip with an animation
         self.animation = QParallelAnimationGroup()
         
         self.animation.addAnimation(Animation.fadingAnimation(Animation , self.tooltip , 200 , True))   
@@ -211,23 +201,6 @@ class ImageCropper(QGraphicsView):
         self.animation.finished.connect(next)
         
         self.animation.start()
-
-    def resizeEvent(self, event: QResizeEvent) -> None:
-        # try:
-        #     self.continueCrop.move(
-        #         QPoint(
-        #             event.size().width() - 300,
-        #             event.size().height() - 170,
-        #         )
-        #     )
-        # except:
-            # self.continueCrop.move(
-            #     QPoint(
-            #         event.width() - 300,
-            #         event.height() - 170,
-            #     )
-            # )
-        pass
             
     def hideHelp(self):
         self.animation = Animation.fadingAnimation(Animation , self.tooltip , 200)

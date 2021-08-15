@@ -1,7 +1,7 @@
 
 from PyQt5.QtCore import QPoint, QRect, QSize, QSizeF, Qt, pyqtSignal
-from PyQt5.QtGui import QCursor, QMouseEvent, QPixmap, QTransform
-from PyQt5.QtWidgets import QGraphicsItem, QGraphicsProxyWidget, QGraphicsScene, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QScrollArea, QSystemTrayIcon, QVBoxLayout, QWidget
+from PyQt5.QtGui import QCursor, QKeySequence, QMouseEvent, QPixmap, QTransform
+from PyQt5.QtWidgets import QGraphicsItem, QGraphicsProxyWidget, QGraphicsScene, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QScrollArea, QShortcut, QSystemTrayIcon, QVBoxLayout, QWidget
 import functools
 import os
 from GalleryMan.utils.helpers import QGripLabel
@@ -61,6 +61,10 @@ class stickersViewer:
         self.widget.setStyleSheet(self.oldWidget.styleSheet())
         
         self.stickersDict: list[QVBoxLayout] = {}
+        
+        self.shortcut = QShortcut(QKeySequence("Ctrl+S") , self.graphics)
+        
+        # self.shortcut.activated.connect(self.attachSticker)
         
         # Parent layout to store both the name and the stickers preview
         self.parentlayout = QVBoxLayout()
@@ -148,6 +152,8 @@ class stickersViewer:
         # self.preview.setScaledContents(True)
         
         # self.sticker = self.scene.addWidget(self.preview)
+        self.currentlyUsing = name
+        
         self.sticker = self.scene.addPixmap(QPixmap(name))
     
         self.sticker.setPos(QPoint(75 , 75))    
@@ -205,13 +211,23 @@ class stickersViewer:
         
         self.config[name] = text
         
-        original = self.sticker.pixmap()
+        self.scene.removeItem(self.sticker)
         
-        original.scaled(70 , 70)
+        self.sticker.hide()
         
-        self.sticker.setPixmap(original)
+        pos = self.sticker.pos()
         
-        self.sticker.setRotation(0)
+        self.sticker = self.scene.addPixmap(QPixmap(self.currentlyUsing).scaled(self.config["Width"] , self.config["Height"] , transformMode=Qt.SmoothTransformation))
+        
+        self.sticker.setPos(pos)
+        
+        self.sticker.setFlag(QGraphicsItem.ItemIsMovable)
+        
+        self.sticker.show()
+        
+        self.sticker.setTransformOriginPoint(self.sticker.boundingRect().center())
+        
+        self.sticker.setTransform(QTransform().rotate(self.config["Rotation"]))
         
     def switchTo(self , name):
         def run_second():        

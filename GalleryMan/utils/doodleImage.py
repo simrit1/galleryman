@@ -144,6 +144,8 @@ class doodleShape:
         except:
             pass
         
+        self.button.setParent(None)
+        
         self.shortcut.setKey(QKeySequence())
         
         self.line.hide()
@@ -159,7 +161,6 @@ class doodleShape:
         self.lineLayersParent.show()
         
         self.showToolTip()
-
         
         self.timer = QTimer(self.parent)
         
@@ -169,7 +170,9 @@ class doodleShape:
         
         self.timer.timeout.connect(self.animation.start)
         
-        self.timer.start(3000)
+        self.timer.start(1000)
+        
+        self.animation.finished.connect(self.tooltip.hide)
         
     
     def initPointLine(self , position: QPoint , followMouse=False):
@@ -455,21 +458,16 @@ class doodleShape:
             self.lineLayersParent.pos().y() - 110
         ))
         
+        self.tooltip.show()
         
                 
     def showHelp(self):
         def run_second():
             self.animation = Animation.fadingAnimation(Animation , self.help , 300)
             
-            self.timer = QTimer(self.parent)
-            
-            self.timer.start(700)
-            
-            self.timer.setSingleShot(True)
-            
             self.animation.finished.connect(self.help.hide)
-                        
-            self.timer.timeout.connect(self.animation.start)
+            
+            self.animation.start()
         
         self.help = QLabel(self.parent)
         
@@ -492,6 +490,10 @@ class doodleShape:
         helpLayouts.addWidget(self.details , alignment=Qt.AlignBottom | Qt.AlignCenter)
         
         okay = ClickableLabel("Okay" , None)
+        
+        okay.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
+        
+        okay.setCursor(Qt.PointingHandCursor)
         
         okay.setStyleSheet("background-color: transparent; border: 1px solid #3B4252")
         
@@ -516,9 +518,10 @@ class doodleShape:
         
     def hideToolTip(self):
         try:
-            self.animation = Animation.fadingAnimation(Animation , self.tooltip , 200)
+            # self.animation = Animation.fadingAnimation(Animation , self.tooltip , 200)
         
-            self.animation.start()
+            # self.animation.start()
+            pass
         except:
             pass
         

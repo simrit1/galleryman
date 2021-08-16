@@ -149,7 +149,7 @@ class stickersViewer:
                 
             self.stickersDict[dirs] = self.preview
             
-        self.switchTo("Emoji")
+        self.switchTo(dirs)
                         
     def useSticker(self , name , event):
         self.currentlyUsing = name
@@ -241,7 +241,7 @@ class stickersViewer:
             
             parent.setGeometry(oldWidget.geometry())
             
-            grandLayout = QVBoxLayout()
+            grandLayout = QHBoxLayout()
                                     
             self.cross.setParent(None)
             
@@ -258,9 +258,7 @@ class stickersViewer:
             layout.addLayout(self.nameLayout)
             
             layout.addLayout(self.stickersDict[name])
-            
-            print(layout.count())
-            
+                    
             parent.setFixedWidth(self.stickersDict[name].count() * 130)
                         
             grandLayout.addLayout(layout)
@@ -282,8 +280,6 @@ class stickersViewer:
         self.animation.start()
         
     def attachSticker(self):
-         
-        
         self.menu.hide()
         
         before = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png"))

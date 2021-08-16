@@ -245,12 +245,12 @@ class Animation:
         return animation
     
     def fadingAnimation(self , widget: QWidget , duration, reverse=False , startValue = 0, endValue = 0):
-        opacity = widget.graphicsEffect()
+        # opacity = widget.graphicsEffect()
                 
-        if(opacity == None):
-            opacity = QGraphicsOpacityEffect()
+        # # if(opacity == None):
+        opacity = QGraphicsOpacityEffect()
                  
-            widget.setGraphicsEffect(opacity)
+        widget.setGraphicsEffect(opacity)
         
         animation = QPropertyAnimation(opacity , b"opacity")
         

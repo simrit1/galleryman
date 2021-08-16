@@ -1257,12 +1257,6 @@ class doodleImage:
         
         self.layer.setGeometry(self.graphics.geometry())
         
-        opacity = QGraphicsOpacityEffect()
-        
-        opacity.setOpacity(1)
-        
-        self.layer.setGraphicsEffect(opacity)
-        
         self.layer.show()
         
         self.thread = QThread(self.parent)

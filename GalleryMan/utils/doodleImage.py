@@ -88,6 +88,8 @@ class doodleShape:
         
         self.lineLayers.setFixedHeight(50)
         
+        self.lineLayers.setStyleSheet("background-color: rgba(46, 52, 64, 200)")
+        
         self.lineLayersParent.setGeometry(QRect(0 , 0 , self.parent.width() , 70))
         
         self.lineLayersParent.setLayout(layout)
@@ -101,6 +103,10 @@ class doodleShape:
         self.scrollArea.setGeometry(self.lineLayersParent.geometry())
         
         self.scrollArea.setFixedWidth(self.parent.width() - 500)
+        
+        self.scrollArea.setStyleSheet("background-color: transparent")
+        
+        self.scrollArea.setFixedHeight(100)
         
         self.scrollArea.widget()
         
@@ -450,9 +456,11 @@ class doodleShape:
         # self.animation.start()
         
         self.tooltip.setPos(QPoint(
-            self.lineLayersParent.width() // 2 - self.tooltip.boundingRect().width() // 2,
+            self.lineLayers.width() // 2 - self.tooltip.boundingRect().width() // 2 - 30,
             self.lineLayersParent.pos().y() - 110
         ))
+        
+        
                 
     def showHelp(self):
         def run_second():

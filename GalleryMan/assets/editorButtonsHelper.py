@@ -631,7 +631,7 @@ class ImageEditButtons:
             [" ", "#88C0D0", 40, "SauceCodePro Nerd Font"],
             [" ", "#88C0D0", 40, "SauceCodePro Nerd Font"],
             [" ", "#88C0D0", 40, "SauceCodePro Nerd Font"],
-            [" ", "#88C0D0", 40, "SauceCodePro Nerd Font"],
+            [" ", "#88C0D0", 40, "SauceCodePro Nerd Font"],
             [" ", "#88C0D0", 40, "SauceCodePro Nerd Font"]
         ]
         

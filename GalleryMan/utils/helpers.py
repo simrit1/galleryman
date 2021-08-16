@@ -44,8 +44,9 @@ class DraggableLabel(QLabel):
 
     def mouseReleaseEvent(self, event):
         if event.button() == Qt.LeftButton:
-            if not self.limits.contains(self.geometry()):
-                self.move(self.origin)
+            self.move(self.pos() + event.pos() - self.mousePos)
+
+            self.moved.emit()
 
 # A Draggable input
 class DraggableInput(QLineEdit):

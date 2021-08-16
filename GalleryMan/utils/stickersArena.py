@@ -232,16 +232,24 @@ class stickersViewer:
         self.sticker.setTransform(QTransform().rotate(self.config["Rotation"]))
         
     def switchTo(self , name):
-        def run_second():        
-            widget = QWidget()
-            
+        def run_second():     
             oldWidget = self.scrollArea.takeWidget()
             
-            widget.setStyleSheet(oldWidget.styleSheet())
+            parent = QWidget()
             
-            widget.setGeometry(oldWidget.geometry())
+            parent.setStyleSheet(oldWidget.styleSheet())
             
-            grandlayout = QHBoxLayout()
+            parent.setGeometry(oldWidget.geometry())
+            
+            grandLayout = QVBoxLayout()
+                                    
+            self.cross.setParent(None)
+            
+            self.cross.setFixedSize(50 , 50)
+            
+            self.cross.setSizePolicy(QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed))
+            
+            grandLayout.addWidget(self.cross)
             
             layout = QVBoxLayout()
             
@@ -251,21 +259,17 @@ class stickersViewer:
             
             layout.addLayout(self.stickersDict[name])
             
-            widget.setFixedWidth(self.stickersDict[name].count() * 130)
+            print(layout.count())
             
-            grandlayout.addLayout(layout)
-            
-            self.cross.setParent(None)
-            
-            self.cross.setSizePolicy(QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed))
-            
-            grandlayout.addWidget(self.cross)
+            parent.setFixedWidth(self.stickersDict[name].count() * 130)
+                        
+            grandLayout.addLayout(layout)
             
             layout.setParent(None)
                 
-            widget.setLayout(layout)
+            parent.setLayout(grandLayout)
         
-            self.scrollArea.setWidget(widget)
+            self.scrollArea.setWidget(parent)
             
             self.animation = Animation.fadingAnimation(Animation , self.scrollArea.parent() , 200 , True)
             

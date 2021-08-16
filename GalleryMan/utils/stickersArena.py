@@ -1,11 +1,9 @@
-
 from PIL import Image
-from PyQt5.QtCore import QPoint, QPointF, QRect, QRectF, QSize, QSizeF, Qt, pyqtSignal
-from PyQt5.QtGui import QCursor, QImage, QKeySequence, QMouseEvent, QPainter, QPixmap, QTransform
-from PyQt5.QtWidgets import QGraphicsItem, QGraphicsProxyWidget, QGraphicsScene, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QScrollArea, QShortcut, QSizePolicy, QSystemTrayIcon, QVBoxLayout, QWidget
+from PyQt5.QtCore import QPoint, QPointF, QSize, Qt, pyqtSignal
+from PyQt5.QtGui import QCursor, QKeySequence, QMouseEvent, QPixmap, QTransform
+from PyQt5.QtWidgets import QGraphicsItem, QGraphicsScene, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QScrollArea, QShortcut, QSizePolicy, QVBoxLayout, QWidget
 import functools
 import os
-from GalleryMan.utils.helpers import QGripLabel
 from GalleryMan.assets.QtHelpers import Animation, QCustomButton, QSliderMenu
 
 class CustomLabel(QLabel):
@@ -262,8 +260,10 @@ class stickersViewer:
             self.cross.setSizePolicy(QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed))
             
             grandlayout.addWidget(self.cross)
+            
+            layout.setParent(None)
                 
-            widget.setLayout(grandlayout)
+            widget.setLayout(layout)
         
             self.scrollArea.setWidget(widget)
             

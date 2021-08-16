@@ -155,7 +155,7 @@ class doodleImageItems:
             
             self.menu.addMenu(name , textEdit)
             
-    def showToolTip(self , text):
+    def showToolTip(self , text , pos):
         polygon = QPolygonF()
         
         pen = QPen()
@@ -166,7 +166,6 @@ class doodleImageItems:
             polygon.append(QPointF(points))
             
         self.tooltip = self.scene.addPolygon(polygon , pen)
-        
         
         self.tooltip.setBrush(QColor("#2E3440"))
         
@@ -197,9 +196,12 @@ class doodleImageItems:
         self.animation = Animation.fadingAnimation(Animation , self.tooltip , 200 , True) 
         
         self.animation.start()
+        
+        if(pos != None):
+            self.tooltip.setPos(pos)
     
             
-    def showHelp(self , text="Drag these to increase the size" , withoutToolTip = False): 
+    def showHelp(self , text="Drag these to increase the size" , withoutToolTip = False , move=None):
         def run_second():
             self.animation = Animation.fadingAnimation(Animation , self.help , 300)
             
@@ -223,7 +225,7 @@ class doodleImageItems:
             
             if(not withoutToolTip):
             
-                self.animation.finished.connect(partial(self.showToolTip , text))
+                self.animation.finished.connect(partial(self.showToolTip , text , move))
                 
             self.animation.finished.connect(self.help.hide)
         
@@ -247,6 +249,8 @@ class doodleImageItems:
         self.animation.finished.connect(run_second)
         
         self.animation.start()
+        
+        self.graphics.show()
         
         self.additionalHelp()
         
@@ -600,6 +604,8 @@ class doodlerectItem(doodleImageItems):
         
         self.menu = QSliderMenu(self.graphics)
         
+        self.continueNext.setKey(QKeySequence("Ctrl+S"))
+        
         self.continueNext.activated.connect(partial(self.drawRectOnImage, self.rectangle))
         
         stylesheet = """
@@ -658,7 +664,7 @@ class doodlerectItem(doodleImageItems):
         self.showHelp()
         
     def drawRectOnImage(self, label: QGripLabel):
-        def callback():
+        def callback():            
             self.graphics.hide()
             
             self.renderArea.set_pixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
@@ -682,7 +688,7 @@ class doodlerectItem(doodleImageItems):
 
         self.image.save("./GalleryMan/assets/processed_image.png")
         
-        self.animation = Animation.fadingAnimation(Animation , self.graphics , 300)
+        self.animation = Animation.fadingAnimation(Animation , self.graphics , 200)
         
         self.animation.finished.connect(callback)
         
@@ -698,10 +704,13 @@ class doodlerectItem(doodleImageItems):
         self.animation.finished.connect(self.startAni.show)
 
 class doodleLineItem(doodleImageItems):
-    def __init__(self, parent, renderArea, outParent):
+    def __init__(self, parent, renderArea, outParent , dir):
         super().__init__(parent, renderArea, outParent)
         
+        self.dir = dir
+        
         self.posOptions = []
+        
         
     def createGraphics(self):
         self.pixmap = self.scene.addPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
@@ -740,7 +749,7 @@ class doodleLineItem(doodleImageItems):
         self.config = {
             "start-position": 500,
             "end-position": 500,
-            "width": 1,
+            "width": 5,
             "color": "#88C0D0",
         }
         
@@ -798,7 +807,7 @@ class doodleLineItem(doodleImageItems):
         
         self.graphics.paintEvent = self.responser
         
-        # self.showToolTip()
+        self.showHelp("Here is your line" , move=QPointF(200 , 370))
 
     def askForPos(self, inputt: QLineEdit, cordinates: QPoint):
         self.animation = Animation.movingAnimation(
@@ -885,7 +894,10 @@ class doodleLineItem(doodleImageItems):
     
     def drawLineOnImage(self):
         # Get the geometry
-        area = self.graphics.geometry()
+        width , height = Image.open(self.dir).size
+        
+        # Get the geometry
+        area = QRect(0 , 0 , width , height)
         
         # Parse the image 
         image = QImage(area.size(), QImage.Format_ARGB32_Premultiplied)
@@ -1126,7 +1138,7 @@ class doodleImage:
         line.showGraphics()
 
     def line(self):
-        lineItem = doodleLineItem(self.parent , self.renderArea , self.outParent)
+        lineItem = doodleLineItem(self.parent , self.renderArea , self.outParent , self.dir)
         
         lineItem.createGraphics()
 
@@ -1268,6 +1280,8 @@ class doodleImage:
         self.animation = Animation.fadingAnimation(Animation , self.layer , 300 , endValue=0.7)
         
         self.animation.start()
+        
+        self.graphics.show()
 
     def rotateDraw(self, event: QMouseEvent):
         item_position = self.rect.transformOriginPoint()

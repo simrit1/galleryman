@@ -521,7 +521,7 @@ class ImageEditButtons:
         self.sliderValue.setText("0")
         
         # Rotate the label when the text is changed
-        # self.sliderValue.textChanged.connect(self.rotateLabel)
+        self.sliderValue.textChanged.connect(partial(self.rotateLabel , "textBox"))
         
         # Set orientation
         self.slider.setOrientation(Qt.Horizontal)
@@ -562,11 +562,11 @@ class ImageEditButtons:
 
         self.swapLayout(parentLayout)
         
-    def handleFunc(self):        
-        # self.slider.valueChanged.disconnect()
+    def handleFunc(self):   
         self.msg = "custom"
         
-        self.slider.setValue(self.interiorFunctions.degree)
+        self.slider.setValue(int(self.sliderValue.text()))
+        
         
     def cropImage(self):
         
@@ -784,16 +784,28 @@ class ImageEditButtons:
 
         self.swapLayout(self.layout)
 
-    def rotateLabel(self):
+    def rotateLabel(self , _from="slider"):
         if(self.msg == "custom"):
             self.msg = "app"
             
             return
         
+        if(_from == "textBox"):
+            self.interiorFunctions.fixedIncrease(int(self.sliderValue.text()))
+            
+            self.slider.setValue(self.interiorFunctions.degree % 360)
+            
+            return
+        
+        if(self.original > self.slider.value()):
+            self.interiorFunctions.customIncrease(-1)
+        else:
+            self.interiorFunctions.customIncrease(1)
+                
+        self.original = abs(self.slider.value())
+        
         self.slider.setValue(self.interiorFunctions.degree % 360)
         
-        self.interiorFunctions.increaseBy1()
-
 
 class cropImage:
     SAVE_DIR = os.path.join("GalleryMan" , "assets" , "processed_image.png")
@@ -826,18 +838,7 @@ class cropImage:
         # Add rotation
         self.rotations += 1
         
-        # Update the text
-        self.outDisplay.setText(str(self.degree % 360))
-                
-        # Start the animation
-        self.renderArea.start_animation(self.degree % 360)
-
-        print(self.degree)
-        
-        # Update the image
-        self.updateImage()
-
-        self.callback()
+        self.updateUi()
 
     def rotate90Right(self):
         # Subtract the rotation (due to reverse rotation)
@@ -845,27 +846,24 @@ class cropImage:
 
         self.rotations -= 1
         
-        # Update the text
-        self.outDisplay.setText(str(self.degree % 360))
+        self.updateUi()
         
-        # Start animation
-        self.renderArea.start_animation(self.degree % 360)
-
-        print(self.degree)
-        
-        # Update the image
-        self.updateImage()
-
-        self.callback()
-        
-    def increaseBy1(self):
+    def customIncrease(self , increase):
         # Subtract the rotation (due to reverse rotation)
-        self.degree += 1
+        self.degree += increase
         
+        self.updateUi()
+        
+    def fixedIncrease(self , const):
+        self.degree = const
+        
+        self.updateUi()
+        
+    def updateUi(self):
         # Update the text
-        self.outDisplay.setText(str(self.degree % 360))
-        
-        # Start animation
+        self.outDisplay.setText(str(abs(self.degree) % 360))
+                
+        # Start the animation
         self.renderArea.start_animation(self.degree % 360)
         
         # Update the image

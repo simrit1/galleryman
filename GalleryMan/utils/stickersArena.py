@@ -103,6 +103,8 @@ class stickersViewer:
             # Get the parent
             parent = self.STOCK_PATH + '/' + dirs
             
+            print(parent)
+            
             # Check if it is a directory
             if(not os.path.isdir(parent)): continue
             
@@ -114,7 +116,7 @@ class stickersViewer:
                 font-size: 20px;                   
             """)
             
-            name.clicked.connect(functools.partial(self.switchTo , dirs))
+            name.clicked.connect(functools.partial(self.switchTo , parent))
             
             self.nameLayout.addWidget(name)
             
@@ -122,34 +124,7 @@ class stickersViewer:
             
             self.widget.setFixedWidth(len(sticker) * 100)
             
-            # Iterate through all the stickers in the folder
-            for stickers in sticker:
-                
-                # Create a clickable label
-                preview = CustomLabel()
-                
-                
-                # Set fixed size
-                preview.setFixedSize(50 , 50)
-                
-                # Scaled contents
-                preview.setScaledContents(True)
-                
-                # Set the image
-                preview.setPixmap(QPixmap(parent + '/' + stickers).scaled(50 , 50 , transformMode=Qt.SmoothTransformation))
-                
-                # Call the function which will handle the usage of the sticker on click
-                preview.clicked.connect(functools.partial(self.useSticker , parent + '/' + stickers))
-                
-                # Set the cursor
-                preview.setCursor(QCursor(Qt.PointingHandCursor))
-                
-                # Add the widget to the preview
-                self.preview.addWidget(preview)
-                
-            self.stickersDict[dirs] = self.preview
-            
-        self.switchTo(dirs)
+        self.switchTo(parent)
                         
     def useSticker(self , name , event):
         self.currentlyUsing = name
@@ -231,23 +206,28 @@ class stickersViewer:
         
     def switchTo(self , name):
         def run_second():     
+            # Get the old widget
             oldWidget = self.scrollArea.takeWidget()
             
+            # Create a new widget
             parent = QWidget()
             
             parent.setStyleSheet(oldWidget.styleSheet())
             
             parent.setGeometry(oldWidget.geometry())
             
+            # Create a grand parent layout
             grandLayout = QHBoxLayout()
                                     
+            # Add cross button to it
             self.cross.setParent(None)
             
+            # Set Fixed Size and Policy
             self.cross.setFixedSize(50 , 50)
             
             self.cross.setSizePolicy(QSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed))
             
-            grandLayout.addWidget(self.cross)
+            # grandLayout.addWidget(self.cross)
             
             layout = QVBoxLayout()
             
@@ -255,15 +235,46 @@ class stickersViewer:
             
             layout.addLayout(self.nameLayout)
             
-            layout.addLayout(self.stickersDict[name])
-                    
-            parent.setFixedWidth(self.stickersDict[name].count() * 130)
-                        
+            dir = self.STOCK_PATH
+            
+            self.preview = QHBoxLayout()
+            
+            # Iterate through all the stickers in the folder
+            for stickers in os.listdir(name):
+                
+                # Create a clickable label
+                preview = CustomLabel()
+                
+                
+                # Set fixed size
+                preview.setFixedSize(50 , 50)
+                
+                # Scaled contents
+                preview.setScaledContents(True)
+                
+                # Set the image
+                preview.setPixmap(QPixmap(name + '/' + stickers).scaled(50 , 50 , transformMode=Qt.SmoothTransformation))
+                
+                # Call the function which will handle the usage of the sticker on click
+                preview.clicked.connect(functools.partial(self.useSticker , name + '/' + stickers))
+                
+                # Set the cursor
+                preview.setCursor(QCursor(Qt.PointingHandCursor))
+                
+                # Add the widget to the preview
+                self.preview.addWidget(preview)
+                
+            self.preview.setParent(None)
+                
+            layout.addLayout(self.preview)
+                                    
+            parent.setFixedWidth(self.preview.count() * 130)
+                                        
             grandLayout.addLayout(layout)
             
             layout.setParent(None)
                 
-            parent.setLayout(grandLayout)
+            parent.setLayout(layout)
         
             self.scrollArea.setWidget(parent)
             

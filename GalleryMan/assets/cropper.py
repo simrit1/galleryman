@@ -82,15 +82,6 @@ class ImageCropper(QGraphicsView):
         
         self.horizontalScrollBar().setValue(0)
         
-        # Timer for hiding the tooltip
-        self.timer = QTimer(self)
-        
-        self.timer.setSingleShot(True)
-        
-        self.timer.timeout.connect(self.hideHelp)
-        
-        self.timer.start(3000)
-        
         # Create a resizable label for cropping
         self.cropper = ResizableRubberBand()
     
@@ -102,6 +93,7 @@ class ImageCropper(QGraphicsView):
         
         # Show the cropper
         self.cropper.show()
+        
 
         self.outWidget = outWidget
 
@@ -217,6 +209,14 @@ class ImageCropper(QGraphicsView):
             self.animation.finished.connect(self.helpLabel.hide)
             
             self.animation.finished.connect(self.showToolTip)
+
+            self.timer = QTimer(self)
+            
+            self.timer.setSingleShot(True)
+            
+            self.timer.timeout.connect(self.hideHelp)
+            
+            self.timer.start(2000)
         
         self.helpLabel = QWidget(self)
         
@@ -240,7 +240,7 @@ class ImageCropper(QGraphicsView):
         
         button.setFixedWidth(600)
         
-        button.setStyleSheet("background-color: rgba(46, 52, 64, 200); border: 1px solid #4C566A; font-size: 30px")
+        button.setStyleSheet("background-color: transparent; border: 1px solid #2E3440; font-size: 30px")
         
         helpLayout.addWidget(button , alignment=Qt.AlignTop | Qt.AlignCenter)
         

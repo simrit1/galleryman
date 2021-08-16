@@ -1,7 +1,7 @@
 # Importing the modules
 import os
 from GalleryMan.utils.initer import bcolors
-from PyQt5.QtCore import QPointF, QTimer, Qt, pyqtSignal
+from PyQt5.QtCore import QObject, QPointF, QTimer, Qt, pyqtSignal
 from PyQt5.QtGui import QPainter , QPolygonF
 
 from PyQt5.QtWidgets import (
@@ -181,15 +181,12 @@ class ResizableRubberBand(QWidget):
         if event.buttons() == Qt.LeftButton:
             self.move(pos)
             
-            print(event.pos())
-
 
     def mouseReleaseEvent(self, event):
         pos = self.pos() + event.pos() - self.mousePos
         if event.button() == Qt.LeftButton:
             self.move(pos)
-            
-            print(event.pos())
+    
             
 class QGripLabel(QLabel):
     def __init__(self , parent=None , movable=True):
@@ -295,3 +292,9 @@ def removeFromScanDirectory(directory):
         
         
     
+class LongProcessor(QObject):
+    finished = pyqtSignal()
+    ready = pyqtSignal()
+    
+    def run(self):
+        self.ready.emit()

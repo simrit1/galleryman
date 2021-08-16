@@ -12,6 +12,7 @@ from PyQt5.QtCore import (
     QRect,
     QRectF,
     QSize,
+    QThread,
     QVariant,
     QVariantAnimation,
     Qt,
@@ -431,6 +432,10 @@ class ImageEditButtons:
         renderArea: QRotateLabel,
     ) -> None:
         
+        self.msg = "app"
+        
+        self.original = 0
+        
         # Make all the args global
         self.parent = parent
         
@@ -457,8 +462,9 @@ class ImageEditButtons:
         
         # Make an intsance of the handler function
         self.interiorFunctions = cropImage(
-            self.dir, self.outParent, self.renderArea, self.sliderValue
+            self.dir, self.outParent, self.renderArea, self.sliderValue, self.handleFunc
         )
+        
         
         # Make a layout
         func = [
@@ -515,7 +521,7 @@ class ImageEditButtons:
         self.sliderValue.setText("0")
         
         # Rotate the label when the text is changed
-        self.sliderValue.textChanged.connect(self.rotateLabel)
+        # self.sliderValue.textChanged.connect(self.rotateLabel)
         
         # Set orientation
         self.slider.setOrientation(Qt.Horizontal)
@@ -555,7 +561,13 @@ class ImageEditButtons:
         parentLayout.addLayout(layout)
 
         self.swapLayout(parentLayout)
-
+        
+    def handleFunc(self):        
+        # self.slider.valueChanged.disconnect()
+        self.msg = "custom"
+        
+        self.slider.setValue(self.interiorFunctions.degree)
+        
     def cropImage(self):
         
         # Initate the cropper class
@@ -773,35 +785,23 @@ class ImageEditButtons:
         self.swapLayout(self.layout)
 
     def rotateLabel(self):
-        # Get the scroll value
-        value = self.slider.value()
+        if(self.msg == "custom"):
+            self.msg = "app"
+            
+            return
         
-        print(value)
+        self.slider.setValue(self.interiorFunctions.degree % 360)
         
-        # Find the degree according to the rotations
-        self.interiorFunctions.degree = 90 * self.interiorFunctions.rotations + value
-
-        self.sliderValue.setText(str(self.interiorFunctions.degree % 360))
-        
-        # Connect with a new function
-        self.sliderValue.textChanged.disconnect()
-
-        self.sliderValue.textChanged.connect(self.rotateLabel)
-        
-        # Update the value in slider too
-        self.slider.setValue(value)
-        
-        # Start animation
-        self.renderArea.start_animation(self.interiorFunctions.degree)
+        self.interiorFunctions.increaseBy1()
 
 
 class cropImage:
     SAVE_DIR = os.path.join("GalleryMan" , "assets" , "processed_image.png")
 
     def __init__(
-        self, dir: str, newParent, renderArea: QRotateLabel, outDisplay
+        self, dir: str, newParent, renderArea: QRotateLabel, outDisplay, callback
     ) -> None:
-        
+                
         # Make every args global
         self.directory = dir
         
@@ -812,6 +812,8 @@ class cropImage:
         self.renderArea = renderArea
         
         self.rotations = 0
+        
+        self.callback = callback
         
         self.degree = 0
         
@@ -826,12 +828,16 @@ class cropImage:
         
         # Update the text
         self.outDisplay.setText(str(self.degree % 360))
-        
+                
         # Start the animation
         self.renderArea.start_animation(self.degree % 360)
+
+        print(self.degree)
         
         # Update the image
         self.updateImage()
+
+        self.callback()
 
     def rotate90Right(self):
         # Subtract the rotation (due to reverse rotation)
@@ -844,9 +850,28 @@ class cropImage:
         
         # Start animation
         self.renderArea.start_animation(self.degree % 360)
+
+        print(self.degree)
         
         # Update the image
         self.updateImage()
+
+        self.callback()
+        
+    def increaseBy1(self):
+        # Subtract the rotation (due to reverse rotation)
+        self.degree += 1
+        
+        # Update the text
+        self.outDisplay.setText(str(self.degree % 360))
+        
+        # Start animation
+        self.renderArea.start_animation(self.degree % 360)
+        
+        # Update the image
+        self.updateImage()
+
+        self.callback()
 
     def updateImage(self):
         # Update the pillow image
@@ -1224,6 +1249,10 @@ class imageFlipper:
         self.outParent = outParent
 
         self.image = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
+        
+        self.thread = QThread()
+        
+        self.worker = LongProcessor()
 
     def flipLeft(self):
         
@@ -1255,6 +1284,9 @@ class imageFlipper:
         
         # Callback
         self.animation.finished.connect(animation_callback)
+        
+    def requestHandler(self , f):
+        pass
 
     def flipTop(self):
         

@@ -114,9 +114,7 @@ class PopUpMessage:
         
         if(type(self.window) != QMainWindow):
             self.window = self.window.parent().parent().parent().parent()
-            
-        print(repr(self.window.size()))
-        
+                    
         try:
             self.popup_window.hide()
         except:

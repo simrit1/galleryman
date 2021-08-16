@@ -224,9 +224,7 @@ class stickersViewer:
         self.sticker.setFlag(QGraphicsItem.ItemIsMovable)
         
         self.sticker.show()
-        
-        print(self.sticker.boundingRect().center() , QPointF(self.config["Width"] / 2 , self.config["Height"] / 2))
-        
+                
         self.sticker.setTransformOriginPoint(self.sticker.boundingRect().center())
         
         self.sticker.setTransform(QTransform().rotate(self.config["Rotation"]))
@@ -289,10 +287,8 @@ class stickersViewer:
         try:
             before.paste(sticker , (50 , 50 , 700 , 700))
         except Exception as e:
-            print(e)
+            pass
             
         before.save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
-        
-        print("<3")
         
         before.show()

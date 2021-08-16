@@ -1,9 +1,9 @@
 # Importing the modules
 import os
 from GalleryMan.utils.initer import bcolors
-from math import cos, radians, sin
-from PyQt5.QtCore import  QPoint, QPointF, QRect, QSize, QTimer, Qt, pyqtSignal
-from PyQt5.QtGui import QMouseEvent, QPainter, QPolygonF , QResizeEvent
+from PyQt5.QtCore import QPointF, QTimer, Qt, pyqtSignal
+from PyQt5.QtGui import QPainter , QPolygonF
+
 from PyQt5.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -86,12 +86,12 @@ class AddToLiked:
         self.remove = remove
 
     def run(self):
-        with open("/home/strawhat54/.galleryman/data/likedFolders.txt", "r") as f:
+        with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "likedFolders.txt"), "r") as f:
             data = f.read()
   
             data = loads(data)
 
-        with open("/home/strawhat54/.galleryman/data/likedFolders.txt", "w") as f:
+        with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "likedFolders.txt"), "w") as f:
             if self.remove and self.dir in data:
                 data.remove(self.dir)
 
@@ -242,7 +242,7 @@ class QGripLabel(QLabel):
 def show_list():
     print(bcolors.HEADER , "\b\nList of Directories Prevented To Be Scanned: \n" , bcolors.ENDC)
     
-    with open("/home/strawhat54/.galleryman/data/scan_dirs.txt") as f:
+    with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "scan_dirs.txt")) as f:
         data = loads(f.read())
         
         for index , directory in enumerate(data):
@@ -261,7 +261,7 @@ def addToScanDirectory(self):
         
     print(bcolors.WARNING + "\nAdding {} to scanning list".format(directory))
     
-    with open("/home/strawhat54/.galleryman/data/scan_dirs.txt") as f:
+    with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "scan_dirs.txt")) as f:
         curr = loads(f.read())
         
     curr.append(directory)
@@ -281,7 +281,7 @@ def removeFromScanDirectory(directory):
         
     print(bcolors.WARNING + "\nRemoving {} from scanning list".format(directory))
     
-    with open("/home/strawhat54/.galleryman/data/scan_dirs.txt") as f:
+    with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "scan_dirs.txt")) as f:
         curr = loads(f.read())
         
     try:

@@ -98,7 +98,7 @@ class doodleImageItems:
         
         self.menu = QSliderMenu(self.parent)
         
-        self.image = Image.open("./GalleryMan/assets/processed_image.png").convert("RGBA")
+        self.image = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png")).convert("RGBA")
         
         self.currentIndex = -1
         
@@ -309,7 +309,7 @@ class doodleFreeHand(doodleImageItems):
         }
         
         # Add the image
-        self.pixmap = self.scene.addPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
+        self.pixmap = self.scene.addPixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
                 
         # Slider menu where the user can change the brush
         self.menu = QSliderMenu(self.parent)
@@ -525,9 +525,9 @@ class doodleFreeHand(doodleImageItems):
                 outlineWidth,
             )
 
-        self.image.save("./GalleryMan/assets/processed_image.png")
+        self.image.save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
 
-        self.renderArea.set_pixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
+        self.renderArea.set_pixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
 
         self.animation = Animation.fadingAnimation(Animation, self.graphics, 300)
 
@@ -667,9 +667,9 @@ class doodlerectItem(doodleImageItems):
         def callback():            
             self.graphics.hide()
             
-            self.renderArea.set_pixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
+            self.renderArea.set_pixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
             
-        self.image = Image.open("./GalleryMan/assets/processed_image.png").convert("RGBA")
+        self.image = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png")).convert("RGBA")
 
         draw = ImageDraw.ImageDraw(self.image)
 
@@ -686,7 +686,7 @@ class doodlerectItem(doodleImageItems):
             int(self.config["border-width"]),
         )
 
-        self.image.save("./GalleryMan/assets/processed_image.png")
+        self.image.save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
         
         self.animation = Animation.fadingAnimation(Animation , self.graphics , 200)
         
@@ -713,7 +713,7 @@ class doodleLineItem(doodleImageItems):
         
         
     def createGraphics(self):
-        self.pixmap = self.scene.addPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
+        self.pixmap = self.scene.addPixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
         
         def makeItEven():
             self.lineRect.setLine(self.lineRect.line().x1() , self.lineRect.line().y1() , self.lineRect.line().x2() , self.lineRect.line().y1())
@@ -726,7 +726,7 @@ class doodleLineItem(doodleImageItems):
         
         self.original = self.parent.geometry()
 
-        self.scene.addPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
+        self.scene.addPixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
 
         pen = QPen()
 
@@ -908,7 +908,7 @@ class doodleLineItem(doodleImageItems):
         
         painter.end()
         
-        image.save("./GalleryMan/assets/processed_image.png")
+        image.save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
         
         self.animation = Animation.fadingAnimation(Animation , self.graphics , 200)
         
@@ -916,7 +916,7 @@ class doodleLineItem(doodleImageItems):
         
         self.animation.start()
         
-        self.renderArea.set_pixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
+        self.renderArea.set_pixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
         
         self.continueNext.setKey(QKeySequence())
 
@@ -939,7 +939,7 @@ class doodleEllipse(doodleImageItems):
 
         self.scene.clear()
 
-        self.scene.addPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
+        self.scene.addPixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
 
         pen = QPen()
 
@@ -1038,7 +1038,7 @@ class doodleEllipse(doodleImageItems):
         
         # image = image.copy(QRect(0 , 0 , width , height))
         
-        image.save("./GalleryMan/assets/processed_image.png" , quality=100)
+        image.save(os.path.join("GalleryMan" , "assets" , "processed_image.png") , quality=100)
         
         self.animation = Animation.fadingAnimation(Animation , self.graphics , 200)
         
@@ -1046,7 +1046,7 @@ class doodleEllipse(doodleImageItems):
         
         self.animation.start()
         
-        self.renderArea.set_pixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
+        self.renderArea.set_pixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
     
         self.continueNext.setKey(QKeySequence())
         
@@ -1095,7 +1095,7 @@ class doodleImage:
         
         self.posOptions = []
 
-        self.image = Image.open("./GalleryMan/assets/processed_image.png").convert("RGBA")
+        self.image = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png")).convert("RGBA")
 
         self.draw = ImageDraw.ImageDraw(self.image)
 
@@ -1119,7 +1119,7 @@ class doodleImage:
         
         self.shortcut.activated.connect(self.printOut)
 
-        self.pixmap = self.scene.addPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
+        self.pixmap = self.scene.addPixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
 
         self.graphics.setGeometry(QRect(0, 0, 1980, 1080))
 
@@ -1159,7 +1159,7 @@ class doodleImage:
     def polygon(self):
         self.scene.clear()
 
-        self.scene.addPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
+        self.scene.addPixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
 
         polygon = PolyGon(self.graphics , self.renderArea , self.dir)
 
@@ -1423,7 +1423,7 @@ class doodleImage:
 
 
     def printOut(self):
-        image = Image.open("./GalleryMan/assets/processed_image.png").convert("RGBA")
+        image = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png")).convert("RGBA")
 
         drawing = ImageDraw.ImageDraw(image)
 
@@ -1450,9 +1450,9 @@ class doodleImage:
                 outlineWidth,
             )
 
-        image.save("./GalleryMan/assets/processed_image.png")
+        image.save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
 
-        self.renderArea.set_pixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
+        self.renderArea.set_pixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
 
         self.animation = Animation.fadingAnimation(Animation, self.graphics, 300)
 
@@ -1478,7 +1478,7 @@ class floodFiller(QObject):
             with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "currentlyOpened.png")) as f:
                 pass
         except:
-            shutil.copy("GalleryMan/assets/processed_image.png" , os.path.join(os.path.expanduser("~") , ".galleryman" , "currentlyOpened.png"))
+            shutil.copy(os.path.join("GalleryMan" , "assets" , "processed_image.png") , os.path.join(os.path.expanduser("~") , ".galleryman" , "currentlyOpened.png"))
             
         
         

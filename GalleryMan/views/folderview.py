@@ -40,6 +40,8 @@ class Worker(QObject):
     finished = pyqtSignal()
     
     def run(self , inst , mode , colors , x , y , width , height , padding , includeFavs=True):
+        ".config/galleryman/data/likedPhotos.txt"
+        
         LIKED_FOLDERS = ".config/galleryman/data/likedPhotos.txt"
         
         if(includeFavs):
@@ -277,25 +279,6 @@ class imagesFolder():
         
         self.layout = QHBoxLayout()
         
-        # self.albums = QCustomButton(" " , None).create()
-        
-        # self.albums.setFixedWidth(300)
-        
-        # self.albums.clicked.connect(self.switchToAlbums)
-        
-        # self.layout.addWidget(self.albums)
-        
-        # self.albums.setStyleSheet("color: #88C0D0; font-size: 30px")
-        
-        # self.trash = QCustomButton(" " , None).create()
-        
-        # self.trash.clicked.connect(self.moveToThrash)
-        
-        # self.trash.setFixedWidth(300)
-        
-        # self.trash.setStyleSheet("color: #88C0D0; font-size: 40px")
-    
-        # self.layout.addWidget(self.trash)
         func = [self.switchToAlbums , self.moveToThrash]
         
         i = 0

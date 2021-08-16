@@ -22,7 +22,7 @@ class CustomLabel(QLabel):
 
 
 class stickersViewer:
-    STOCK_PATH = "/home/strawhat54/.galleryman/stickers/"
+    STOCK_PATH = os.path.join(os.path.expanduser("~") , ".galleryman" , "stickers")
     
     def __init__(self , parent , renderArea , scrollArea: QScrollArea):
         # Make args global
@@ -48,7 +48,7 @@ class stickersViewer:
         
         self.graphics.setScene(self.scene)
         
-        self.pixmap = self.scene.addPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
+        self.pixmap = self.scene.addPixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
         
         self.graphics.setScene(self.scene)
         
@@ -286,7 +286,7 @@ class stickersViewer:
         
         self.menu.hide()
         
-        before = Image.open("GalleryMan/assets/processed_image.png")
+        before = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
         
         sticker = Image.open(self.currentlyUsing)
         
@@ -295,7 +295,7 @@ class stickersViewer:
         except Exception as e:
             print(e)
             
-        before.save("GalleryMan/assets/processed_image.png")
+        before.save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
         
         print("<3")
         

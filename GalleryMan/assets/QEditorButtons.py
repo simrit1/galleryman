@@ -1,4 +1,5 @@
 # Importing all modules
+import shutil
 from PIL import Image , ImageQt
 from GalleryMan.themes.filters import Filters
 from GalleryMan.assets.QtHelpers import PopUpMessage
@@ -73,7 +74,7 @@ class PaletteView:
             self.out_widget.set_pixmap(self.createPixmap(self.processors.blur()))
             
             # Set pixmap
-            self.out_widget.pixmap().save("./GalleryMan/assets/current_edited.png")
+            self.out_widget.pixmap().save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
             
             # Partial unhide
             Animation.unfade(Animation , self.out_widget , 0.5).start()
@@ -98,7 +99,7 @@ class PaletteView:
             self.out_widget.set_pixmap(self.createPixmap(self.processors.sharpen()))
             
             # Set pixmap
-            self.out_widget.pixmap().save("./GalleryMan/assets/current_edited.png")
+            self.out_widget.pixmap().save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
             
             # Partial unhide
             Animation.unfade(Animation , self.out_widget , 0.5).start()
@@ -123,7 +124,7 @@ class PaletteView:
             self.out_widget.set_pixmap(self.createPixmap(self.processors.increaseBrightness()))
             
             # Set pixmap
-            self.out_widget.pixmap().save("./GalleryMan/assets/current_edited.png")
+            self.out_widget.pixmap().save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
             
             # Partial unhide
             Animation.unfade(Animation , self.out_widget , 0.5).start()
@@ -148,7 +149,7 @@ class PaletteView:
             self.out_widget.set_pixmap(self.createPixmap(self.processors.increaseContrast()))
             
             # Set pixmap
-            self.out_widget.pixmap().save("./GalleryMan/assets/current_edited.png")
+            self.out_widget.pixmap().save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
             
             # Partial unhide
             Animation.unfade(Animation , self.out_widget , 0.5).start()
@@ -173,7 +174,7 @@ class PaletteView:
             self.out_widget.set_pixmap(self.createPixmap(self.processors.increaseExposure()))
             
             # Set pixmap
-            self.out_widget.pixmap().save("./GalleryMan/assets/current_edited.png")
+            self.out_widget.pixmap().save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
             
             # Partial unhide
             Animation.unfade(Animation , self.out_widget , 0.5).start()
@@ -223,7 +224,7 @@ class FilterView:
         
         self.animation = Animation()
         
-        self.imageProcessor = Filters(Image.open("./GalleryMan/assets/processed_image.png").convert("RGBA"))
+        self.imageProcessor = Filters(Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png")).convert("RGBA"))
         
         self.callback = callback
         
@@ -251,7 +252,7 @@ class FilterView:
             # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
-            self.out_widget.pixmap().save("./GalleryMan/assets/current_edited.png")
+            self.out_widget.pixmap().save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
             
             self.partial_unhide()
             
@@ -277,7 +278,7 @@ class FilterView:
             # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
-            self.out_widget.pixmap().save("./GalleryMan/assets/current_edited.png")
+            self.out_widget.pixmap().save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
             
             self.partial_unhide()
             
@@ -303,7 +304,7 @@ class FilterView:
             # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
-            self.out_widget.pixmap().save("./GalleryMan/assets/current_edited.png")
+            self.out_widget.pixmap().save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
             
             self.partial_unhide()
             
@@ -329,7 +330,7 @@ class FilterView:
             # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
-            self.out_widget.pixmap().save("./GalleryMan/assets/current_edited.png")
+            self.out_widget.pixmap().save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
             
             self.partial_unhide()
             
@@ -355,7 +356,7 @@ class FilterView:
             # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
-            self.out_widget.pixmap().save("./GalleryMan/assets/current_edited.png")
+            self.out_widget.pixmap().save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
             
             self.partial_unhide()
             
@@ -381,7 +382,7 @@ class FilterView:
             # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
-            self.out_widget.pixmap().save("./GalleryMan/assets/current_edited.png")
+            self.out_widget.pixmap().save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
             
             self.partial_unhide()
             
@@ -407,7 +408,7 @@ class FilterView:
             # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
-            self.out_widget.pixmap().save("./GalleryMan/assets/current_edited.png")
+            self.out_widget.pixmap().save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
             
             self.partial_unhide()
             
@@ -433,7 +434,7 @@ class FilterView:
             # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
-            self.out_widget.pixmap().save("./GalleryMan/assets/current_edited.png")
+            self.out_widget.pixmap().save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
             
             self.partial_unhide()
             
@@ -459,7 +460,7 @@ class FilterView:
             # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
-            self.out_widget.pixmap().save("./GalleryMan/assets/current_edited.png")
+            self.out_widget.pixmap().save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
             
             self.partial_unhide()
             
@@ -485,7 +486,7 @@ class FilterView:
             # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
-            self.out_widget.pixmap().save("./GalleryMan/assets/current_edited.png")
+            self.out_widget.pixmap().save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
             
             self.partial_unhide()
             
@@ -511,7 +512,7 @@ class FilterView:
             # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
-            self.out_widget.pixmap().save("./GalleryMan/assets/current_edited.png")
+            self.out_widget.pixmap().save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
             
             self.partial_unhide()
             
@@ -537,7 +538,7 @@ class FilterView:
             # Apply the updated pixmap to the render area
             self.out_widget.setPixmap(QPixmap.fromImage(self.image))
             
-            self.out_widget.pixmap().save("./GalleryMan/assets/current_edited.png")
+            self.out_widget.pixmap().save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
             
             self.partial_unhide()
             
@@ -616,15 +617,15 @@ class FilterView:
         
         self.callback()
                 
-        os.system("cp GalleryMan/assets/current_edited.png GalleryMan/assets/processed_image.png")
+        shutil.copy(os.path.join("GalleryMan" , "assets" , "currently_edited.png") , os.path.join("GalleryMan" , "assets" , "processed_image.png"))
         
-        self.out_widget.set_pixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
+        self.out_widget.set_pixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
         
     def removeUpdated(self):
         self.dialog.hide()
         
-        self.out_widget.setPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
+        self.out_widget.setPixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
         
         self.callback()
-        
-        os.system("rm -rf GalleryMan/assets/current_edited.png")
+    
+        os.remove(os.path.join("GalleryMan" , "assets" , "processed_image.png"))

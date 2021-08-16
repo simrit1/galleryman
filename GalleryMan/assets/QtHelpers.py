@@ -267,31 +267,6 @@ class Animation:
         
         return animation
 
-# class QBalloonToopTip:
-#     def __init__(self , parent , geo: QRect) -> None:
-#         self.parent = parent
-        
-#         self.geo = geo
-        
-#         self.text = ""
-        
-#     def setText(self , text):
-#         self.text = text
-    
-#     def show(self):
-#         tool = QLabel(self.parent)
-        
-#         tool.setText(self.text)
-        
-#         tool.setGeometry(QRect(
-#             self.geo.left(),
-#             self.geo.top() + self.geo.height() + 20,
-#             self.geo.width(),
-#             30
-#         ))
-        
-#         tool.show()
-        
 class QLayoutMaker:
     def __init__(self , icons: list[list[str]] , functions: list) -> None:
         self.icons = icons

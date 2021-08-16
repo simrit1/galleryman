@@ -143,7 +143,7 @@ class QRotateLabel(QLabel):
 
 
 class QEditorHelper:
-    LIKED_FOLDERS = "/home/strawhat54/.galleryman/data/likedFolders.txt"
+    LIKED_FOLDERS = os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "likedFolders.txt")
     
     def __init__(
         self,
@@ -332,19 +332,16 @@ class QEditorHelper:
             )
         except:
             print("IMAGE NOT FOUND!")
-        
         # Now open the trash file logs and add a entry
-        with open("/home/strawhat54/.galleryman/data/thrashLogs.txt", "r") as f:
+        with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "thrashLogs.txt"), "r") as f:
             now = dict(loads(f.read()))
 
             now[
-                "/home/strawhat54/.galleryman/data/thrashFiles/{}".format(
-                    directory[directory.rindex("/") + 1 :]
-                )
+                os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "thrashFiles" , directory[directory.rindex("/") + 1 :])
             ] = directory
         
         # Write the updated information
-        with open("/home/strawhat54/.galleryman/data/thrashLogs.txt", "w") as f:
+        with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "thrashLogs.txt"), "w") as f:
             f.write(dumps(now))
             
         # Animate
@@ -671,7 +668,7 @@ class ImageEditButtons:
         # Initate the handler class 
         view = PaletteView(
             None,
-            "./GalleryMan/assets/processed_image.png",
+            os.path.join("GalleryMan" , "assets" , "processed_image.png"),
             self.renderArea,
             self.config,
             lambda: print("NONE"),
@@ -700,7 +697,6 @@ class ImageEditButtons:
         func = [
             lambda: flipper.flipLeft(),
             lambda: flipper.flipTop(),
-            # lambda: flipper.
             lambda: self.callback(),
         ]
         
@@ -750,7 +746,7 @@ class ImageEditButtons:
         
         self.icons = loads(self.config.get("singleFolder", "editButtons-icons"))
 
-        self.renderArea.setPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
+        self.renderArea.setPixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
 
         self.functions = [
             self.flipImage,
@@ -800,7 +796,7 @@ class ImageEditButtons:
 
 
 class cropImage:
-    SAVE_DIR = "./GalleryMan/assets/processed_image.png"
+    SAVE_DIR = os.path.join("GalleryMan" , "assets" , "processed_image.png")
 
     def __init__(
         self, dir: str, newParent, renderArea: QRotateLabel, outDisplay
@@ -854,7 +850,7 @@ class cropImage:
 
     def updateImage(self):
         # Update the pillow image
-        self.image = Image.open("./GalleryMan/assets/processed_image.png")
+        self.image = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
 
     def swapLayout(self, layout):
         # Get the central widget of the QScrollArea
@@ -892,13 +888,13 @@ class cropImage:
 
     def save(self, callback):
         # Open the image using PIL
-        image = Image.open("./GalleryMan/assets/processed_image.png")
+        image = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
         
         # Rotate the image
         image = image.rotate(-(self.degree % 360), expand=1, fillcolor=(255, 0, 0, 1))
         
         # Save the image
-        image.save("./GalleryMan/assets/processed_image.png")
+        image.save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
         
         # Call the callback
         callback()
@@ -1026,7 +1022,7 @@ class textInImage:
         self.graphics.setScene(self.scene)
         
         # Add pixmap
-        self.scene.addPixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
+        self.scene.addPixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
         
         # Show the graphics
         self.graphics.show()
@@ -1094,7 +1090,7 @@ class textInImage:
         def callback():
             self.graphics.hide()
             
-            self.out_widget.set_pixmap(QPixmap("./GalleryMan/assets/processed_image.png"))
+            self.out_widget.set_pixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
         
         # Open the image
         self.image = Image.open(self.dir)
@@ -1112,7 +1108,7 @@ class textInImage:
         painter.end()
         
         # Save the new image
-        image.save("./GalleryMan/assets/processed_image.png")
+        image.save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
         
         # Hide the graphics
         self.animation = Animation.fadingAnimation(Animation , self.graphics , 200)
@@ -1227,7 +1223,7 @@ class imageFlipper:
 
         self.outParent = outParent
 
-        self.image = Image.open("./GalleryMan/assets/processed_image.png")
+        self.image = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
 
     def flipLeft(self):
         
@@ -1239,9 +1235,9 @@ class imageFlipper:
 
             self.renderArea.set_pixmap(self.createPixmap(new_image))
 
-            new_image.save("./GalleryMan/assets/processed_image.png")
+            new_image.save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
 
-            self.image = Image.open("./GalleryMan/assets/processed_image.png")
+            self.image = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
             
             # Show the label after a partial hide
             self.animation = Animation.fadingAnimation(
@@ -1270,9 +1266,9 @@ class imageFlipper:
 
             self.renderArea.set_pixmap(self.createPixmap(new_image))
 
-            new_image.save("./GalleryMan/assets/processed_image.png")
+            new_image.save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
 
-            self.image = Image.open("./GalleryMan/assets/processed_image.png")
+            self.image = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
             
             # Partial unhide  
             self.animation = Animation.fadingAnimation(

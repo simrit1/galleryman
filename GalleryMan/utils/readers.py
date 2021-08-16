@@ -1,3 +1,4 @@
+import os
 import sys
 from fontTools import ttLib
 from configparser import ConfigParser
@@ -12,7 +13,7 @@ def change_with_config(stylesheet , config: ConfigParser = None , section: str =
     if(config == None):
         config = ConfigParser()
         
-        config.read("./GalleryMan/config.ini")
+        config.read(os.path.join("GalleryMan" , "config.ini"))
         
     stylesheet = stylesheet.format(
         backgroundColor=config.get(section , "background-color"),

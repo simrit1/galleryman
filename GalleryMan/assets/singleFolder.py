@@ -1,4 +1,5 @@
 # Importing all the required modules
+from pathlib import Path
 from GalleryMan.assets.editorButtonsHelper import QEditorHelper
 from math import ceil
 import functools, gc, json
@@ -32,6 +33,7 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 import os
+import shutil
 
 class FindAll(QObject):
     # Signals and slots
@@ -373,18 +375,6 @@ class singleFolderView():
             )
         )
         
-        # # directory name label
-        # self.currDirName = QLabel(self.application)
-        
-        # # Geometry
-        # self.currDirName.setGeometry(self.args[0].geometry())
-        
-        # # Ste text
-        # self.currDirName.setText(self.directory)
-        
-        
-        # self.currDirName.hide()
-        
         # Go back key bindings
         self.go_back.setShortcut("Alt+Left")
         
@@ -416,7 +406,6 @@ class singleFolderView():
 
         self.index = 0
 
-        from pathlib import Path
         
         # Set a waiting cursor
         self.application.setCursor(Qt.BusyCursor)
@@ -425,8 +414,8 @@ class singleFolderView():
         x, y = 40, 100
         
         # Check if the clicked directory is of liked photes
-        if(self.copy == "/home/strawhat54/.config/galleryman/data/likedPhotos.txt"):
-            with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt" , "r") as file:
+        if(self.copy == os.path.join(os.getcwd() , ".config" , "galleryman" , "data" , "likedPhotos.txt")):
+            with open(os.path.join(os.getcwd() , ".config" , "galleryman" , "data" , "likedPhotos.txt") , "r") as file:
                 dirs = json.loads(file.read())
         else:
             try:
@@ -559,10 +548,10 @@ class singleFolderView():
 
         self.image.setStyleSheet("background-color: transparent")
 
+        shutil.copy(self.directory_name , os.path.join("GalleryMan" , "assets" , "processed_image.png"))
+        
         # Set The Pixmap
-        os.system('cp "{}" GalleryMan/assets/processed_image.png'.format(self.directory_name))
-    
-        self.pixmap = QPixmap("./GalleryMan/assets/processed_image.png")
+        self.pixmap = QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
 
         self.image.set_pixmap(self.pixmap)
 
@@ -626,7 +615,7 @@ class singleFolderView():
         
         self.isHeartWidgetParsed = False
         
-        with open("/home/strawhat54/.galleryman/data/likedFolders.txt") as file:
+        with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "likedFolders.txt")) as file:
             dirs = json.loads(file.read())
             
         self.stylingForWidget = False
@@ -754,9 +743,18 @@ class singleFolderView():
             self.central.setGeometry(
                 QRect(
                     self.new_width // 2,
-                    self.central.y(),
+                    self.application.height() - 150,
                     self.new_width,
                     self.central.height(),
+                )
+            )
+            
+            self.buttons.setGeometry(
+                QRect(
+                    self.new_width // 2,
+                    self.application.height() - 150,
+                    self.new_width,
+                    self.buttons.height(),
                 )
             )
 

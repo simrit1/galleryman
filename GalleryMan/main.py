@@ -1,10 +1,10 @@
-# Import all the required modules
-from GalleryMan.utils.stickerManager import stickerManager
+# # Import all the required modules
+from .utils.stickerManager import stickerManager
 from GalleryMan.utils.helpers import addToScanDirectory, removeFromScanDirectory, show_list
 from GalleryMan.utils.initer import Initer
 from functools import partial
 import argparse , json , os , sys
-from PyQt5.QtCore import QPoint, QRect, QSize, QThread , Qt, pyqtSignal
+from PyQt5.QtCore import QPoint, QRect, QSize, Qt, pyqtSignal
 from PyQt5.QtGui import QCloseEvent, QCursor, QKeyEvent, QMouseEvent
 from GalleryMan.views.firstPage import FirstPage
 from GalleryMan.utils.readers import read_file , change_with_config
@@ -124,7 +124,9 @@ class Main:
             lambda : app.exit(1)
         ]
         
-        stylesheet , config = change_with_config(read_file('GalleryMan/sass/styles.txt'))
+        # stylesheet , config = change_with_config(read_file('GalleryMan/sass/styles.txt'))
+        
+        stylesheet , config = change_with_config(read_file(os.path.join("GalleryMan" , "sass" , "styles.txt")))
         
         # Iterate through all the user's preferred icons
         for icon , color , size , font in json.loads(config.get("global" , "topBar-buttons")):            
@@ -152,7 +154,7 @@ class Main:
         self.window.setCentralWidget(central)
         
         # Read status
-        status = read_file('GalleryMan/galleryman.status')
+        status = read_file(os.path.join("GalleryMan" , "galleryman.status"))
                 
         label = QLabel(contents)
             
@@ -238,8 +240,9 @@ class Main:
             else:
                 self.window.showFullScreen()
                 
-    def create_files(self):    
-        with open("/home/strawhat54/.config/galleryman/data/scan_dirs.txt" , "w") as f:
+    def create_files(self): 
+           
+        with open(os.path.join(os.path.expanduser("~") , ".config" , "galleryman" , "data" , "scan_dirs.txt") , "w") as f:
             f.write("[]")
         
         

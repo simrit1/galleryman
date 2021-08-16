@@ -1,5 +1,6 @@
 from GalleryMan.assets.QtHelpers import Animation, QSliderMenu
 from functools import partial
+import os
 from PIL import Image , ImageDraw
 from PyQt5.QtCore import QParallelAnimationGroup, QPoint, QPointF, QRect, QRectF, QTimer, Qt, pyqtBoundSignal, pyqtSignal 
 from PyQt5.QtGui import QColor, QFont, QImage, QKeySequence, QMouseEvent, QPainter, QPen, QPixmap, QPolygonF
@@ -66,7 +67,7 @@ class doodleShape:
         
         self.breakSupport = False
 
-        self.image = Image.open("./GalleryMan/assets/processed_image.png").convert("RGBA")
+        self.image = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png")).convert("RGBA")
         
         self.draw = ImageDraw.ImageDraw(self.image)
         
@@ -449,12 +450,6 @@ class doodleShape:
         
         text.setPos(rect.topLeft())        
         
-        # self.animation = Animation.fadingAnimation(Animation , self.tooltip , 200 , True)
-        
-        # self.animation.finished.connect(self.tooltip.show)
-        
-        # self.animation.start()
-        
         self.tooltip.setPos(QPoint(
             self.lineLayers.width() // 2 - self.tooltip.boundingRect().width() // 2 - 30,
             self.lineLayersParent.pos().y() - 110
@@ -553,7 +548,7 @@ class doodleShape:
         
         painter.end()
                         
-        image.save("GalleryMan/assets/processed_image.png" , quality=100)
+        image.save(os.path.join("GalleryMan" , "assets" , "processed_image.png") , quality=100)
         
         self.animation = Animation.fadingAnimation(Animation , self.parent , 200)
         
@@ -561,7 +556,7 @@ class doodleShape:
         
         self.animation.start()
         
-        self.renderArea.set_pixmap(QPixmap("GalleryMan/assets/processed_image.png"))
+        self.renderArea.set_pixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
     
         self.shortcut.setKey(QKeySequence())
         

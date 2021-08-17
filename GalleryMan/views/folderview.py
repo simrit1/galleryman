@@ -17,9 +17,13 @@ class PixmapHeaderMaker(QObject):
         # Speacial treatment for liked folder
         LIKED_FOLDERS = os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "likedFolders.txt")
         
+        print(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "likedFolders.txt"))
+        
         if(dir == LIKED_FOLDERS):
             with open(dir) as f:
                 data = json.loads(f.read())
+                
+            
                 
             data = list(filter(lambda x: os.path.isfile(x) , data))
             
@@ -29,9 +33,7 @@ class PixmapHeaderMaker(QObject):
         else:
         
             path = imagesFolder.get_first(dir)
-            
-        print(path , "------>" , dir)
-                
+                            
         if(path == None):
             parent.hide()
         else:            
@@ -594,6 +596,11 @@ class imagesFolder():
         self.images.setFixedHeight(self.width)
 
         self.label_to_change.setFixedWidth(self.main_window.size().width())
+        
+        try:
+            self.trashFolderHeader.setFixedWidth(self.main_window.size().width())
+        except:
+            pass
 
         self.label_to_change.setAlignment(Qt.AlignCenter)
 

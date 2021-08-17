@@ -29,7 +29,6 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QPushButton,
     QScrollArea,
-    QVBoxLayout,
     QWidget,
 )
 import os
@@ -290,10 +289,10 @@ class singleFolderView():
             pass
         
         # Reset everything
-        for i in [self.labelArea, self.name, self.go_back]:
-            opacity = QGraphicsOpacityEffect()
+        try:
+            for i in [self.labelArea, self.name, self.go_back]:
+                opacity = QGraphicsOpacityEffect()
 
-            try:
                 i.setGraphicsEffect(opacity)
 
                 animation = QPropertyAnimation(opacity, b"opacity")
@@ -306,9 +305,8 @@ class singleFolderView():
 
                 self.animation.addAnimation(animation)
 
-            except:
-
-                pass
+        except Exception as e:
+            print(e)
 
         for i in self.args:
             i.show()
@@ -319,7 +317,6 @@ class singleFolderView():
 
         self.window.setGeometry(self.original)
         
-        self.window.setStyleSheet("background-color: #88C0D0")
         
         self.scroll.setGeometry(self.original)
         
@@ -413,16 +410,29 @@ class singleFolderView():
         # Default x and y
         x, y = 40, 100
         
+        print(os.path.join(os.path.expanduser('~') , ".galleryman" , "data" , "likedFolders.txt"))
+        
         # Check if the clicked directory is of liked photes
-        if(self.copy == os.path.join(os.getcwd() , ".config" , "galleryman" , "data" , "likedPhotos.txt")):
-            with open(os.path.join(os.getcwd() , ".config" , "galleryman" , "data" , "likedPhotos.txt") , "r") as file:
+        if(self.copy == os.path.join(os.path.expanduser('~') , ".galleryman" , "data" , "likedFolders.txt")):
+            with open(os.path.join(os.path.expanduser('~') , ".galleryman" , "data" , "likedFolders.txt") , "r") as file:
                 dirs = json.loads(file.read())
+                
+            
+                
+            # Filter all the deleted images which were in the liked Folders
+            dirs = list(filter(lambda x: os.path.isfile(x) , dirs))
+            
+            # Update the file
+            with open(os.path.join(os.path.expanduser('~') , ".galleryman" , "data" , "likedFolders.txt") , "w") as file:
+                file.write(json.dumps(dirs))
+            
+                
         else:
             try:
                 dirs = Path(self.copy).rglob("*")
             except:
                 dirs = []
-                
+        
         # A loader which will show the track of processing
         self.loader = QLabel(self.application)
         
@@ -567,7 +577,7 @@ class singleFolderView():
         self.central.show()
         
         # Create layout 
-        layout = QVBoxLayout(self.central)
+        layout = QHBoxLayout(self.central)
         
         # Add scrollarea to it
         self.scrollArea = QScrollArea(self.central)
@@ -605,7 +615,7 @@ class singleFolderView():
             lambda : self.functional.copyToClipboard(self.origin),
             lambda : self.functional.showEditButtons(self.origin),
             lambda : self.functional.addtoLiked(self.directory_name , self),
-            lambda : self.functional.moveToThrash(self.origin),
+            lambda : self.functional.moveToTrash(self.origin),
             lambda : self.functional.moreInfo(self.directory_name),
             lambda : self.functional.closeWithSave(name)
         ]

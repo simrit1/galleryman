@@ -1,7 +1,8 @@
 # # Import all the required modules
+from genericpath import isdir
 from .utils.stickerManager import stickerManager
 from GalleryMan.utils.helpers import addToScanDirectory, removeFromScanDirectory, show_list
-from GalleryMan.utils.initer import Initer
+from GalleryMan.utils.initer import Initer, bcolors
 from functools import partial
 import argparse , json , os , sys
 from PyQt5.QtCore import QPoint, QRect, QSize, Qt, pyqtSignal
@@ -175,7 +176,7 @@ class Main:
             
             self.helper.show()
             
-            ui.show_image(directory , None)
+            ui.show_image(directory , None , True)
             
         elif(status == 'NOT REGISTERED'):            
             ui = FirstPage(contents , self.window , self.scrollArea , config , self.topbar , app)
@@ -294,11 +295,12 @@ def main():
         Initer().init()
         
     elif(args.show):
-        directory = os.getcwd()
+        directory = os.path.abspath(args.show)
         
-        directory = os.path.join(directory , args.show)
-        
-        app.createApp(True , directory)
+        if(os.path.isfile(directory)):        
+            app.createApp(True , directory)
+        else:
+            print(bcolors.FAIL + "The path provided is not correct. Please check it again. \nExiting...")
     
     elif(args.list):
         show_list()

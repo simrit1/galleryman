@@ -17,6 +17,8 @@ class ClickableLabel(QLabel):
         self.clicked.emit()
         
         return super().mousePressEvent(a0)
+    
+    
 
 class customLineItem(QGraphicsLineItem):
     changeStyles = pyqtBoundSignal(QGraphicsLineItem)
@@ -254,9 +256,10 @@ class doodleShape:
         self.animation = QParallelAnimationGroup()
         
         if(self.areTheyShown == False):
-            for items in self.lines:
-                self.animation.addAnimation(Animation.fadingAnimation(Animation , items , 200 , True , 0.4))
-            
+            for line in self.lines:
+                self.animation.addAnimation(Animation.fadingAnimation(Animation , line , 200 , endValue=0.4))
+
+                            
             self.areTheyShown = True
                 
         self.animation.addAnimation(Animation.fadingAnimation(Animation , self.line , 200 , endValue=0.4))
@@ -524,7 +527,7 @@ class doodleShape:
         except:
             pass
         
-    def savePronto(self):
+    def savePronto(self):        
         self.lineLayersParent.hide()
         
         self.menu.hide()
@@ -540,6 +543,13 @@ class doodleShape:
         
         # Get the geometry
         area = QRect(0 , 0 , width , height)
+        
+        for line in self.lines:
+            opacity = QGraphicsOpacityEffect()
+            
+            line.setGraphicsEffect(opacity)
+            
+            opacity.setOpacity(1)
         
         # Parse the image 
         image = QImage(area.size(), QImage.Format_ARGB32_Premultiplied)
@@ -560,7 +570,7 @@ class doodleShape:
         
         self.renderArea.set_pixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
     
-        self.shortcut.setKey(QKeySequence())
+        self.another.setKey(QKeySequence())
         
     def applyAll(self , name):
         for line in self.lines:
@@ -582,20 +592,7 @@ class doodleShape:
         self.animation = QParallelAnimationGroup()
         
         for line in self.lines:
-            # self.animation.addAnimation(Animation.fadingAnimation(Animation , line , 200 , True , 0.4))
-            opacity = QGraphicsOpacityEffect()
-            
-            line.setGraphicsEffect(opacity)
-            
-            animation = QPropertyAnimation(opacity , b"opacity")
-            
-            animation.setStartValue(1)
-            
-            animation.setEndValue(0.5)
-            
-            animation.setDuration(200)
-            
-            self.animation.addAnimation(animation)
+            self.animation.addAnimation(Animation.fadingAnimation(Animation , line , 200 , True , 0.4))
             
         self.animation.start()
 

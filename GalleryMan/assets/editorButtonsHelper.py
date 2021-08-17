@@ -16,6 +16,7 @@ from PyQt5.QtCore import (
     QVariant,
     QVariantAnimation,
     Qt,
+    pyqtBoundSignal,
     pyqtSlot,
 )
 from GalleryMan.assets.QEditorButtons import FilterView, PaletteView
@@ -54,6 +55,7 @@ from GalleryMan.assets.QtHelpers import (
 from json import loads
 from GalleryMan.utils.helpers import *
 from GalleryMan.utils.stickersArena import stickersViewer
+import sys
 
 
 class CustomLabel(QLabel):
@@ -75,6 +77,9 @@ class CustomLabel(QLabel):
             self.clicked.emit(event.pos())
     
             self.eventPos = event.pos()
+            
+    def click(self):
+        self.clicked.emit()
 
 class QRotateLabel(QLabel):
     """A Custom, Rotatable `QLabel`"""
@@ -146,6 +151,8 @@ class QRotateLabel(QLabel):
 class QEditorHelper:
     LIKED_FOLDERS = os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "likedFolders.txt")
     
+    exited = pyqtBoundSignal()
+    
     def __init__(
         self,
         parent: QApplication,
@@ -154,7 +161,11 @@ class QEditorHelper:
         config: ConfigParser,
         newParent: QScrollArea,
         out_widget,
+        callback,
+        dir: str,
     ) -> None:
+        
+        self.callback = callback
         
         # Make every args global
         self.parent = parent
@@ -170,6 +181,8 @@ class QEditorHelper:
         self.config = config
 
         self.central = central
+        
+        self.dir = dir
 
         # Make a popup mmessage instance
         self.popup = PopUpMessage()
@@ -331,7 +344,9 @@ class QEditorHelper:
                 ),
             )
         except:
-            print("IMAGE NOT FOUND!")
+            print(bcolors.WARNING + "The image may have been deleted or moved. Exiting...")
+            
+            exit(0)
 
         # Now open the trash file logs and add a entry
         with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "trashLogs.txt"), "r") as f:
@@ -364,6 +379,13 @@ class QEditorHelper:
         
         # Add a new message when its completed
         self.popup.new_msg(self.application, "Item Moved To Trash", 400)
+        
+        if("--show" in sys.argv):
+            print(bcolors.OKCYAN + "Exiting... As you have closed the window for the --show session.")
+            
+            exit(1)
+            
+        self.callback()
 
     def moreInfo(self, directory):
         # Get preferred icons
@@ -394,31 +416,58 @@ class QEditorHelper:
         
         save = QCustomButton("Save and Close" , None).create()
         
+        save.setFixedWidth(230)
+        
         save.setStyleSheet("""
             color: #FFF;
-            font-size: 20px                   
+            font-size: 20px;
+            font-family: Comfortaa;
+            border: 1px solid #3B4252;   
+            padding: 10px                 
         """)
         
         buttonsLayout.addWidget(save , alignment=Qt.AlignLeft)
         
-        sep = QLabel(text="|")
-        
-        buttonsLayout.addWidget(sep , alignment=Qt.AlignCenter)
+        save.clicked.connect(self.save)
+    
         
         discard = QCustomButton("Discard and Close" , None).create()
         
         discard.setStyleSheet("""
             color: #FFF;
-            font-size: 20px                   
+            font-size: 20px;
+            font-family: Comfortaa;
+            border: 1px solid #3B4252;   
+            padding: 10px                 
         """)
+        
+        discard.clicked.connect(self.discard)
+        
+        discard.setFixedWidth(230)
         
         buttonsLayout.addWidget(discard , Qt.AlignRight)
         
         dialog.setLayout(buttonsLayout)
         
-        dialog.setFixedSize(400 , 50)
+        dialog.setFixedSize(500 , 100)
         
         dialog.exec_()
+        
+    def discard(self):
+        print(bcolors.WARNING + "Image from being saved was discarded. Exiting")
+        
+        exit(1)
+        
+    def save(self):
+        parent = self.dir[:self.dir.rindex("/")]
+        
+        file = self.dir[self.dir.rindex("/") + 1:self.dir.rindex(".")] + '-edited.png'
+        
+        os.replace(os.path.join("GalleryMan" , "assets" , "processed_image.png" ) , os.path.join(parent , file))
+        
+        print(bcolors.OKCYAN + "\nImage was saved as {}. Exiting...\n".format(os.path.join(parent , file)))
+        
+        exit(1)
 
 
 class ImageEditButtons:
@@ -434,7 +483,6 @@ class ImageEditButtons:
         
         self.msg = "app"
         
-        self.original = 0
         
         # Make all the args global
         self.parent = parent
@@ -630,7 +678,7 @@ class ImageEditButtons:
             lambda: doodle.circle(),
             lambda: doodle.polygon(),
             lambda: doodle.floodImage(),
-            lambda : self.swapLayout(self.outParent.widget().layout())
+            self.callback
         ]
         
         # Get the preffered icons
@@ -742,7 +790,7 @@ class ImageEditButtons:
         # Animate
         new_label = QLabel()
 
-        self.animation = Animation.fadingAnimation(Animation, self.outParent.widget(), 500)
+        self.animation = Animation.fadingAnimation(Animation, self.outParent.parent(), 500)
 
         self.animation.finished.connect(animation_callback)
 
@@ -763,7 +811,7 @@ class ImageEditButtons:
             self.doodleImage,
             self.addTextToImage,
             self.imageAdjustment,
-            self.callback,
+            lambda : print("LOLCAT~")
         ]
 
         self.layout = QLayoutMaker(self.icons, self.functions).make()
@@ -778,34 +826,26 @@ class ImageEditButtons:
 
         self.swapLayout(self.layout)
 
-    def rotateLabel(self , _from="slider"):
+    def rotateLabel(self , _from="slider"):        
         if(self.msg == "custom"):
             self.msg = "app"
             
             return
-        
+                
         if(_from == "textBox"):
             self.interiorFunctions.fixedIncrease(int(self.sliderValue.text()))
             
-            self.slider.setValue(self.interiorFunctions.degree % 360)
+            self.slider.setValue(int(self.sliderValue.text()))
             
             return
         
-        if(self.original > self.slider.value()):
-            self.interiorFunctions.customIncrease(-1)
-        else:
-            self.interiorFunctions.customIncrease(1)
-                
-        self.original = abs(self.slider.value())
-        
-        self.slider.setValue(self.interiorFunctions.degree % 360)
-        
+        self.interiorFunctions.fixedIncrease(self.slider.value())
 
 class cropImage:
     SAVE_DIR = os.path.join("GalleryMan" , "assets" , "processed_image.png")
 
     def __init__(
-        self, dir: str, newParent, renderArea: QRotateLabel, outDisplay, callback
+        self, dir: str, newParent, renderArea: QRotateLabel, outDisplay: QLineEdit, callback
     ) -> None:
                 
         # Make every args global
@@ -854,6 +894,7 @@ class cropImage:
         self.updateUi()
         
     def updateUi(self):
+        
         # Update the text
         self.outDisplay.setText(str(abs(self.degree) % 360))
                 
@@ -905,13 +946,17 @@ class cropImage:
 
     def save(self, callback):
         # Open the image using PIL
-        image = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
+        image = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png")).convert("RGBA")
         
         # Rotate the image
         image = image.rotate(-(self.degree % 360), expand=1, fillcolor=(255, 0, 0, 1))
         
         # Save the image
         image.save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
+        
+        self.degree = 0
+        
+        self.rotations = 0
         
         # Call the callback
         callback()

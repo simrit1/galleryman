@@ -1005,8 +1005,6 @@ class doodleEllipse(doodleImageItems):
         
         self.startAni.clicked.connect(self.showMenu)
         
-        self.continueNext.activated.connect(self.drawCircleOnImage)
-
         self.menu.move(self.originalPos)
         
         self.showHelp("Here is your circle")

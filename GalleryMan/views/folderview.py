@@ -26,7 +26,11 @@ class PixmapHeaderMaker(QObject):
                 
             data = list(filter(lambda x: os.path.isfile(x) , data))
             
+            if(data == []):
+                parent.hide()
                 
+                return 
+            
             path = data[0]
         
         else:
@@ -835,14 +839,6 @@ class imagesFolder():
         
         self.animation.finished.connect(run_second)
         
-        try:
-            self.trash.setStyleSheet("font-size: 60px; color: #88C")
-        except:
-            pass
-        
-        
-        self.albums.setStyleSheet("font-size: 30px")
-        
         self.animation.start()
         
     def showDeleteOptions(self , directory , parent, pos):
@@ -871,7 +867,7 @@ class imagesFolder():
         
         layout = QVBoxLayout()
         
-        for layoutOption , func in zip(["Restore" , "Delete"] , [lambda : self.restoreImage(directory) , self.confirmDelete]):
+        for layoutOption , func in zip(["Restore" , "Delete"] , [lambda : self.restoreImage(directory , parent) , lambda : self.confirmDelete]):
             label = QCustomButton(layoutOption , None).create()
             
             label.clicked.connect(func)
@@ -890,7 +886,7 @@ class imagesFolder():
         
         self.options.show()
         
-    def restoreImage(self , directory):
+    def restoreImage(self , directory , parent):
         with open('/home/strawhat54/.galleryman/data/trashLogs.txt') as f:
             trashFiles = dict(json.loads(f.read()))
             
@@ -900,8 +896,15 @@ class imagesFolder():
         except:
             return
         
-        # os.replace(directory , dest)
-                
+        os.replace(directory , dest)
+        
+        try:
+            self.trashItem.remove(parent)
+        except:
+            pass        
+        
+        self.responser()
+        
         self.popup.new_msg(self.main_window , "File restored" , 400)
     
     def confirmDelete(self):
@@ -993,3 +996,5 @@ class imagesFolder():
             self.trash.setStyleSheet("font-size: 40px")
         except:
             pass
+        
+# Complete 1000 lines!

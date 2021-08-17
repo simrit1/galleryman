@@ -21,11 +21,6 @@ class Initer:
         print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.OKGREEN + "Welcome to GalleryMan!" + bcolors.ENDC))
                 
         print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.OKGREEN + "Initing GalleryMan... Please Wait" + bcolors.ENDC))
-        
-        print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.HEADER + "Checking If All Modules Are Installed..." + bcolors.ENDC))
-        
-        for module in ["pyqt5" , "pillow" , "numpy"]:
-            self.tryToDownload(module)
             
         print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.OKGREEN + "Creating files..." + bcolors.ENDC))
                 
@@ -41,14 +36,4 @@ class Initer:
                 pass
         
         print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.OKGREEN + "Completed! Run `galleryman` to start the application" + bcolors.ENDC))
-        
-        
-    def tryToDownload(self , module):
-        try:
-            __import__(module)
-            
-            print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.OKBLUE + "{} is already downloaded. Skipping...".format(module) + bcolors.ENDC))
-        except:            
-            print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.WARNING + "Installing {}. Please Wait (It may take some time depending on the speed)".format(module) + bcolors.ENDC))
-                                
-            subprocess.check_call([sys.executable, "-m", "pip", "install", module] , stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    

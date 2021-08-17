@@ -295,18 +295,6 @@ class stickersViewer:
         self.animation.start()
         
     def attachSticker(self):
-        # self.menu.hide()
-        
-        # before = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png")).convert("RGBA")
-                
-        # sticker = Image.open(self.currentlyUsing).convert("RGBA").resize((int(self.config["Width"]) , int(self.config["Height"]))).rotate(int(self.config["Rotation"]))
-        
-        # try:
-        #     before.paste(sticker , (int(self.sticker.pos().x()) , int(self.sticker.pos().y())) , sticker)
-        # except Exception as e:
-        #     e.with_traceback()
-            
-        # before.save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
         
         # Callback
         def callback():
@@ -341,16 +329,20 @@ class stickersViewer:
         
         self.animation.start()
         
+        self.shortcut.setKey(QKeySequence())
+        
         
     def callback(self):
         def run_second():
             self.scrollArea.hide()
             
+            self.scrollArea.takeWidget()
+            
             self.scrollArea.setWidget(self.original)
             
             self.animation = Animation.fadingAnimation(Animation , self.scrollArea.parent() , 200 , True)
             
-            self.animation.finished.connect(self.scrollArea.widget().show)
+            self.animation.finished.connect(self.scrollArea.show)
                     
             self.animation.start()
         

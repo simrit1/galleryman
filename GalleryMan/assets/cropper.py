@@ -194,6 +194,8 @@ class ImageCropper(QGraphicsView):
         self.animation.finished.connect(next)
         
         self.animation.start()
+        
+        self.shortcut.setKey(QKeySequence())
             
     def hideHelp(self):
         self.animation = Animation.fadingAnimation(Animation , self.tooltip , 200)

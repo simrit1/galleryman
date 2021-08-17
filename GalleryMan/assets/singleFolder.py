@@ -246,12 +246,16 @@ class singleFolderView():
         self.args = args
 
         self.popup = PopUpMessage()
-        
+                
         if(directory != None):
         
             self.name = QLabel(self.window)
+            
+            geometry = QRect(self.args[0].geometry())
+            
+            geometry.setY(0)
 
-            self.name.setGeometry(self.args[0].geometry())
+            self.name.setGeometry(geometry)
                         
             if(directory != self.LIKED_FOLDERS):
                 self.name.setText(directory[directory.rindex("/") + 1 :])
@@ -263,7 +267,7 @@ class singleFolderView():
             self.name.show()
 
             self.name.setStyleSheet(
-                "color: {}; font-family: {}; font-size: {}".format(
+                "color: {}; font-family: {}; font-size: {}; ".format(
                     self.config.get("singleFolder", "headerText-color"),
                     self.config.get("singleFolder", "headerText-fontFamily"),
                     self.config.get("singleFolder", "headerText-fontSize") + "px",
@@ -316,8 +320,8 @@ class singleFolderView():
                 self.animation.addAnimation(animation)
 
         except Exception as e:
-            print(e)
-
+            pass
+            
         for i in self.args:
             i.show()
 
@@ -419,9 +423,7 @@ class singleFolderView():
         
         # Default x and y
         x, y = 40, 100
-        
-        print(os.path.join(os.path.expanduser('~') , ".galleryman" , "data" , "likedFolders.txt"))
-        
+                
         # Check if the clicked directory is of liked photes
         if(self.copy == os.path.join(os.path.expanduser('~') , ".galleryman" , "data" , "likedFolders.txt")):
             with open(os.path.join(os.path.expanduser('~') , ".galleryman" , "data" , "likedFolders.txt") , "r") as file:
@@ -485,7 +487,7 @@ class singleFolderView():
         self.worker.finished.connect(self.thread.quit)
         
         # Additional finishing touches
-        self.worker.finished.connect(self.lolcat)
+        self.worker.finished.connect(self.finish)
         
         # Start
         self.thread.start()
@@ -496,7 +498,7 @@ class singleFolderView():
         # Collect garbage (if any)
         gc.collect()
     
-    def lolcat(self):
+    def finish(self):
         # Change the loader text to Done (yay)
         self.loader.setText("   DONE")
         
@@ -537,7 +539,11 @@ class singleFolderView():
         # Set to accepted
         self.worker.accepted = True
     
-    def show_image(self, name , pos):
+    def show_image(self, name , pos , showOnlyImage=False):
+        self.showOnlyImage = showOnlyImage
+        
+        if(self.showOnlyImage == True):
+            self.loader.hide()
         
         # Create copies of directory
         self.origin = name
@@ -548,7 +554,9 @@ class singleFolderView():
         self.main_window = QLabel(self.application)
 
         # Set Geometry        
-        self.main_window.setGeometry(QRect(0, 50, 1980, 1000))
+        self.main_window.move(QPoint(0 , 50))
+        
+        self.main_window.setFixedSize(self.application.size())
 
         # QLabel for image
         self.image = QRotateLabel(self.main_window)
@@ -618,8 +626,8 @@ class singleFolderView():
         i = 0
         
         # Main helper class
-        self.functional = QEditorHelper(self.app , self.application , self.central , self.config , self.scrollArea , self.image)
-        
+        self.functional = QEditorHelper(self.app , self.application , self.central , self.config , self.scrollArea , self.image , self.main_window.hide , name)
+                
         # respective functions
         functions = [
             lambda : self.functional.copyToClipboard(self.origin),
@@ -769,15 +777,7 @@ class singleFolderView():
                 )
             )
             
-            self.buttons.setGeometry(
-                QRect(
-                    self.new_width // 2,
-                    self.application.height() - 150,
-                    self.new_width,
-                    self.buttons.height(),
-                )
-            )
-
+            
         except:
             pass
         
@@ -786,8 +786,6 @@ class singleFolderView():
         except:
 
             pass
-        
-        # self.topbar.move(QPoint(self.application.width() - 200 , 0))
         
         # Get the height
         self.height = 300 + (card_height + card_padding) * (ceil(len(self.folders) / self.perline))
@@ -826,11 +824,8 @@ class singleFolderView():
         
         self.topbar.move(QPoint(self.application.width() - 200 , 0))
         
-        # print(self.topbar.parent())
         self.panel.hide()
         
         self.topbar.setParent(self.application)
-        
-        # self.panel.hide()
 
         self.animations.start()

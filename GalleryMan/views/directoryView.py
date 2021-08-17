@@ -193,8 +193,6 @@ class DirectoryView:
         except:
             pass
 
-        self.layout.deleteLater()
-
         self.directory_list.hide()
 
         self.new_label = QLabel(self.window)

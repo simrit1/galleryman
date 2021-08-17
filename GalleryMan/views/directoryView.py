@@ -1,13 +1,12 @@
 from functools import partial
 import json
 import os
-from posix import listdir
+from os import listdir
 from PyQt5.QtCore import QPoint, QPropertyAnimation, QRect, QTimer, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QCursor
 from PyQt5 import Qt
-from PyQt5.QtWidgets import QGraphicsOpacityEffect, QLabel, QPushButton, QVBoxLayout
+from PyQt5.QtWidgets import QGraphicsOpacityEffect, QLabel, QMainWindow, QPushButton, QVBoxLayout
 from GalleryMan.assets.QtHelpers import QCustomButton
-from threading import Thread
 
 class QDoublePushButton(QPushButton):
     doubleClicked = pyqtSignal()
@@ -38,7 +37,7 @@ class DirectoryView:
 
         self.scans = []
 
-    def start(self, window):
+    def start(self, window: QMainWindow):
         """Starts Creating The UI
 
         Args:
@@ -64,12 +63,8 @@ class DirectoryView:
         self.layout.setSpacing(20)
 
         self.directory_list.setLayout(self.layout)
-
-        thread = Thread(target=self.reponser)
         
-        thread.setDaemon(True)
-
-        thread.start()
+        self.window.resizeEvent = self.reponser
 
         #  Set The Name
         self.window.setObjectName("GalleryMan StartUp")

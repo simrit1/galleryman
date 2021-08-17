@@ -1,5 +1,5 @@
 from genericpath import isdir
-from GalleryMan.utils.initer import bcolors
+from .initer import bcolors
 import os
 import inquirer
 import shutil

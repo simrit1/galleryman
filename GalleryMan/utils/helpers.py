@@ -1,6 +1,6 @@
 # Importing the modules
 import os
-from GalleryMan.utils.initer import bcolors
+from .initer import bcolors
 from PyQt5.QtCore import QObject, QPointF, QTimer, Qt, pyqtSignal
 from PyQt5.QtGui import QPainter , QPolygonF
 

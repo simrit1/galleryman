@@ -1,11 +1,11 @@
 # Importing all the required modules
 from pathlib import Path
-from GalleryMan.assets.editorButtonsHelper import QEditorHelper
+from .editorButtonsHelper import QEditorHelper
 from math import ceil
 import functools, gc, json
 from configparser import ConfigParser
 from random import randint
-from GalleryMan.assets.QtHelpers import Animation, PopUpMessage, QCustomButton
+from .QtHelpers import Animation, PopUpMessage, QCustomButton
 from PyQt5.QtCore import (
     QAbstractAnimation,
     QObject,

@@ -1,7 +1,7 @@
 # Importing the modules
-from GalleryMan.utils.imageDoodler import doodleImage
-from GalleryMan.assets.cropper import ImageCropper
-from GalleryMan.utils.infoFinder import getMoreInfo
+from ..utils.imageDoodler import doodleImage
+from .cropper import ImageCropper
+from ..utils.infoFinder import getMoreInfo
 import os
 from functools import partial
 from PIL import Image
@@ -19,7 +19,7 @@ from PyQt5.QtCore import (
     pyqtBoundSignal,
     pyqtSlot,
 )
-from GalleryMan.assets.QEditorButtons import FilterView, PaletteView
+from .QEditorButtons import FilterView, PaletteView
 from configparser import ConfigParser
 from PyQt5.QtGui import (
     QFont,
@@ -45,7 +45,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from GalleryMan.assets.QtHelpers import (
+from .QtHelpers import (
     Animation,
     PopUpMessage,
     QCustomButton,
@@ -53,8 +53,8 @@ from GalleryMan.assets.QtHelpers import (
     QSliderMenu,
 )
 from json import loads
-from GalleryMan.utils.helpers import *
-from GalleryMan.utils.stickersArena import stickersViewer
+from ..utils.helpers import *
+from ..utils.stickersArena import stickersViewer
 import sys
 
 

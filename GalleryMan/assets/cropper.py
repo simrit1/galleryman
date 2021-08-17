@@ -2,8 +2,8 @@
 from configparser import ConfigParser
 import os
 from PyQt5.QtGui import QColor, QFont, QKeySequence, QPen, QPixmap, QPolygonF, QTransform
-from GalleryMan.utils.helpers import ResizableRubberBand
-from GalleryMan.assets.QtHelpers import Animation, QCustomButton
+from ..utils.helpers import ResizableRubberBand
+from .QtHelpers import Animation, QCustomButton
 from PIL import Image
 from PyQt5.QtWidgets import QGraphicsScene, QGraphicsSimpleTextItem, QGraphicsView, QLabel, QMainWindow, QShortcut, QVBoxLayout, QWidget
 from PyQt5.QtCore import QAbstractAnimation, QParallelAnimationGroup, QPoint, QPointF, QRect, QTimer, QVariant, QVariantAnimation, Qt, pyqtSignal, pyqtSlot

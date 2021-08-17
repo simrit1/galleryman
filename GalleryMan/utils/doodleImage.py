@@ -1,11 +1,11 @@
-from GalleryMan.assets.QtHelpers import Animation, QSliderMenu
+from ..assets.QtHelpers import Animation, QSliderMenu
 from functools import partial
 import os
 from PIL import Image , ImageDraw
 from PyQt5.QtCore import QParallelAnimationGroup, QPoint, QPointF, QPropertyAnimation, QRect, QRectF, QTimer, Qt, pyqtBoundSignal, pyqtSignal 
 from PyQt5.QtGui import QColor, QFont, QImage, QKeySequence, QMouseEvent, QPainter, QPen, QPixmap, QPolygonF
 from PyQt5.QtWidgets import QCheckBox, QGraphicsLineItem, QGraphicsOpacityEffect, QGraphicsSimpleTextItem, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QScrollArea, QShortcut, QVBoxLayout, QWidget
-from GalleryMan.assets.cropper import QRotateLabel
+from ..assets.cropper import QRotateLabel
 
 class ClickableLabel(QLabel):
     clicked = pyqtSignal()

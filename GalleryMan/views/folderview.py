@@ -3,7 +3,7 @@ import functools , json , os , pathlib
 from random import randint
 from PyQt5.QtCore import QObject, QParallelAnimationGroup, QPoint, QRect, QSize, QThread, pyqtSignal
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QHBoxLayout, QLabel, QMainWindow, QScrollArea, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QDialog, QHBoxLayout, QLabel, QMainWindow, QScrollArea, QVBoxLayout, QWidget
 from PyQt5.QtGui import QColor, QCursor, QMovie, QPixmap
 from GalleryMan.assets.singleFolder import CustomLabel, singleFolderView
 from GalleryMan.views.directoryView import QDoublePushButton
@@ -14,7 +14,23 @@ class PixmapHeaderMaker(QObject):
     finished = pyqtSignal()
     
     def run(self , inst , parent , imageArea: QLabel , border , width , height , dir):
-        path = imagesFolder.get_first(dir)
+        # Speacial treatment for liked folder
+        LIKED_FOLDERS = os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "likedFolders.txt")
+        
+        if(dir == LIKED_FOLDERS):
+            with open(dir) as f:
+                data = json.loads(f.read())
+                
+            data = list(filter(lambda x: os.path.isfile(x) , data))
+            
+                
+            path = data[0]
+        
+        else:
+        
+            path = imagesFolder.get_first(dir)
+            
+        print(path , "------>" , dir)
                 
         if(path == None):
             parent.hide()
@@ -39,23 +55,25 @@ class PixmapHeaderMaker(QObject):
 class Worker(QObject):
     finished = pyqtSignal()
     
-    def run(self , inst , mode , colors , x , y , width , height , padding , includeFavs=True):
-        ".config/galleryman/data/likedPhotos.txt"
-        
-        LIKED_FOLDERS = ".config/galleryman/data/likedPhotos.txt"
-        
-        if(includeFavs):
-            inst.dirs += [".config/galleryman/data/likedPhotos.txt"]
+    def run(self , inst , mode , colors , x , y , width , height , padding , includeFavs=True):   
         
         color_rest = 0
-                
+        
+        LIKED_FOLDERS = os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "likedFolders.txt")
+        
+        inst.dirs = [LIKED_FOLDERS] + inst.dirs
+  
         # Iterate through all the dirs
         for i in inst.dirs:            
             # Create a complete path of the folder
-            curr = "{}/{}".format(os.path.expanduser("~"), i)
+            if(i != LIKED_FOLDERS):
+                curr = "{}/{}".format(os.path.expanduser("~"), i)
+            else:
+                curr = i
 
             # Check if the path is a folder and it is not in the prevent dirs
             if i == LIKED_FOLDERS or (os.path.isdir(curr) and i[0] != "." and curr not in inst.prevented_dirs):
+                # print(i)
                 if mode == "single":
                     color_rest = 0
                 elif mode == "random":
@@ -64,7 +82,7 @@ class Worker(QObject):
                     color_rest = (color_rest + 1) % len(colors)
 
                 res = imagesFolder.update(inst , curr, x, y, False, colors[color_rest])
-
+                
                 if res:
                     x += width + padding
 
@@ -279,7 +297,7 @@ class imagesFolder():
         
         self.layout = QHBoxLayout()
         
-        func = [self.switchToAlbums , self.moveToThrash]
+        func = [self.switchToAlbums , self.moveToTrash]
         
         i = 0
         
@@ -326,6 +344,7 @@ class imagesFolder():
 
         bool: Whether creating the folder will worth
         """
+        LIKED_FOLDERS = os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "likedFolders.txt")
 
         # Create a Button For The Card
         label = QDoublePushButton("", self.images)
@@ -385,7 +404,7 @@ class imagesFolder():
         worker = PixmapHeaderMaker()
     
         self.another = QThread(self.window)
-            
+        
         self.another.started.connect(lambda : worker.run(self , label , imageArea , border , width , height , dir))
         
         self.worker.finished.connect(self.another.quit)
@@ -422,10 +441,10 @@ class imagesFolder():
         folderName.setAlignment(Qt.AlignCenter)
 
         # Change the text of the label with the folder's name
-        if(dir != "/home/strawhat54/.config/galleryman/data/likedPhotos.txt"):
+        if(dir != LIKED_FOLDERS):
             folderName.setText(dir[dir.rindex("/") + 1 :])
         else:
-            folderName.setText("Liked Photos")
+            folderName.setText("Favourites")
 
         # Move the card yo the desired postion
         label.move(QPoint(x, y))
@@ -535,7 +554,7 @@ class imagesFolder():
         x, y = 40, self.folderStartValue
         
         try:
-            for i in self.thrashItem:
+            for i in self.trashItem:
                 self.an.addAnimation(
                     Animation.movingAnimation(Animation, i, QPoint(x, y), 100)
                 )
@@ -722,7 +741,7 @@ class imagesFolder():
             self.folderHeaderText,
             *self.args)
     
-    def createThrashLayout(self):                
+    def createTrashLayout(self):                
         self.trashFoldersLayout = QLabel(self.images.parent())
         
         self.trashFoldersLayout.setGeometry(self.images.geometry())
@@ -741,9 +760,9 @@ class imagesFolder():
 
         padding = int(self.config.get("folderPage", "folders-padding"))
         
-        self.thrashItem = []
+        self.trashItem = []
         
-        for file in os.listdir('/home/strawhat54/.galleryman/data/thrashFiles/'):
+        for file in os.listdir('/home/strawhat54/.galleryman/data/trashFiles/'):
             label = CustomLabel(self.trashFoldersLayout , Qt.RightButton)
             
             label.setGeometry(QRect(
@@ -751,9 +770,9 @@ class imagesFolder():
                 width , height
             ))
             
-            label.clicked.connect(functools.partial(self.showDeleteOptions , "/home/strawhat54/.galleryman/data/thrashFiles/" + file , label))
+            label.clicked.connect(functools.partial(self.showDeleteOptions , "/home/strawhat54/.galleryman/data/trashFiles/" + file , label))
             
-            label.setPixmap(QPixmap("/home/strawhat54/.galleryman/data/thrashFiles/" + file))
+            label.setPixmap(QPixmap("/home/strawhat54/.galleryman/data/trashFiles/" + file))
             
             label.setScaledContents(True)
             
@@ -768,22 +787,21 @@ class imagesFolder():
                         
             label.show()
             
-            self.thrashItem.append(label)
+            self.trashItem.append(label)
             
         self.trashFoldersLayout.show()
     
-    def moveToThrash(self):        
+    def moveToTrash(self):        
         if(self.currentWindow == "trash"): return
             
         self.currentWindow = "trash"
-        
+                
         def run_second():
             self.label_to_change.hide()
-
+            
             self.animation = QParallelAnimationGroup()
             
-            if(self.trashFoldersLayout == None):
-                self.createThrashLayout()
+            self.createTrashLayout()
             
             self.trashFolderHeader = QLabel(self.trashFoldersLayout)
             
@@ -829,6 +847,8 @@ class imagesFolder():
             
             pass
         
+        self.directory = directory
+        
         self.main_window.mousePressEvent = lambda pos : self.options.hide()
         
         self.options = QLabel(parent)
@@ -845,7 +865,7 @@ class imagesFolder():
         
         layout = QVBoxLayout()
         
-        for layoutOption , func in zip(["Restore" , "Delete"] , [lambda : self.restoreImage(directory) , self.deleteForever]):
+        for layoutOption , func in zip(["Restore" , "Delete"] , [lambda : self.restoreImage(directory) , self.confirmDelete]):
             label = QCustomButton(layoutOption , None).create()
             
             label.clicked.connect(func)
@@ -865,23 +885,67 @@ class imagesFolder():
         self.options.show()
         
     def restoreImage(self , directory):
-        with open('/home/strawhat54/.galleryman/data/thrashLogs.txt') as f:
+        with open('/home/strawhat54/.galleryman/data/trashLogs.txt') as f:
             trashFiles = dict(json.loads(f.read()))
+            
             
         try:
             dest = trashFiles.pop(directory)
-            
         except:
-            
             return
         
-        os.replace(directory , dest)
-        
+        # os.replace(directory , dest)
+                
         self.popup.new_msg(self.main_window , "File restored" , 400)
     
-    def deleteForever(self):
-        pass
-    
+    def confirmDelete(self):
+        dialog = QDialog()
+        
+        dialog.setStyleSheet('background-color: #2E3440')
+        
+        layout = QVBoxLayout()
+        
+        layout.setSpacing(20)
+        
+        label = QLabel(text="Are you sure?")
+        
+        label.setStyleSheet("color: #D8DEE9; font-size: 20px")
+        
+        label.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
+        
+        layout.addWidget(label)
+        
+        buttons = QHBoxLayout()
+        
+        button1 = QCustomButton("Yes" , None).create()
+        
+        button1.clicked.connect(self.deleteForEver)
+        
+        button1.setStyleSheet("color: #D8DEE9; font-size: 20px")
+        
+        buttons.addWidget(button1)
+        
+        button1 = QCustomButton("No" , None).create()
+        
+        button1.clicked.connect(dialog.hide)
+        
+        button1.setStyleSheet("color: #D8DEE9; font-size: 20px")
+        
+        buttons.addWidget(button1)
+        
+        layout.addLayout(buttons)
+        
+        dialog.setLayout(layout)
+        
+        dialog.show()
+        
+        dialog.exec_()
+        
+    def deleteForEver(self):
+        os.remove(self.directory)
+        
+        self.popup.new_msg(self.main_window , "Image Deleted Successfully" , 500)
+        
     def switchToAlbums(self):
         if(self.currentWindow == "albums"): return
                 

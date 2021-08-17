@@ -824,8 +824,13 @@ class singleFolderView():
         except:
             pass
         
-        self.panel.setFixedWidth(self.application.width())
+        self.topbar.move(QPoint(self.application.width() - 200 , 0))
         
-        self.topbar.show()
+        # print(self.topbar.parent())
+        self.panel.hide()
+        
+        self.topbar.setParent(self.application)
+        
+        # self.panel.hide()
 
         self.animations.start()

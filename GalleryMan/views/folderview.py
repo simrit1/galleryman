@@ -734,17 +734,18 @@ class imagesFolder():
                 
         inst = singleFolderView()
         
-        inst.init(self.window,
-            dir,
-            self.config,
-            self.scroll,
-            self.main_window,
-            self.app,
-            self.label_to_change,
-            self.images,
-            self.folderHeaderText,
-            self.topbar,
-            *self.args)
+        # inst.init(self.window,
+        #     dir,
+        #     self.config,
+        #     self.scroll,
+        #     self.main_window,
+        #     self.app,
+        #     self.label_to_change,
+        #     self.images,
+        #     self.folderHeaderText,
+        #     self.topbar,
+        #     *self.args)
+        inst.init(self.window , dir , self.config , self.scroll , self.main_window , self.app , self.topbar , self.panel , self.folderHeaderText)
     
     def createTrashLayout(self):                
         self.trashFoldersLayout = QLabel(self.images.parent())

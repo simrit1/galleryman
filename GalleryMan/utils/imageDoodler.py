@@ -270,10 +270,13 @@ class doodleImageItems:
         
         self.original = self.parent.geometry()
         
-        self.startAni.move(QPoint(
-            self.parent.width() - self.startAni.width() - 10,
-            10
-        ))
+        try:
+            self.startAni.move(QPoint(
+                self.parent.width() - self.startAni.width() - 10,
+                10
+            ))
+        except:
+            pass
         
         self.openNewPos = QPoint(self.parent.width() - self.menu.width() , 0)
         
@@ -312,7 +315,7 @@ class doodleFreeHand(doodleImageItems):
         self.pixmap = self.scene.addPixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
                 
         # Slider menu where the user can change the brush
-        self.menu = QSliderMenu(self.parent)
+        self.menu = QSliderMenu(self.graphics)
         
         # Button which will toggle the menu
         self.startAni = ClickableLabel("", self.parent)
@@ -711,6 +714,8 @@ class doodleLineItem(doodleImageItems):
         
         self.posOptions = []
         
+        self.openNewPos = QPoint(self.parent.width() - self.menu.width() , 0)
+        
         
     def createGraphics(self):
         self.pixmap = self.scene.addPixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
@@ -798,9 +803,11 @@ class doodleLineItem(doodleImageItems):
         self.graphics.show()
 
         self.menu.show()
+        
+        self.menu.move(self.openNewPos)
 
         self.animation = Animation.movingAnimation(
-            Animation, self.menu, QPoint(1870 - self.menu.width(), 0), 300
+            Animation, self.menu, QPoint(50, 0), 300
         )
 
         self.animation.start()

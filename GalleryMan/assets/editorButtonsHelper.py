@@ -634,15 +634,9 @@ class ImageEditButtons:
         ]
         
         # Get the preffered icons
-        icons = [
-            [" ", "#88C0D0", 40, "SauceCodePro Nerd Font"],
-            [" ", "#88C0D0", 40, "SauceCodePro Nerd Font"],
-            [" ", "#88C0D0", 40, "SauceCodePro Nerd Font"],
-            [" ", "#88C0D0", 40, "SauceCodePro Nerd Font"],
-            [" ", "#88C0D0", 40, "SauceCodePro Nerd Font"],
-            [" ", "#88C0D0", 40, "SauceCodePro Nerd Font"],
-            [" ", "#88C0D0", 40, "SauceCodePro Nerd Font"]
-        ]
+        icons = loads(self.config.get("singleFolder" , "doodler-icons"))
+        
+        
         
         # Make the layout and swap
         layout = QLayoutMaker(icons, func).make()

@@ -1,6 +1,6 @@
 from PIL import Image
-from PyQt5.QtCore import QPoint, QPointF, QSize, Qt, pyqtSignal
-from PyQt5.QtGui import QCursor, QKeySequence, QMouseEvent, QPixmap, QTransform
+from PyQt5.QtCore import QPoint, QPointF, QRect, QRectF, QSize, Qt, pyqtSignal
+from PyQt5.QtGui import QCursor, QImage, QKeySequence, QMouseEvent, QPainter, QPixmap, QTransform
 from PyQt5.QtWidgets import QGraphicsItem, QGraphicsScene, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QScrollArea, QShortcut, QSizePolicy, QVBoxLayout, QWidget
 import functools
 import os
@@ -295,20 +295,52 @@ class stickersViewer:
         self.animation.start()
         
     def attachSticker(self):
+        # self.menu.hide()
+        
+        # before = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png")).convert("RGBA")
+                
+        # sticker = Image.open(self.currentlyUsing).convert("RGBA").resize((int(self.config["Width"]) , int(self.config["Height"]))).rotate(int(self.config["Rotation"]))
+        
+        # try:
+        #     before.paste(sticker , (int(self.sticker.pos().x()) , int(self.sticker.pos().y())) , sticker)
+        # except Exception as e:
+        #     e.with_traceback()
+            
+        # before.save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
+        
+        # Callback
+        def callback():
+            self.graphics.hide()
+            
+            self.renderArea.set_pixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
+        
         self.menu.hide()
         
-        before = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
+        # Open the image
+        self.image = Image.open("GalleryMan/assets/processed_image.png")
         
-        sticker = Image.open(self.currentlyUsing)
+        # Get the geometry
+        area = QRect(0 , 0 , self.image.width , self.image.height)
         
-        try:
-            before.paste(sticker , (50 , 50 , 700 , 700))
-        except Exception as e:
-            pass
-            
-        before.save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
+        # Parse the image 
+        image = QImage(area.size(), QImage.Format_ARGB32_Premultiplied)
         
-        before.show()
+        painter = QPainter(image)
+        
+        self.scene.render(painter, QRectF(image.rect()), QRectF(area))
+        
+        painter.end()
+        
+        # Save the new image
+        image.save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
+        
+        # Hide the graphics
+        self.animation = Animation.fadingAnimation(Animation , self.graphics , 200)
+        
+        self.animation.finished.connect(callback)
+        
+        self.animation.start()
+        
         
     def callback(self):
         def run_second():

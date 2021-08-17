@@ -2,9 +2,9 @@ from GalleryMan.assets.QtHelpers import Animation, QSliderMenu
 from functools import partial
 import os
 from PIL import Image , ImageDraw
-from PyQt5.QtCore import QParallelAnimationGroup, QPoint, QPointF, QRect, QRectF, QTimer, Qt, pyqtBoundSignal, pyqtSignal 
+from PyQt5.QtCore import QParallelAnimationGroup, QPoint, QPointF, QPropertyAnimation, QRect, QRectF, QTimer, Qt, pyqtBoundSignal, pyqtSignal 
 from PyQt5.QtGui import QColor, QFont, QImage, QKeySequence, QMouseEvent, QPainter, QPen, QPixmap, QPolygonF
-from PyQt5.QtWidgets import QCheckBox, QGraphicsLineItem, QGraphicsSimpleTextItem, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QScrollArea, QShortcut, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QCheckBox, QGraphicsLineItem, QGraphicsOpacityEffect, QGraphicsSimpleTextItem, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QScrollArea, QShortcut, QVBoxLayout, QWidget
 from GalleryMan.assets.cropper import QRotateLabel
 
 class ClickableLabel(QLabel):
@@ -173,8 +173,7 @@ class doodleShape:
         self.timer.start(1000)
         
         self.animation.finished.connect(self.tooltip.hide)
-        
-    
+
     def initPointLine(self , position: QPoint , followMouse=False):
         if(self.breakSupport): return
                 
@@ -583,7 +582,20 @@ class doodleShape:
         self.animation = QParallelAnimationGroup()
         
         for line in self.lines:
-            self.animation.addAnimation(Animation.fadingAnimation(Animation , line , 200 , True , 0.4))
+            # self.animation.addAnimation(Animation.fadingAnimation(Animation , line , 200 , True , 0.4))
+            opacity = QGraphicsOpacityEffect()
+            
+            line.setGraphicsEffect(opacity)
+            
+            animation = QPropertyAnimation(opacity , b"opacity")
+            
+            animation.setStartValue(1)
+            
+            animation.setEndValue(0.5)
+            
+            animation.setDuration(200)
+            
+            self.animation.addAnimation(animation)
             
         self.animation.start()
 

@@ -203,6 +203,8 @@ class QRotateLabel(QLabel):
 
 
 class singleFolderView():
+    LIKED_FOLDERS = os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "likedFolders.txt")
+    
     def init(
         self,
         window: QWidget,
@@ -211,9 +213,14 @@ class singleFolderView():
         scroll: QScrollArea,
         application: QMainWindow,
         app: QApplication,
+        topbar: QLabel,
+        panel: QLabel,
         *args
     ) -> None:
-                
+        self.panel = panel
+        
+        self.topbar = topbar
+        
         self.app = app
         
         self.scroll = scroll
@@ -245,8 +252,11 @@ class singleFolderView():
             self.name = QLabel(self.window)
 
             self.name.setGeometry(self.args[0].geometry())
-
-            self.name.setText(directory[directory.rindex("/") + 1 :])
+                        
+            if(directory != self.LIKED_FOLDERS):
+                self.name.setText(directory[directory.rindex("/") + 1 :])
+            else:
+                self.name.setText("Favourites")
 
             self.name.setAlignment(Qt.AlignCenter)
 
@@ -777,6 +787,8 @@ class singleFolderView():
 
             pass
         
+        # self.topbar.move(QPoint(self.application.width() - 200 , 0))
+        
         # Get the height
         self.height = 300 + (card_height + card_padding) * (ceil(len(self.folders) / self.perline))
         
@@ -811,4 +823,9 @@ class singleFolderView():
             self.name.setAlignment(Qt.AlignCenter)
         except:
             pass
+        
+        self.panel.setFixedWidth(self.application.width())
+        
+        self.topbar.show()
+
         self.animations.start()

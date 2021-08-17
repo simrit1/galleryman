@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import QGraphicsItem, QGraphicsScene, QGraphicsView, QHBoxL
 import functools
 import os
 from GalleryMan.assets.QtHelpers import Animation, QCustomButton, QSliderMenu
+from GalleryMan.utils.doodleImage import ClickableLabel
 
 class CustomLabel(QLabel):
     clicked = pyqtSignal(QPoint)
@@ -31,6 +32,8 @@ class stickersViewer:
         self.renderArea = renderArea
         
         self.scrollArea = scrollArea
+        
+        self.original = scrollArea.widget()
         
         self.grandparentsLayout = QHBoxLayout()
         
@@ -81,9 +84,13 @@ class stickersViewer:
         
         self.parentlayout.addLayout(self.nameLayout)
         
-        self.cross = QCustomButton("X" , None).create()
+        self.cross = ClickableLabel("" , None)
         
         self.cross.setBaseSize(50 , 50)
+        
+        self.cross.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
+        
+        self.cross.clicked.connect(self.callback)
         
         self.grandparentsLayout.addWidget(self.cross)
         
@@ -102,9 +109,7 @@ class stickersViewer:
             
             # Get the parent
             parent = self.STOCK_PATH + '/' + dirs
-            
-            print(parent)
-            
+                        
             # Check if it is a directory
             if(not os.path.isdir(parent)): continue
             
@@ -143,7 +148,7 @@ class stickersViewer:
         
         cross.setFixedSize(QSize(50 , 50))
         
-        cross.setText("X")
+        cross.setText("")
         
         self.config = {
             "Width": 300,
@@ -216,6 +221,8 @@ class stickersViewer:
             
             parent.setGeometry(oldWidget.geometry())
             
+            self.preview = QHBoxLayout()
+            
             # Create a grand parent layout
             grandLayout = QHBoxLayout()
                                     
@@ -231,14 +238,11 @@ class stickersViewer:
             
             layout = QVBoxLayout()
             
+            
             self.nameLayout.setParent(None)
             
             layout.addLayout(self.nameLayout)
-            
-            dir = self.STOCK_PATH
-            
-            self.preview = QHBoxLayout()
-            
+                        
             # Iterate through all the stickers in the folder
             for stickers in os.listdir(name):
                 
@@ -264,6 +268,8 @@ class stickersViewer:
                 # Add the widget to the preview
                 self.preview.addWidget(preview)
                 
+            self.preview.addWidget(self.cross)
+            
             self.preview.setParent(None)
                 
             layout.addLayout(self.preview)
@@ -303,3 +309,21 @@ class stickersViewer:
         before.save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
         
         before.show()
+        
+    def callback(self):
+        def run_second():
+            self.scrollArea.hide()
+            
+            self.scrollArea.setWidget(self.original)
+            
+            self.animation = Animation.fadingAnimation(Animation , self.scrollArea.parent() , 200 , True)
+            
+            self.animation.finished.connect(self.scrollArea.widget().show)
+                    
+            self.animation.start()
+        
+        self.animation = Animation.fadingAnimation(Animation , self.scrollArea.parent() , 200)
+        
+        self.animation.finished.connect(run_second)
+        
+        self.animation.start()

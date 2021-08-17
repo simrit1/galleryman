@@ -321,28 +321,28 @@ class QEditorHelper:
 
         self.animation.finished.connect(animation_callback)
 
-    def moveToThrash(self, directory):
-        
+    def moveToTrash(self, directory):
         # Relace the directory to the app's trash folder
         try:
             os.replace(
                 directory,
-                "/home/strawhat54/.galleryman/data/thrashFiles/{}".format(
+                "/home/strawhat54/.galleryman/data/trashFiles/{}".format(
                     directory[directory.rindex("/") + 1 :]
                 ),
             )
         except:
             print("IMAGE NOT FOUND!")
+
         # Now open the trash file logs and add a entry
-        with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "thrashLogs.txt"), "r") as f:
+        with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "trashLogs.txt"), "r") as f:
             now = dict(loads(f.read()))
 
             now[
-                os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "thrashFiles" , directory[directory.rindex("/") + 1 :])
+                os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "trashFiles" , directory[directory.rindex("/") + 1 :])
             ] = directory
         
         # Write the updated information
-        with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "thrashLogs.txt"), "w") as f:
+        with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "trashLogs.txt"), "w") as f:
             f.write(dumps(now))
             
         # Animate
@@ -363,7 +363,7 @@ class QEditorHelper:
         self.animation.finished.connect(self.central.hide)
         
         # Add a new message when its completed
-        self.popup.new_msg(self.application, "Item Moved To Thrash", 400)
+        self.popup.new_msg(self.application, "Item Moved To Trash", 400)
 
     def moreInfo(self, directory):
         # Get preferred icons
@@ -843,7 +843,7 @@ class cropImage:
     def rotate90Right(self):
         # Subtract the rotation (due to reverse rotation)
         self.degree -= 90
-
+        
         self.rotations -= 1
         
         self.updateUi()
@@ -864,7 +864,7 @@ class cropImage:
         self.outDisplay.setText(str(abs(self.degree) % 360))
                 
         # Start the animation
-        self.renderArea.start_animation(self.degree % 360)
+        self.renderArea.start_animation(abs(self.degree) % 360)
         
         # Update the image
         self.updateImage()

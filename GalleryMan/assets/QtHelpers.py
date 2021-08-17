@@ -145,7 +145,7 @@ class PopUpMessage:
         self.animation.setStartValue(QPoint(20, self.window.height() + 100))
         
 
-        self.animation.setEndValue(QPoint(20, self.window.height() - 60))
+        self.animation.setEndValue(QPoint(20, self.window.height() - 100))
 
         self.animation.setDuration(duration)
     

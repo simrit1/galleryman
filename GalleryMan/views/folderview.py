@@ -17,7 +17,6 @@ class PixmapHeaderMaker(QObject):
         # Speacial treatment for liked folder
         LIKED_FOLDERS = os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "likedFolders.txt")
         
-        print(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "likedFolders.txt"))
         
         if(dir == LIKED_FOLDERS):
             with open(dir) as f:
@@ -286,8 +285,6 @@ class imagesFolder():
 
         # Final touches, call the responser to position the cards accurately, if it's not
         self.responser(None)
-        
-
 
         # End of the function by returning True
         return True
@@ -746,6 +743,7 @@ class imagesFolder():
             self.label_to_change,
             self.images,
             self.folderHeaderText,
+            self.topbar,
             *self.args)
     
     def createTrashLayout(self):                

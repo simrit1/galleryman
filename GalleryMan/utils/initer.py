@@ -35,9 +35,8 @@ class Initer:
         
         print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.HEADER + "Config file is located at {}".format(os.path.join(os.path.expanduser("~") , ".config" , "galleryman" , "config.ini")) + bcolors.ENDC))
         
-        "/home/strawhat54/.galleryman/data/thrashLogs.txt"
         
-        for files in [os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "thrashLogs.txt") , os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "likedFolder.txt")]:
+        for files in [os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "trashLogs.txt")]:
             with open(files , "w") as file:
                 pass
         

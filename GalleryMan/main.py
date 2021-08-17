@@ -169,11 +169,11 @@ class Main:
         if(showOnlyImage):
             ui = singleFolderView()
             
-            ui.init(self.window , None , config , self.scrollArea , self.window , app , label)
+            ui.init(self.window , None , config , self.scrollArea , self.window , app , self.topbar  , self.helper , label)
             
             self.window.show()
             
-            self.topbar.show()
+            self.helper.show()
             
             ui.show_image(directory , None)
             

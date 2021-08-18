@@ -1,4 +1,4 @@
-from setuptools import setup
+from setuptools import setup , find_packages
 
 setup(
     name='GalleryMan',
@@ -14,5 +14,5 @@ setup(
         ],
     },
     install_requires=['PyQt5' , 'pillow'],
-    packages=["GalleryMan/GalleryMan/assets/" , "GalleryMan/GalleryMan/data/" , "GalleryMan/GalleryMan/sass/" , "GalleryMan/GalleryMan/themes/" , "GalleryMan/GalleryMan/utils/" , "GalleryMan/GalleryMan/views/" , "GalleryMan/"]
+    packages=find_packages()
 )

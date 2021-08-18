@@ -25,5 +25,4 @@ prepare() {
 package() {
   cd galleryman-$pkgver
   python setup.py install --root="$pkgdir" --optimize=1
-  ln -s galleryman "$pkgdir"/usr/bin/galleryman3
 }

@@ -11,7 +11,7 @@ def change_with_config(stylesheet , config: ConfigParser = None , section: str =
     if(config == None):
         config = ConfigParser()
         
-        config.read(os.path.join("GalleryMan" , "config.ini"))
+        config.read(os.path.join(os.path.expanduser("~") , ".config" , "galleryman", "config.ini"))
         
     stylesheet = stylesheet.format(
         backgroundColor=config.get(section , "background-color"),

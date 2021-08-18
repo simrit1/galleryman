@@ -1,5 +1,4 @@
 # # Import all the required modules
-from genericpath import isdir
 from .utils.stickerManager import stickerManager
 from GalleryMan.utils.helpers import addToScanDirectory, removeFromScanDirectory, show_list
 from GalleryMan.utils.initer import Initer, bcolors

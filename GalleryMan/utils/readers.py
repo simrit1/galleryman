@@ -1,6 +1,4 @@
 import os
-import sys
-from fontTools import ttLib
 from configparser import ConfigParser
 
 def read_file(file_loc):

@@ -1,5 +1,5 @@
 # Maintainer: 0xsapphir3 <0xsapphir3@gmail.com>
-pkgname=galleryman
+pkgname=GalleryMan
 pkgver=0.1
 pkgrel=1
 provides=("galleryman")
@@ -8,21 +8,23 @@ pkgdesc="Gallery written in Python for managing your photos"
 url="https://github.com/0xsapphir3/GalleryMan"
 arch=("any")
 license=("MIT")
-depends=("python>=3.6" "python-setuptools" )
+depends=("python>=3.6" "python-setuptools" , "wget" , "cat")
 source=("git+https://github.com/0xsapphir3/GalleryMan.git")
 md5sums=("SKIP")
 
+_gitname="galleryman"
+
+pkgver() {
+  wget https://raw.githubusercontent.com/0xsapphir3/GalleryMan/main/GalleryMan/__version__.txt
+  cat __version__.txt
+}
+
 build() {
-  cd "${srcdir}/${pkgname}"  
+  cd "${srcdir}/${pkgname}"
   python setup.py build
 }
 
-prepare() {
-  cd "${srcdir}/${pkgname}-${pkgver}"
-  python3 setup.py install --root="$pkgdir" --optimize=1 || return 1
-}
-
 package() {
-  cd galleryman-$pkgver
-  python setup.py install --root="$pkgdir" --optimize=1
+  cd "${srcdir}/${pkgname}"
+  python3 setup.py install --root="$pkgdir" --optimize=1 || return 1
 }

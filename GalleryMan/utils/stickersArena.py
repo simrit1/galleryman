@@ -26,6 +26,8 @@ class stickersViewer:
     STOCK_PATH = os.path.join(os.path.expanduser("~") , ".galleryman" , "stickers")
     
     def __init__(self , parent , renderArea , scrollArea: QScrollArea):
+        self.inGraphics = False
+        
         # Make args global
         self.parent = parent 
         
@@ -39,7 +41,7 @@ class stickersViewer:
         
         
         # QGraphics and QScene
-        self.graphics = QGraphicsView(parent)
+        self.graphics = QGraphicsView(self.parent)
 
         self.graphics.move(QPoint(0 , 0))
         
@@ -52,9 +54,7 @@ class stickersViewer:
         self.graphics.setScene(self.scene)
         
         self.pixmap = self.scene.addPixmap(QPixmap(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")))
-        
-        self.graphics.setScene(self.scene)
-        
+                
         # Scroll Widget
         self.widget = QWidget()
         
@@ -132,6 +132,14 @@ class stickersViewer:
         self.switchTo(parent)
                         
     def useSticker(self , name , event):
+        self.inGraphics = True
+        
+        self.scene.clear()
+        
+        self.pixmap = self.scene.addPixmap(QPixmap(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")))
+        
+        self.graphics.show()
+        
         self.currentlyUsing = name
         
         self.sticker = self.scene.addPixmap(QPixmap(name))
@@ -181,10 +189,9 @@ class stickersViewer:
         self.menu.show()
         
         self.animation = Animation.movingAnimation(Animation , self.menu , QPoint(1877 - self.menu.width(), 0) , 200)
-        
+                
         self.animation.start()
         
-        self.graphics.show()
         
     def update(self , inputBox , name):
         text = int(inputBox.text())
@@ -294,13 +301,33 @@ class stickersViewer:
         
         self.animation.start()
         
-    def attachSticker(self):
+    def attachSticker(self):        
+        if(not self.inGraphics):
+            return
+        
         
         # Callback
         def callback():
             self.graphics.hide()
             
             self.renderArea.set_pixmap(QPixmap(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")))
+            
+            self.graphics = QGraphicsView(self.parent)
+
+            self.graphics.move(QPoint(0 , 0))
+            
+            self.graphics.setFixedSize(self.parent.size())
+            
+            self.graphics.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+            
+            self.scene = QGraphicsScene()
+            
+            self.graphics.setScene(self.scene)
+            
+            self.pixmap = self.scene.addPixmap(QPixmap(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")))
+            
+            self.shortcut.setParent(self.graphics)
+            
         
         self.menu.hide()
         
@@ -329,7 +356,8 @@ class stickersViewer:
         
         self.animation.start()
         
-        self.shortcut.setKey(QKeySequence())
+        self.inGraphics = False
+
         
         
     def callback(self):

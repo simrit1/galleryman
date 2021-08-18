@@ -990,11 +990,11 @@ class imagesFolder():
         
         self.animation.start()
         
-        self.albums.setStyleSheet("font-size: 50px; color: #88C")
-        
-        try:
-            self.trash.setStyleSheet("font-size: 40px")
-        except:
-            pass
-        
+
+
+
+
+
+
+
 # Complete 1000 lines!

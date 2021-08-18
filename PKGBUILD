@@ -8,7 +8,7 @@ pkgdesc="Gallery written in Python for managing your photos"
 url="https://github.com/0xsapphir3/GalleryMan"
 arch=("any")
 license=("MIT")
-depends=("python>=3.6" "python-setuptools" , "wget" , "cat")
+depends=("python>=3.6" "python-setuptools" "wget")
 source=("git+https://github.com/0xsapphir3/GalleryMan.git")
 md5sums=("SKIP")
 

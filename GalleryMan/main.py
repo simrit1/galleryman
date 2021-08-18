@@ -152,7 +152,7 @@ class Main:
         self.window.setCentralWidget(central)
         
         # Read status
-        status = read_file(os.path.join("GalleryMan" , "galleryman.status"))
+        status = read_file(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "galleryman.status"))
                 
         label = QLabel(contents)
             

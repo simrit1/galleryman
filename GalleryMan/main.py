@@ -1,16 +1,17 @@
 # # Import all the required modules
+from genericpath import isdir
 from .utils.stickerManager import stickerManager
-from .utils.helpers import addToScanDirectory, removeFromScanDirectory, show_list
-from .utils.initer import Initer, bcolors
+from GalleryMan.utils.helpers import addToScanDirectory, removeFromScanDirectory, show_list
+from GalleryMan.utils.initer import Initer, bcolors
 from functools import partial
 import argparse , json , os , sys
 from PyQt5.QtCore import QPoint, QRect, QSize, Qt, pyqtSignal
 from PyQt5.QtGui import QCloseEvent, QCursor, QKeyEvent, QMouseEvent
-from .views.firstPage import FirstPage
-from .utils.readers import read_file , change_with_config
-from .views.folderview import imagesFolder
+from GalleryMan.views.firstPage import FirstPage
+from GalleryMan.utils.readers import read_file , change_with_config
+from GalleryMan.views.folderview import imagesFolder
 from PyQt5.QtWidgets import QApplication, QHBoxLayout, QLabel , QMainWindow, QPushButton, QScrollArea, QVBoxLayout, QWidget
-from .assets.singleFolder import singleFolderView
+from GalleryMan.assets.singleFolder import singleFolderView
     
 class CustomLabel(QLabel):
     clicked = pyqtSignal(QMouseEvent)

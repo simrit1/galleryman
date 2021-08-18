@@ -1,7 +1,7 @@
 # Importing the modules
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-from .doodleImage import PolyGon
+from GalleryMan.utils.doodleImage import PolyGon
 from functools import partial
 from math import atan2, pi
 from PIL import Image, ImageDraw
@@ -39,13 +39,13 @@ from PyQt5.QtWidgets import (
     QPushButton,
     QShortcut,
 )
-from ..assets.QtHelpers import (
+from GalleryMan.assets.QtHelpers import (
     Animation,
     PopUpMessage,
     QCustomButton,
     QSliderMenu,
 )
-from .helpers import *
+from GalleryMan.utils.helpers import *
 import shutil
 
 class QClickableTextEdit(QLineEdit):

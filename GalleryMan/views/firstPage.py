@@ -2,7 +2,7 @@
 from configparser import ConfigParser
 import json, os, gc
 from functools import partial
-from ..assets.QtHelpers import Animation, QContinueButton, QCustomButton
+from GalleryMan.assets.QtHelpers import Animation, QContinueButton, QCustomButton
 from PyQt5.QtCore import (
     QObject,
     QParallelAnimationGroup,
@@ -25,7 +25,7 @@ from PyQt5.QtWidgets import (
     QScrollArea,
     QWidget,
 )
-from .folderview import imagesFolder
+from GalleryMan.views.folderview import imagesFolder
 
 
 class QDoublePushButton(QPushButton):

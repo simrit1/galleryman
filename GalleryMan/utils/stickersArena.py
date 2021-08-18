@@ -4,8 +4,8 @@ from PyQt5.QtGui import QCursor, QImage, QKeySequence, QMouseEvent, QPainter, QP
 from PyQt5.QtWidgets import QGraphicsItem, QGraphicsScene, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QScrollArea, QShortcut, QSizePolicy, QVBoxLayout, QWidget
 import functools
 import os
-from ..assets.QtHelpers import Animation, QCustomButton, QSliderMenu
-from .doodleImage import ClickableLabel
+from GalleryMan.assets.QtHelpers import Animation, QCustomButton, QSliderMenu
+from GalleryMan.utils.doodleImage import ClickableLabel
 
 class CustomLabel(QLabel):
     clicked = pyqtSignal(QPoint)

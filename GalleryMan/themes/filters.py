@@ -1,5 +1,6 @@
 from PIL import Image , ImageOps
 import numpy as np
+import random
 
 class Filters:
     def __init__(self , img) -> None:

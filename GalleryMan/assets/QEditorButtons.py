@@ -1,12 +1,12 @@
 # Importing all modules
 import shutil
 from PIL import Image , ImageQt
-from ..themes.filters import Filters
-from .QtHelpers import PopUpMessage
+from GalleryMan.themes.filters import Filters
+from GalleryMan.assets.QtHelpers import PopUpMessage
 from PyQt5.QtCore import QPropertyAnimation, Qt
 from PyQt5.QtGui import QCursor, QImage, QPixmap
 from PyQt5.QtWidgets import QDialog, QDialogButtonBox, QGraphicsOpacityEffect, QLabel, QPushButton, QVBoxLayout
-from .QtImageProcessor import ImageProcessor
+from GalleryMan.assets.QtImageProcessor import ImageProcessor
 import os
 
 # Animation class for unhide and hide

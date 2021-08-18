@@ -5,10 +5,10 @@ from PyQt5.QtCore import QObject, QParallelAnimationGroup, QPoint, QRect, QSize,
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QDialog, QHBoxLayout, QLabel, QMainWindow, QScrollArea, QVBoxLayout, QWidget
 from PyQt5.QtGui import QColor, QCursor, QMovie, QPixmap
-from ..assets.singleFolder import CustomLabel, singleFolderView
-from .directoryView import QDoublePushButton
+from GalleryMan.assets.singleFolder import CustomLabel, singleFolderView
+from GalleryMan.views.directoryView import QDoublePushButton
 from math import ceil
-from ..assets.QtHelpers import Animation, PopUpMessage, QCustomButton
+from GalleryMan.assets.QtHelpers import Animation, PopUpMessage, QCustomButton
 
 class PixmapHeaderMaker(QObject):
     finished = pyqtSignal()

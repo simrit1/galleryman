@@ -123,10 +123,8 @@ class Main:
             lambda : self.window.showFullScreen(),
             lambda : app.exit(1)
         ]
-        
-        # stylesheet , config = change_with_config(read_file('GalleryMan/sass/styles.txt'))
-        
-        stylesheet , config = change_with_config(read_file(os.path.join("GalleryMan" , "sass" , "styles.txt")))
+                
+        stylesheet , config = change_with_config(read_file(os.path.join(os.path.expanduser("~") , ".galleryman", "styles" , "styles.txt")))
         
         # Iterate through all the user's preferred icons
         for icon , color , size , font in json.loads(config.get("global" , "topBar-buttons")):            

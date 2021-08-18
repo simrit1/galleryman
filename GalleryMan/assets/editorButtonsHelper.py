@@ -722,7 +722,7 @@ class ImageEditButtons:
         # Initate the handler class 
         view = PaletteView(
             None,
-            os.path.join("GalleryMan" , "assets" , "processed_image.png"),
+            os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png"),
             self.renderArea,
             self.config,
             lambda: print("NONE"),
@@ -800,7 +800,7 @@ class ImageEditButtons:
         
         self.icons = loads(self.config.get("singleFolder", "editButtons-icons"))
 
-        self.renderArea.setPixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
+        self.renderArea.setPixmap(QPixmap(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")))
 
         self.functions = [
             self.flipImage,
@@ -842,7 +842,7 @@ class ImageEditButtons:
         self.interiorFunctions.fixedIncrease(self.slider.value())
 
 class cropImage:
-    SAVE_DIR = os.path.join("GalleryMan" , "assets" , "processed_image.png")
+    SAVE_DIR = os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")
 
     def __init__(
         self, dir: str, newParent, renderArea: QRotateLabel, outDisplay: QLineEdit, callback
@@ -908,7 +908,7 @@ class cropImage:
 
     def updateImage(self):
         # Update the pillow image
-        self.image = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
+        self.image = Image.open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png"))
 
     def swapLayout(self, layout):
         # Get the central widget of the QScrollArea
@@ -946,13 +946,13 @@ class cropImage:
 
     def save(self, callback):
         # Open the image using PIL
-        image = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png")).convert("RGBA")
+        image = Image.open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")).convert("RGBA")
         
         # Rotate the image
         image = image.rotate(-(self.degree % 360), expand=1, fillcolor=(255, 0, 0, 1))
         
         # Save the image
-        image.save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
+        image.save(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png"))
         
         self.degree = 0
         
@@ -1084,7 +1084,7 @@ class textInImage:
         self.graphics.setScene(self.scene)
         
         # Add pixmap
-        self.scene.addPixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
+        self.scene.addPixmap(QPixmap(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")))
         
         # Show the graphics
         self.graphics.show()
@@ -1152,7 +1152,7 @@ class textInImage:
         def callback():
             self.graphics.hide()
             
-            self.out_widget.set_pixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
+            self.out_widget.set_pixmap(QPixmap(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")))
         
         # Open the image
         self.image = Image.open(self.dir)
@@ -1170,7 +1170,7 @@ class textInImage:
         painter.end()
         
         # Save the new image
-        image.save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
+        image.save(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png"))
         
         # Hide the graphics
         self.animation = Animation.fadingAnimation(Animation , self.graphics , 200)
@@ -1285,7 +1285,7 @@ class imageFlipper:
 
         self.outParent = outParent
 
-        self.image = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
+        self.image = Image.open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png"))
         
         self.thread = QThread()
         
@@ -1301,9 +1301,9 @@ class imageFlipper:
 
             self.renderArea.set_pixmap(self.createPixmap(new_image))
 
-            new_image.save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
+            new_image.save(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png"))
 
-            self.image = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
+            self.image = Image.open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png"))
             
             # Show the label after a partial hide
             self.animation = Animation.fadingAnimation(
@@ -1335,9 +1335,9 @@ class imageFlipper:
 
             self.renderArea.set_pixmap(self.createPixmap(new_image))
 
-            new_image.save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
+            new_image.save(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png"))
 
-            self.image = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
+            self.image = Image.open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png"))
             
             # Partial unhide  
             self.animation = Animation.fadingAnimation(

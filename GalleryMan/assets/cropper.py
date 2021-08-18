@@ -74,7 +74,7 @@ class ImageCropper(QGraphicsView):
         
         self.myScene = QGraphicsScene()
         
-        self.myScene.addPixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
+        self.myScene.addPixmap(QPixmap(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")))
         
         self.setScene(self.myScene)
         
@@ -169,10 +169,10 @@ class ImageCropper(QGraphicsView):
             self.hide()
 
             # Set the updated image as the preview
-            self.outWidget.set_pixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
+            self.outWidget.set_pixmap(QPixmap(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")))
         
         # Open the image using PIL
-        image = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
+        image = Image.open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png"))
         
         # Get cropping coordinates
         x, y, width, height = (
@@ -186,7 +186,7 @@ class ImageCropper(QGraphicsView):
         image = image.crop((x, y, width + x, height + y))
         
         # Save
-        image.save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
+        image.save(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png"))
         
         # Animation
         self.animation = Animation.fadingAnimation(Animation , self , 300)

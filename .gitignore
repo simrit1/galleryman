@@ -6,12 +6,6 @@ __pycache__/
 
 test.py
 
-# Processed Image   
-GalleryMan/assets/processed_image.png
-
-# Data
-GalleryMan/data
-
 # Image files
 *.png
 

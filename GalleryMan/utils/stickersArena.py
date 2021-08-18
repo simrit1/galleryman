@@ -51,7 +51,7 @@ class stickersViewer:
         
         self.graphics.setScene(self.scene)
         
-        self.pixmap = self.scene.addPixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
+        self.pixmap = self.scene.addPixmap(QPixmap(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")))
         
         self.graphics.setScene(self.scene)
         
@@ -300,12 +300,12 @@ class stickersViewer:
         def callback():
             self.graphics.hide()
             
-            self.renderArea.set_pixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
+            self.renderArea.set_pixmap(QPixmap(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")))
         
         self.menu.hide()
         
         # Open the image
-        self.image = Image.open("GalleryMan/assets/processed_image.png")
+        self.image = Image.open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png"))
         
         # Get the geometry
         area = QRect(0 , 0 , self.image.width , self.image.height)
@@ -320,7 +320,7 @@ class stickersViewer:
         painter.end()
         
         # Save the new image
-        image.save(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
+        image.save(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png"))
         
         # Hide the graphics
         self.animation = Animation.fadingAnimation(Animation , self.graphics , 200)

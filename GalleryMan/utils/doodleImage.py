@@ -69,7 +69,7 @@ class doodleShape:
         
         self.breakSupport = False
 
-        self.image = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png")).convert("RGBA")
+        self.image = Image.open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")).convert("RGBA")
         
         self.draw = ImageDraw.ImageDraw(self.image)
         
@@ -560,7 +560,7 @@ class doodleShape:
         
         painter.end()
                         
-        image.save(os.path.join("GalleryMan" , "assets" , "processed_image.png") , quality=100)
+        image.save(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png") , quality=100)
         
         self.animation = Animation.fadingAnimation(Animation , self.parent , 200)
         
@@ -568,7 +568,7 @@ class doodleShape:
         
         self.animation.start()
         
-        self.renderArea.set_pixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")))
+        self.renderArea.set_pixmap(QPixmap(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")))
     
         self.another.setKey(QKeySequence())
         

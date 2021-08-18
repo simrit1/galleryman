@@ -20,7 +20,7 @@ class getMoreInfo:
         
         self.message = PopUpMessage()
         
-        self.image = Image.open(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
+        self.image = Image.open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png"))
         
     def getInfo(self):
         
@@ -153,7 +153,7 @@ class getMoreInfo:
                 
         self.graphics.show()
         
-        self.scene.addPixmap(QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png")).scaled(self.application.geometry().width() , self.application.geometry().height() , transformMode=Qt.SmoothTransformation))
+        self.scene.addPixmap(QPixmap(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")).scaled(self.application.geometry().width() , self.application.geometry().height() , transformMode=Qt.SmoothTransformation))
         
         self.graphics.show()
             

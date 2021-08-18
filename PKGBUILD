@@ -12,12 +12,18 @@ depends=("python>=3.6" "python-setuptools" )
 source=("git+https://github.com/0xsapphir3/GalleryMan.git")
 md5sums=("SKIP")
 
-pkgver()
-{
-  printf "9.6.4"
+build() {
+  cd "${srcdir}/${pkgname}"  
+  python setup.py build
 }
 
-package()
-{
-  python GalleryMan/setup.py install --root="$pkgdir"
+prepare() {
+  cd "${srcdir}/${pkgname}-${pkgver}"
+  python3 setup.py install --root="$pkgdir" --optimize=1 || return 1
+}
+
+package() {
+  cd galleryman-$pkgver
+  python setup.py install --root="$pkgdir" --optimize=1
+  ln -s galleryman "$pkgdir"/usr/bin/galleryman3
 }

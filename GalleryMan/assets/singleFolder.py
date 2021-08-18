@@ -576,10 +576,10 @@ class singleFolderView():
 
         self.image.setStyleSheet("background-color: transparent")
 
-        shutil.copy(self.directory_name , os.path.join("GalleryMan" , "assets" , "processed_image.png"))
+        shutil.copy(self.directory_name , os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png"))
         
         # Set The Pixmap
-        self.pixmap = QPixmap(os.path.join("GalleryMan" , "assets" , "processed_image.png"))
+        self.pixmap = QPixmap(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png"))
 
         self.image.set_pixmap(self.pixmap)
 

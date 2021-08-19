@@ -5,13 +5,13 @@ pkgver=r73.4c220b9
 pkgrel=1
 pkgdesc="Gallery written in Python for managing your photos"
 arch=(any)
-url="https://github.com/0xsapphir3/GalleryMan"
+url="https://github.com/0xsapphir3/galleryman"
 license=(MIT)
 depends=(python)
 makedepends=(git python-setuptools)
 provides=(galleryman)
 conflicts=(galleryman)
-source=("galleryman::git+https://github.com/0xsapphir3/GalleryMan.git")
+source=("galleryman::git+https://github.com/0xsapphir3/galleryman.git")
 sha256sums=("SKIP")
 
 pkgver() {

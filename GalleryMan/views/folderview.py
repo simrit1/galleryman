@@ -318,11 +318,7 @@ class imagesFolder():
                 color , size , family
             ))
         
-        self.panel.setGeometry(QRect(0 , 1000 , 1887 , 64))
-        
-        self.animation = Animation.movingAnimation(Animation , self.panel , QPoint(0 , 940) , 300)
-        
-        self.animation.start()
+        self.panel.setGeometry(QRect(0 , self.main_window.height() -  64 , self.main_window.width() , 64))
         
         self.panel.show()
         
@@ -608,8 +604,14 @@ class imagesFolder():
         # Start the animation
         self.an.start()
         
+        # Set the width and height of the panel
         try:
-            self.panel.setFixedWidth(self.main_window.width())
+            self.panel.setGeometry(QRect(
+                0, 
+                self.main_window.height() - 64,
+                self.main_window.width(),
+                64
+            ))
         except:
             pass    
         

@@ -24,9 +24,9 @@ class Initer:
             
         print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.OKGREEN + "Creating files..." + bcolors.ENDC))
                 
-        # with open(os.path.join(os.path.expanduser("~") , ".config" , "galleryman" , "config.ini") , "w") as f:
-        #     with open(os.path.join("GalleryMan" , "config.ini")) as sample:    
-        #         f.write(sample.read())
+        with open(os.path.join(os.path.expanduser("~") , ".config" , "galleryman" , "config.ini") , "w") as f:
+            with open(os.path.join("GalleryMan" , "config.ini")) as sample:    
+                f.write(sample.read())
         
         print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.HEADER + "Config file is located at {}".format(os.path.join(os.path.expanduser("~") , ".config" , "galleryman" , "config.ini")) + bcolors.ENDC))
         

@@ -18,3 +18,5 @@ build/*
 dist/*
 
 GalleryMan.egg-info/
+
+*.pkg.tar*

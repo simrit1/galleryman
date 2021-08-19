@@ -12,3 +12,9 @@ test.py
 *.jpg
 
 *.gif
+
+build/*
+
+dist/*
+
+GalleryMan.egg-info/

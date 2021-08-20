@@ -33,6 +33,9 @@
     ```
     yay -S galleryman-git
     ```
+- After Installing, Run:
+
+   ```galleryman --init```
 
 <hr>
 

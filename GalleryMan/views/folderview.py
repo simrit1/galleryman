@@ -378,10 +378,6 @@ class imagesFolder:
 
         if dir in self.keybindings:
             label.setShortcut(self.keybindings[dir])
-        elif dir[:-1] in self.keybindings:
-            label.setShortcut(self.keybindings[dir[:-1]])
-        elif dir + "/" in self.keybindings:
-            label.setShortcut(self.keybindings[dir + "/"])
 
         # Set a special property, so as to prevent intraction of the label at the time of setting the border
         label.setProperty("class", "image")

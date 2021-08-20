@@ -31,7 +31,7 @@
     Install via AUR helper (yay):
 
     ```
-    yay -S galleryman
+    yay -S galleryman-git
     ```
 
 <hr>

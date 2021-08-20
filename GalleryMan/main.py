@@ -227,13 +227,7 @@ class Main:
         
         self.helper.clicked.connect(self.show_hides)
         
-        
-        # Stylings and ajustments
-        self.helper.setGeometry(QRect(
-            0 , 0,
-            1980,
-            50
-        ))
+        self.helper.setGeometry(self.window.geometry())
         
         self.helper.show()
         
@@ -251,6 +245,8 @@ class Main:
         self.topbar.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
         
         self.helper.setStyleSheet('background-color: transparent;')
+        
+        self.topbar.show()
         
         # Create a lyout and add all the widgets 
         layoout = QHBoxLayout()
@@ -433,7 +429,7 @@ def main():
     args = parser.parse_args()
     
     try:
-        os.remove("~/.galleryman/currentlyOpened.png")
+        os.remove(os.path.join(os.path.expanduser("~") , ".galleryman" , "currentlyOpened.png"))
     except:
         pass
     

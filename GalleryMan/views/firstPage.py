@@ -244,7 +244,7 @@ class FirstPage:
         for dir in home_directories:
             # Check if the folder is not a private one and is not a file
             if (dir[0] != "." or dir == "..") and os.path.isdir(
-                os.path.expanduser("~") + "/" + dir
+                os.path.join(os.path.expanduser("~") , dir)
             ):
 
                 # Create a double clickable push button
@@ -280,14 +280,14 @@ class FirstPage:
 
                 # Get the total number of sub folders inside the parent folder
                 files, total_folders = self.get_info(
-                    "{}/{}".format(os.path.expanduser("~"), dir)
+                   os.path.join(os.path.expanduser("~") , dir)
                 )
-
+                
                 # Add that beside the folder name
                 text += " ({} images | {} folders | {}Kb)".format(
                     files,
                     total_folders,
-                    os.path.getsize("{}/{}".format(os.path.expanduser("~"), dir)),
+                    os.path.getsize(os.path.join(os.path.expanduser("~") , dir)),
                 )
 
                 # Set the text
@@ -295,13 +295,13 @@ class FirstPage:
 
                 # Update dirs with the inner directories on double click
                 name.doubleClicked.connect(
-                    partial(self.update_dirs, os.path.expanduser("~") + "/" + dir)
+                    partial(self.update_dirs, os.path.join(os.path.expanduser("~") , dir))
                 )
 
                 if dir != "..":
                     # Unselect the folder on click
                     name.clicked.connect(
-                        partial(self.select, os.path.expanduser("~") + "/" + dir, name)
+                        partial(self.select, os.path.join(os.path.expanduser("~") , dir), name)
                     )
 
                 y += 70
@@ -397,7 +397,7 @@ class FirstPage:
         for dir in [".."] + os.listdir(directory):
 
             # Check if the path is a folder
-            if not os.path.isdir(directory + "/" + dir) or (
+            if not os.path.isdir(os.path.join(directory , dir)) or (
                 dir[0] == "." and dir != ".."
             ):
                 continue
@@ -440,7 +440,7 @@ class FirstPage:
             name.setText(text)
 
             # Remove all the slashes and ..(s)
-            if os.path.normpath(directory + "/" + dir) in self.scans:
+            if os.path.normpath(os.path.join(os.path.expanduser("~") , dir)) in self.scans:
 
                 # Make it a little light (or transparent) if it is selected
                 self.opacity = QGraphicsOpacityEffect()
@@ -450,11 +450,11 @@ class FirstPage:
                 name.setGraphicsEffect(self.opacity)
 
             # Update the directories on click (recursion)
-            name.doubleClicked.connect(partial(self.update_dirs, directory + "/" + dir))
+            name.doubleClicked.connect(partial(self.update_dirs, os.path.join(os.path.expanduser("~") , dir)))
 
             # Select the folder on click if it is not the parent folder
             if dir != "..":
-                name.clicked.connect(partial(self.select, directory + "/" + dir, name))
+                name.clicked.connect(partial(self.select, os.path.join(os.path.expanduser("~") , dir), name))
 
                 # Move to desired location
             name.move(QPoint(0, y))
@@ -531,7 +531,7 @@ class FirstPage:
         for i in self.generator(dir):
             files += i[-3:] in ["png", "svg", "jpeg", "jpg"]
 
-            if os.path.isdir("{}/{}".format(dir, i)):
+            if os.path.isdir(os.path.join(dir , i)):
                 sub_folders += 1
 
         return [files, sub_folders]

@@ -115,7 +115,7 @@ class stickersViewer:
             self.preview = QHBoxLayout()
             
             # Get the parent
-            parent = self.STOCK_PATH + '/' + dirs
+            parent = os.path.join(self.STOCK_PATH , dirs)
                         
             # Check if it is a directory
             if(not os.path.isdir(parent)): continue
@@ -271,10 +271,10 @@ class stickersViewer:
                 preview.setScaledContents(True)
                 
                 # Set the image
-                preview.setPixmap(QPixmap(name + '/' + stickers).scaled(50 , 50 , transformMode=Qt.SmoothTransformation))
+                preview.setPixmap(QPixmap(os.path.join(name , stickers)).scaled(50 , 50 , transformMode=Qt.SmoothTransformation))
                 
                 # Call the function which will handle the usage of the sticker on click
-                preview.clicked.connect(functools.partial(self.useSticker , name + '/' + stickers))
+                preview.clicked.connect(functools.partial(self.useSticker , os.path.join(name , stickers)))
                 
                 # Set the cursor
                 preview.setCursor(QCursor(Qt.PointingHandCursor))

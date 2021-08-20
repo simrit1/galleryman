@@ -90,7 +90,7 @@ class Worker(QObject):
         for i in inst.dirs:            
             # Create a complete path of the folder
             if(i != LIKED_FOLDERS):
-                curr = "{}/{}".format(os.path.expanduser("~"), i)
+                curr = os.path.join(os.path.expanduser("~") , i)
             else:
                 curr = i
 

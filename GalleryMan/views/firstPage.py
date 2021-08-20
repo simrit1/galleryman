@@ -1,10 +1,9 @@
 # Import All The Required Modules
 from configparser import ConfigParser
-import json, os, gc
+import json, os
 from functools import partial
 from GalleryMan.assets.QtHelpers import Animation, QContinueButton, QCustomButton
 from PyQt5.QtCore import (
-    QObject,
     QParallelAnimationGroup,
     QPoint,
     QPropertyAnimation,
@@ -56,15 +55,6 @@ class QDoublePushButton(QPushButton):
 
 
 class FirstPage:
-    """
-    Main UI's First And Second Page
-
-    # First Page:
-    It contains welcome text and a button to move to second page.
-
-    # Second Page:
-    It asks the user for all the directories that needs to be scanned and stores them at `/home/strawhat54/.config/galleryman/data/scan_dirs.txt`
-    """
 
     def __init__(
         self,
@@ -347,9 +337,8 @@ class FirstPage:
         self.directoriesLabel.show()
 
     def transfer_control(self):
-
         # Write all the directories that are prevented by the user to read
-        with open("/home/strawhat54/.galleryman/data/scan_dirs.txt", "w") as file:
+        with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "scan_dirs.txt"), "w") as file:
             file.write(json.dumps(list(self.scans)))
 
         # Hide all the widgets that are not required
@@ -372,9 +361,6 @@ class FirstPage:
 
         # Remove all the unused variables
         del self.directoriesLabel, self.continue_to_next, self.more_text
-
-        # Collect garbage
-        gc.collect()
 
         # Call the main class
         imagesFolder(self.window, self.application, self.scrollarea, self.config , self.topbar , self.app).start(self.header_text)

@@ -1,4 +1,5 @@
 # # Import all the required modules
+import inquirer
 from .utils.stickerManager import stickerManager
 from GalleryMan.utils.helpers import addToScanDirectory, removeFromScanDirectory, show_list
 from GalleryMan.utils.initer import Initer, bcolors
@@ -33,6 +34,140 @@ class Main:
         
         self.window = QMainWindow()
         
+        stylesheet = """
+            QFrame{{
+                border: none;
+            }}
+        
+            QMainWindow , QScrollArea , QWidget{{
+                background-color: {backgroundColor};
+                font-family: "Font Awesome 5 Free";
+            }}
+
+            QScrollBar{{
+                margin: 0px 0px 0px 50px;
+            }}
+
+            QScrollBar:horizontal {{
+                background: transparent;
+                margin: 0px 0px 0px 10px;
+            }}
+
+            QScrollBar::handle:horizontal {{
+                background: #3B4252;
+            }}
+
+            QScrollBar::add-line:horizontal {{
+                width: 0px;
+                height: 0px;
+            }}
+
+            QScrollBar::sub-line:horizontal {{
+                width: 0px;
+                height: 0px;
+            }}
+
+            QScrollBar:left-arrow:horizontal, QScrollBar::right-arrow:horizontal {{
+                background: none;
+            }}
+
+            QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal {{
+                background: none;
+            }}
+
+            QScrollBar:vertical {{
+                border: none;
+                background: #2E3440;
+                margin: 0px;
+            }}
+
+            QScrollBar::handle:vertical {{
+                background: #3B4252;
+            }}
+
+            QScrollBar::add-line:vertical {{
+                width: 0px;
+                height: 0px;
+            }}
+
+            QScrollBar::sub-line:vertical {{
+                width: 0px;
+                height: 0px;
+            }}
+
+            QScrollBar:up-arrow:vertical, QScrollBar::down-arrow:vertical {{
+                background: none;
+                border: none;
+            }}
+
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
+                background: none;
+                border: none;
+            }}
+
+
+            QLabel{{
+                font-family: "Comfortaa";
+                color: #88C0D0;
+                font-size: 50px;
+            }}
+
+            QPushButton{{
+                color: #88C0D0;
+                font-size: 50px;
+            }}
+            
+            QPushButton:focus{{
+                background-color: transparent;
+                border: none
+            }}
+            
+            QPushButton[class="rotate"]{{
+                color: #A3BE8C
+            }}
+            
+            QPushButton[class="like"]{{
+                background-color: #2E3440;
+            }}
+
+            QLabel[class="image"]{{
+                border: 1px solid #4C566A;
+            }}
+
+            QLabel[class="cropper"]{{
+                background-color: transparent;
+                border: 1px solid #A3BE8C;
+            }}
+
+            QLabel[class="test"]{{
+                background-color: orange;
+            }}
+
+            QLabel[class="welcome"]{{
+                color: #88C0D0
+            }}
+
+            QLineEdit{{
+                background-color: #2E3440;
+                color: #D8DEE9;
+                border: 1px solid #4C566A
+            }}
+
+            QLabel[class="headertext"]{{
+                color: {lolcat};
+                font-family: {headerFontFamily};
+                font-size: {headerFontSize};
+            }}
+
+            QLabel[class="liked"]{{
+                color: #88C
+            }}
+
+            QLabel[class="unliked"]{{
+                color: #88C0D0
+            }}
+        """
+        
         self.window.emergenceSituation = pyqtSignal()
         
         self.window.closeEvent = self.cleanClose
@@ -54,12 +189,16 @@ class Main:
         sys.excepthook = except_hook
         
         # Create central widget and layout
-        central = QWidget(self.window)
+        central = QWidget()
+        
+        central.setGeometry(self.window.geometry())
         
         layout = QVBoxLayout(central)
         
         # Main window should be a scrollable
         self.scrollArea = QScrollArea(central)
+        
+        # self.scrollArea.setStyleSheet("background-color: #88C0D0")
         
         # Add to screen
         layout.addWidget(self.scrollArea)
@@ -124,7 +263,7 @@ class Main:
             lambda : app.exit(1)
         ]
                 
-        stylesheet , config = change_with_config(read_file(os.path.join(os.path.expanduser("~") , ".galleryman", "styles" , "styles.txt")))
+        stylesheet , config = change_with_config(stylesheet)
         
         # Iterate through all the user's preferred icons
         for icon , color , size , font in json.loads(config.get("global" , "topBar-buttons")):            
@@ -153,7 +292,7 @@ class Main:
         
         # Read status
         status = read_file(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "galleryman.status"))
-                
+                        
         label = QLabel(contents)
             
         label.setMinimumWidth(950)
@@ -274,7 +413,7 @@ def main():
     
     parser.add_argument("--create" , dest="create" , help="Creates a new sticker pack to be used in application" , action="store_true")
     
-    parser.add_argument("--install" , dest="install" , help="Add an image to a sticker pack")
+    parser.add_argument("--install" , dest="install" , help="Add an image to a sticker pack" , nargs="+")
     
     parser.add_argument("--delete" , dest="delete" , help="Deletes a sticker pack" , action="store_true")
     
@@ -312,7 +451,27 @@ def main():
         stickerManager().createNew()
         
     elif(args.install):
-        stickerManager().addToExisting(args.install)
+        dirs = []
+        
+        stickerDir = os.path.join(os.path.expanduser("~") , ".galleryman" , "stickers")
+        
+        
+        for dir in os.listdir(stickerDir):
+            if(os.path.isdir(os.path.join(stickerDir , dir))):
+                dirs.append(dir)
+        
+        sticker = [inquirer.List(
+            "dir",
+            bcolors.OKCYAN + bcolors.HEADER + "Select A Sticker Set" ,
+            dirs)]
+    
+        res = inquirer.prompt(sticker)["dir"]
+        
+        for i in args.install:
+            try:
+                stickerManager().addToExisting(i , res)
+            except IsADirectoryError:
+                print(bcolors.OKCYAN + "\n::" , bcolors.WARNING , "Found a directory while adding sticker to the set. Ignoring...")
     
     elif(args.delete):
         stickerManager().deletePack()

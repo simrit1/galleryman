@@ -1,4 +1,3 @@
-from genericpath import isdir
 from GalleryMan.utils.initer import bcolors
 import os
 import inquirer
@@ -10,32 +9,23 @@ class stickerManager:
         pass
     
     def createNew(self):
-        print(bcolors.OKCYAN + "\n:: Enter the name of the new sticker pack: " , end="")
+        print(bcolors.OKCYAN + "\n::" , bcolors.HEADER ,  "Enter the name of the new sticker pack: " , end="")
         
         name = input()
         
         newDir = os.path.join(os.path.expanduser("~") , ".galleryman" , "stickers" , name)
         
-        os.makedirs(newDir)
+        try:
+            os.makedirs(newDir)
         
-        print(bcolors.OKCYAN + "\n::" , bcolors.HEADER + "Created an empty sticker set at {}".format(newDir) )
+            print(bcolors.OKCYAN + "\n::" , bcolors.HEADER + "Created an empty sticker set at {}".format(newDir) )
         
-    def addToExisting(self , path):
-        dirs = []
+        except:
+            
+            print(bcolors.OKCYAN + "\n::" , bcolors.FAIL + "Sticker set with this name exists!" )
+            
         
-        stickerDir = os.path.join(os.path.expanduser("~") , ".galleryman" , "stickers")
-        
-        for dir in os.listdir(stickerDir):
-            if(os.path.isdir(os.path.join(stickerDir , dir))):
-                dirs.append(dir)
-         
-        sticker = [inquirer.List(
-            "dir",
-            bcolors.OKCYAN + bcolors.HEADER + "Select A Sticker Set" ,
-            dirs)]
-    
-        res = inquirer.prompt(sticker)["dir"]
-        
+    def addToExisting(self , path , res):
         print(bcolors.OKCYAN , "::" , bcolors.HEADER , "Adding sticker to the pack {}".format(res))
         
         shutil.copyfile(os.path.join(os.getcwd() , path) , os.path.join(os.path.expanduser("~") , ".galleryman" , "stickers" , res , path))

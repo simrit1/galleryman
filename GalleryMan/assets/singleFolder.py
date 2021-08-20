@@ -2,7 +2,7 @@
 from pathlib import Path
 from GalleryMan.assets.editorButtonsHelper import QEditorHelper
 from math import ceil
-import functools, gc, json
+import functools, json
 from configparser import ConfigParser
 from random import randint
 from GalleryMan.assets.QtHelpers import Animation, PopUpMessage, QCustomButton
@@ -23,7 +23,6 @@ from PyQt5.QtGui import QCursor, QMouseEvent, QPixmap, QTransform
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QApplication,
-    QGraphicsOpacityEffect,
     QHBoxLayout,
     QLabel,
     QMainWindow,
@@ -90,6 +89,7 @@ class FindAll(QObject):
                 x = 40
 
                 y += card_height + padding
+
         
         # Add finishing touches
         inst.responser(None)
@@ -131,6 +131,8 @@ class FindAll(QObject):
         
         # Add to folder list
         inst.folders.append(self.label)
+        
+        
 
 class MakePixmap(QObject):    
     finished = pyqtSignal()
@@ -305,19 +307,7 @@ class singleFolderView():
         # Reset everything
         try:
             for i in [self.labelArea, self.name, self.go_back]:
-                opacity = QGraphicsOpacityEffect()
-
-                i.setGraphicsEffect(opacity)
-
-                animation = QPropertyAnimation(opacity, b"opacity")
-
-                animation.setStartValue(1)
-
-                animation.setEndValue(0)
-
-                animation.setDuration(200)
-
-                self.animation.addAnimation(animation)
+                self.animation.addAnimation(Animation.fadingAnimation(Animation , i , 200))
 
         except Exception as e:
             pass
@@ -352,8 +342,6 @@ class singleFolderView():
         self.animation = self.main_window = self.labelArea = self.name = None
 
         del self.animation, self.main_window, self.labelArea, self.name
-
-        gc.collect()
 
     def start(self):
         
@@ -494,9 +482,6 @@ class singleFolderView():
         
         # Reswitch to Arrow Cursor
         self.application.setCursor(Qt.ArrowCursor)
-
-        # Collect garbage (if any)
-        gc.collect()
     
     def finish(self):
         # Change the loader text to Done (yay)
@@ -692,8 +677,6 @@ class singleFolderView():
         del icon, icon_color, icon_family, icon_font_size, self.pixmap
 
         self.new_layout = second_layout
-                
-        gc.collect()
 
         self.main_window.show()
 

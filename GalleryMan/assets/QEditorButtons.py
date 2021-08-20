@@ -43,11 +43,9 @@ class Animation:
 
 
 class PaletteView:
-    def __init__(self, main_window, image, out_widget , config , callback) -> None:
+    def __init__(self, main_window, image, out_widget , config ) -> None:
         
-        # Make all args global
-        self.callback = callback
-        
+        # Make all args global        
         self.edited = False
         
         self.config = config

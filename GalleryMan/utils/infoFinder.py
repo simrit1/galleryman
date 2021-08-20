@@ -1,4 +1,4 @@
-from PyQt5.QtGui import QKeyEvent, QKeySequence, QPixmap
+from PyQt5.QtGui import QKeySequence, QPixmap
 from GalleryMan.assets.QtHelpers import Animation, PopUpMessage
 import os
 from PIL import Image

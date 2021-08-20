@@ -25,8 +25,10 @@ class CustomLabel(QLabel):
 class stickersViewer:
     STOCK_PATH = os.path.join(os.path.expanduser("~") , ".galleryman" , "stickers")
     
-    def __init__(self , parent , renderArea , scrollArea: QScrollArea):
+    def __init__(self , parent , renderArea , scrollArea: QScrollArea , callback):
         self.inGraphics = False
+        
+        self.callback = callback
         
         # Make args global
         self.parent = parent 
@@ -36,6 +38,8 @@ class stickersViewer:
         self.scrollArea = scrollArea
         
         self.original = scrollArea.widget()
+        
+        self.originalGeo = scrollArea.widget().geometry()
         
         self.grandparentsLayout = QHBoxLayout()
         
@@ -90,13 +94,16 @@ class stickersViewer:
         
         self.cross.setAlignment(Qt.AlignCenter | Qt.AlignCenter)
         
-        self.cross.clicked.connect(self.callback)
+        self.cross.clicked.connect(self._callback)
         
         self.grandparentsLayout.addWidget(self.cross)
         
         self.widget.setLayout(self.grandparentsLayout)
         
         self.scrollArea.setWidget(self.widget)
+        
+        print(scrollArea.widget().size())
+        
         
         
     def initStock(self):
@@ -184,7 +191,7 @@ class stickersViewer:
             
             self.menu.addMenu(name , inputBox)
             
-        self.menu.move(QPoint(2000 , 0))
+        self.menu.move(QPoint(self.graphics.width() + 200 , 0))
         
         self.menu.show()
         
@@ -359,23 +366,10 @@ class stickersViewer:
         self.inGraphics = False
 
         
+    def _callback(self):
+        self.scrollArea.widget().setGeometry(self.originalGeo)
         
-    def callback(self):
-        def run_second():
-            self.scrollArea.hide()
-            
-            self.scrollArea.takeWidget()
-            
-            self.scrollArea.setWidget(self.original)
-            
-            self.animation = Animation.fadingAnimation(Animation , self.scrollArea.parent() , 200 , True)
-            
-            self.animation.finished.connect(self.scrollArea.show)
-                    
-            self.animation.start()
         
-        self.animation = Animation.fadingAnimation(Animation , self.scrollArea.parent() , 200)
+        print(self.originalGeo)
         
-        self.animation.finished.connect(run_second)
-        
-        self.animation.start()
+        self.callback(self.originalGeo)

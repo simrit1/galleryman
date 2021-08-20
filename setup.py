@@ -12,6 +12,6 @@ setup(
             'galleryman = GalleryMan.main:main',
         ],
     },
-    install_requires=['pyqt5' , 'pillow' , 'numpy' , 'functools' , 'configparser' , 'pathlib'],
+    install_requires=['pyqt5' , 'pillow' , 'numpy' , 'configparser' , 'pathlib' , 'inquirer' , 'shutil' , 'argparser'],
     packages=find_packages()
 )

@@ -68,7 +68,7 @@ class ImageCropper(QGraphicsView):
         self.originalResponser = mainWindow.resizeEvent
         
         # Create a scene which will contain all the images and rest
-        self.setGeometry(QRect(0 , 0 , 1980 , 1080))
+        self.setGeometry(mainWindow.geometry())
         
         self.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         

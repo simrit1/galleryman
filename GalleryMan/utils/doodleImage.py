@@ -16,8 +16,10 @@ class ClickableLabel(QLabel):
     def mousePressEvent(self, a0: QMouseEvent) -> None:
         self.clicked.emit()
         
-        return super().mousePressEvent(a0)
-    
+        try:        
+            return QLabel.mousePressEvent(self , a0)
+        except:
+            return None
     
 
 class customLineItem(QGraphicsLineItem):
@@ -341,7 +343,7 @@ class doodleShape:
         
         self.menu.addMenu("Other options" , layout , True)   
             
-        self.menu.move(QPoint(2000 , 0))
+        self.menu.move(QPoint(self.parent.width() + 200 , 0))
         
         self.menu.show()
         

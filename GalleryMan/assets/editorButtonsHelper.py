@@ -336,12 +336,11 @@ class QEditorHelper:
 
     def moveToTrash(self, directory):
         # Relace the directory to the app's trash folder
+        
         try:
             os.replace(
                 directory,
-                "/home/strawhat54/.galleryman/data/trashFiles/{}".format(
-                    directory[directory.rindex("/") + 1 :]
-                ),
+                os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "trashFiles" , directory[directory.rindex("/") + 1 :])
             )
         except:
             print(bcolors.WARNING + "The image may have been deleted or moved. Exiting...")
@@ -483,6 +482,7 @@ class ImageEditButtons:
         
         self.msg = "app"
         
+        self.originalGeo = outParent.widget().geometry()
         
         # Make all the args global
         self.parent = parent
@@ -500,6 +500,8 @@ class ImageEditButtons:
         self.renderArea = renderArea
 
         self.config = config
+        
+        self.original = outParent.widget().layout()
 
     def rotater(self):
         # Get the preffered icons
@@ -660,7 +662,7 @@ class ImageEditButtons:
 
     def stickerImage(self):
         # Create a sticker viewer instance
-        myStickers = stickersViewer(self.parent , self.renderArea, self.outParent)
+        myStickers = stickersViewer(self.parent , self.renderArea, self.outParent , self.callback)
         
         # Show the stock
         myStickers.initStock()
@@ -725,7 +727,6 @@ class ImageEditButtons:
             os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png"),
             self.renderArea,
             self.config,
-            lambda: print("NONE"),
         )
         
         # Get respective functions and make layout
@@ -735,7 +736,7 @@ class ImageEditButtons:
             lambda: view.increaseBrightness(),
             lambda: view.increaseContrast(),
             lambda: view.increaseExposure(),
-            lambda: print("LOLCAT"),
+            self.callback
         ]
         
         layout = QLayoutMaker(icons, func).make()
@@ -796,7 +797,7 @@ class ImageEditButtons:
 
         self.animation.start()
 
-    def callback(self):
+    def callback(self , geometry=None):
         
         self.icons = loads(self.config.get("singleFolder", "editButtons-icons"))
 
@@ -811,15 +812,18 @@ class ImageEditButtons:
             self.doodleImage,
             self.addTextToImage,
             self.imageAdjustment,
-            lambda : print("LOLCAT~")
+            lambda: self.swapLayout(self.original)
         ]
 
         self.layout = QLayoutMaker(self.icons, self.functions).make()
 
         self.new_label = QLabel()
-
+        
+        # if(geometry == None):
         self.new_label.setGeometry(self.outParent.takeWidget().geometry())
-
+        # else:
+        #     self.new_label.setGeometry(geometry)    
+        
         self.new_label.setLayout(self.layout)
 
         self.outParent.setWidget(self.new_label)
@@ -1210,7 +1214,7 @@ class textInImage:
             self.menu.addMenu(name , inputLabel)
         
         # Move the menu to outside of the screen
-        self.menu.move(QPoint(self.graphics.width() + 100, 0))
+        self.menu.move(QPoint(self.graphics.width() + 200, 0))
         
         # Move it inside the screen with animation
         self.animation = Animation.movingAnimation(
@@ -1269,8 +1273,7 @@ class textInImage:
         
         self.openNewPos = QPoint(self.parent.width() - self.menu.width() , 0)
         
-        # TODO: Change ME!
-        if(self.menu.pos().x() != self.graphics.width() + 100):
+        if(self.menu.pos().x() != self.graphics.width() + 200):
             self.animation = Animation.movingAnimation(Animation , self.menu , self.openNewPos , 200)
             
             self.animation.start()

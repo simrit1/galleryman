@@ -1,14 +1,32 @@
 from configparser import ConfigParser
 import functools , json , os , pathlib
 from random import randint
-from PyQt5.QtCore import QObject, QParallelAnimationGroup, QPoint, QRect, QSize, QThread, pyqtSignal
+from PyQt5.QtCore import QObject, QParallelAnimationGroup, QPoint, QRect, QSize, QThread, QTimer, pyqtSignal, pyqtSlot
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QDialog, QHBoxLayout, QLabel, QMainWindow, QScrollArea, QVBoxLayout, QWidget
-from PyQt5.QtGui import QColor, QCursor, QMovie, QPixmap
+from PyQt5.QtWidgets import QDialog, QHBoxLayout, QLabel, QMainWindow, QPushButton, QScrollArea, QVBoxLayout, QWidget
+from PyQt5.QtGui import QCursor, QPixmap
 from GalleryMan.assets.singleFolder import CustomLabel, singleFolderView
-from GalleryMan.views.directoryView import QDoublePushButton
-from math import ceil
 from GalleryMan.assets.QtHelpers import Animation, PopUpMessage, QCustomButton
+
+
+class QDoublePushButton(QPushButton):
+    doubleClicked = pyqtSignal()
+    clicked = pyqtSignal()
+
+    def __init__(self, *args, **kwargs):
+        QPushButton.__init__(self, *args, **kwargs)
+        self.timer = QTimer()
+        self.timer.setSingleShot(True)
+        self.timer.timeout.connect(self.clicked.emit)
+        super().clicked.connect(self.checkDoubleClick)
+
+    @pyqtSlot()
+    def checkDoubleClick(self):
+        if self.timer.isActive():
+            self.doubleClicked.emit()
+            self.timer.stop()
+        else:
+            self.timer.start(250)
 
 class PixmapHeaderMaker(QObject):
     finished = pyqtSignal()
@@ -98,7 +116,7 @@ class Worker(QObject):
                         
         self.finished.emit()
 
-class imagesFolder():
+class imagesFolder:
     """Creates The UI"""
 
     def __init__(
@@ -225,10 +243,9 @@ class imagesFolder():
         self.folderHeaderText.show()
 
         # Get all the prevented directory selected during the startup
-        # self.prevented_dirs = json.loads(
-        #     open("/home/strawhat54/.config/galleryman/data/scan_dirs.txt").read()
-        # )
-        self.prevented_dirs = []
+        self.prevented_dirs = json.loads(
+            open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "scan_dirs.txt")).read()
+        )
 
         # Create x and y variables which will determine the position of the folder's card
         x, y = 40, self.folderStartValue
@@ -289,6 +306,11 @@ class imagesFolder():
 
         # Final touches, call the responser to position the cards accurately, if it's not
         self.responser(None)
+
+        with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "galleryman.status") , "w") as f:
+            f.write("REGISTERED")
+            
+        
 
         # End of the function by returning True
         return True
@@ -472,12 +494,7 @@ class imagesFolder():
 
         Returns:
             str: [description]
-        """        
-        if(dir == "/home/strawhat54/.config/galleryman/data/likedPhotos.txt"):
-            # with open("/home/strawhat54/.config/galleryman/data/likedPhotos.txt" , 'r') as f:
-            #     dirs = json.loads(f.read())
-            
-            return  None
+        """       
 
         # Iterate through all the files and folders in the directory
         for i in pathlib.Path(dir).rglob("*"):
@@ -614,7 +631,7 @@ class imagesFolder():
             ))
         except:
             pass    
-        
+                
     def pushDown(self):
         # Pushing down effect of the info
         self.anim = QParallelAnimationGroup()
@@ -773,18 +790,18 @@ class imagesFolder():
         padding = int(self.config.get("folderPage", "folders-padding"))
         
         self.trashItem = []
-        
-        for file in os.listdir('/home/strawhat54/.galleryman/data/trashFiles/'):
+            
+        for file in os.listdir(os.path.join(os.path.expanduser('~') , ".galleryman" , "data" , "trashLogs.txt")):
             label = CustomLabel(self.trashFoldersLayout , Qt.RightButton)
             
             label.setGeometry(QRect(
                 x , y,
                 width , height
             ))
+                        
+            label.clicked.connect(functools.partial(self.showDeleteOptions , os.path.join(os.path.expanduser('~') , ".galleryman" , "data" , "trashFiles" , file)) , label)
             
-            label.clicked.connect(functools.partial(self.showDeleteOptions , "/home/strawhat54/.galleryman/data/trashFiles/" + file , label))
-            
-            label.setPixmap(QPixmap("/home/strawhat54/.galleryman/data/trashFiles/" + file))
+            label.setPixmap(QPixmap(os.path.join(os.path.expanduser('~') , ".galleryman" , "data" , "trashFiles" , file)))
             
             label.setScaledContents(True)
             
@@ -887,9 +904,9 @@ class imagesFolder():
         self.options.setLayout(layout)
         
         self.options.show()
-        
+                
     def restoreImage(self , directory , parent):
-        with open('/home/strawhat54/.galleryman/data/trashLogs.txt') as f:
+        with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "trashLogs.txt")) as f:
             trashFiles = dict(json.loads(f.read()))
             
             
@@ -992,8 +1009,6 @@ class imagesFolder():
         
         self.animation.start()
         
-
-
 
 
 

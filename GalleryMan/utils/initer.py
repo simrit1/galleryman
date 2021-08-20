@@ -1,5 +1,3 @@
-import subprocess
-import sys
 import os
 
 class bcolors:
@@ -23,17 +21,56 @@ class Initer:
         print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.OKGREEN + "Initing GalleryMan... Please Wait" + bcolors.ENDC))
             
         print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.OKGREEN + "Creating files..." + bcolors.ENDC))
-                
-        with open(os.path.join(os.path.expanduser("~") , ".config" , "galleryman" , "config.ini") , "w") as f:
-            with open(os.path.join("GalleryMan" , "config.ini")) as sample:    
-                f.write(sample.read())
-        
-        print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.HEADER + "Config file is located at {}".format(os.path.join(os.path.expanduser("~") , ".config" , "galleryman" , "config.ini")) + bcolors.ENDC))
-        
-        
-        for files in [os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "trashLogs.txt")]:
-            with open(files , "w") as file:
+            
+        res = True    
+                        
+        try:
+            with open(os.path.join(os.path.expanduser("~") , ".config" , "galleryman" , "config.ini") , "r") as f:
                 pass
+            
+            print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.WARNING + "You alread have a config file created. Overwrite? (y/[n]) ") + bcolors.ENDC , end="")
+            
+            res = input()
+            
+            if(res == "y"):
+                res = True
+            else:
+                res = False
+                
+        except:
+            
+            pass
         
+        if(res):
+            try:
+                os.makedirs(os.path.join(os.path.expanduser("~") , ".config" , "galleryman"))
+            except:
+                pass
+            
+            with open(os.path.join(os.path.expanduser("~") , ".config" , "galleryman" , "config.ini") , "w") as f:
+
+                with open(os.path.join(os.path.abspath("."), "GalleryMan" , "config.ini")) as sample:    
+                    f.write(sample.read())
+        
+            print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.OKGREEN + "Config file is located at {}".format(os.path.join(os.path.expanduser("~") , ".config" , "galleryman" , "config.ini")) + bcolors.ENDC))
+        
+        try:
+            os.makedirs(os.path.join(os.path.expanduser("~") , ".galleryman" , "data"))
+        except:
+            pass
+        
+        try:
+            os.makedirs(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "trashFiles"))
+        except:
+            pass
+        
+        for files in [os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "trashLogs.txt") , os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "likedFolders.txt") , os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "scan_dirs.txt")]:
+            with open(files , "w") as file:
+                file.write("[]")
+        
+        with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "galleryman.status") , "w") as f:
+            f.write("NOT REGISTERED")
+            
+    
         print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.OKGREEN + "Completed! Run `galleryman` to start the application" + bcolors.ENDC))
     

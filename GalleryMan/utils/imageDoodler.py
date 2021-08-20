@@ -130,7 +130,7 @@ class doodleImageItems:
     
     def removeMenu(self, startAni):
         self.animation = Animation.movingAnimation(
-            Animation, self.menu, QPoint(2000, 0), 200
+            Animation, self.menu, QPoint(self.graphics.width() + 200, 0), 200
         )
         
         self.menu = QSliderMenu(self.parent)
@@ -219,9 +219,9 @@ class doodleImageItems:
             
             self.tooltiptimer.setSingleShot(True)
             
-            self.tooltiptimer.start(2000)
-            
             self.tooltiptimer.timeout.connect(self.hideToolTip)
+            
+            self.tooltiptimer.start(2000)
             
             if(not withoutToolTip):
             
@@ -262,13 +262,15 @@ class doodleImageItems:
             self.animation = Animation.fadingAnimation(Animation , self.tooltip , 300)
             
             self.animation.start()
-        except:
+        except Exception as e:
             pass
         
     def responser(self , event):
         if(self.parent.geometry() == self.original): return QGraphicsView.paintEvent(self.graphics , event)
         
         self.original = self.parent.geometry()
+        
+        self.graphics.setFixedSize(self.parent.size())
         
         try:
             self.startAni.move(QPoint(
@@ -280,8 +282,7 @@ class doodleImageItems:
         
         self.openNewPos = QPoint(self.parent.width() - self.menu.width() , 0)
         
-        # TODO: Change ME!
-        if(self.menu.pos().x() != 2000):
+        if(self.menu.pos().x() != self.graphics.width() + 200):
             self.animation = Animation.movingAnimation(Animation , self.menu , self.openNewPos , 200)
             
             self.animation.start()
@@ -359,17 +360,8 @@ class doodleFreeHand(doodleImageItems):
         
         self.continueNext.activated.connect(self.printOut)
 
-        with open("/home/strawhat54/.galleryman/data/helpReq.txt") as f:
-            data = loads(f.read())
         
-        if(data["freeHand"] == "True"):
-            self.showHelp(withoutToolTip = True)
-            
-        # msg = PopUpMessage().new_msg(self.parent , "TIP: Drag Mouse To Draw On Image" , 500)
-        
-        # msg.setParent(None)
-        
-        # self.scene.addWidget(msg)
+        self.showHelp(withoutToolTip = True)
             
     def _reset(self, _):
         self.pressed = False
@@ -465,7 +457,7 @@ class doodleFreeHand(doodleImageItems):
         self.menu.show()
         
         # Move the menu outside the screen
-        self.menu.move(QPoint(2000, 0))
+        self.menu.move(QPoint(self.graphics.width() + 200 , 0))
         
         # Move it inside with a animation
         self.animation = Animation.movingAnimation(
@@ -561,7 +553,7 @@ class doodlerectItem(doodleImageItems):
         
         
         
-        self.pixmap = self.scene.addPixmap(QPixmap('os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")'))
+        self.pixmap = self.scene.addPixmap(QPixmap(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")))
 
         def updateConfig(Sclass , label: QLineEdit):
             if(Sclass != ""): self.config[Sclass] = label.text()
@@ -642,7 +634,7 @@ class doodlerectItem(doodleImageItems):
             
             self.startAni.hide()
 
-            self.menu.move(QPoint(2000, 0))
+            self.menu.move(QPoint(self.graphics.width() + 200, 0))
 
             self.animation = Animation.movingAnimation(
                 Animation, self.menu, self.openNewPos, 300
@@ -700,7 +692,7 @@ class doodlerectItem(doodleImageItems):
         self.continueNext.setKey(QKeySequence())
         
     def hideMenu(self):
-        self.animation = Animation.movingAnimation(Animation , self.menu , QPoint(2000 , 0) , 200)
+        self.animation = Animation.movingAnimation(Animation , self.menu , QPoint(self.graphics.width() + 200 , 0) , 200)
         
         self.animation.start()
         
@@ -815,10 +807,12 @@ class doodleLineItem(doodleImageItems):
         self.graphics.paintEvent = self.responser
         
         self.showHelp("Here is your line" , move=QPointF(200 , 370))
+        
+        self.updateStylings()
 
     def askForPos(self, inputt: QLineEdit, cordinates: QPoint):
         self.animation = Animation.movingAnimation(
-            Animation, self.menu, QPoint(2000, 0), 300
+            Animation, self.menu, QPoint(self.graphics.width() + 200, 0), 300
         )
 
         self.animation.start()
@@ -839,7 +833,7 @@ class doodleLineItem(doodleImageItems):
         
         self.animation.addAnimation(Animation.fadingAnimation(Animation , self.outerLabel , 300 , True))
         
-        self.animation.addAnimation(Animation.movingAnimation(Animation , self.menu , QPoint(2000 , 0) , 300))
+        self.animation.addAnimation(Animation.movingAnimation(Animation , self.menu , QPoint(self.graphics.width() + 200 , 0) , 300))
         
         self.animation.start()
 
@@ -940,7 +934,7 @@ class doodleEllipse(doodleImageItems):
 
         self.openNewPos = QPoint(self.parent.width() - self.menu.width() , 0)
 
-        self.originalPos = QPoint(2000, 0)
+        self.originalPos = QPoint(self.graphics.width() + 200, 0)
         
         self.original = self.parent.width()
 
@@ -1074,7 +1068,7 @@ class doodleEllipse(doodleImageItems):
         )
         
     def hideMenu(self):
-        self.animation = Animation.movingAnimation(Animation , self.menu , QPoint(2000 , 0) , 200)
+        self.animation = Animation.movingAnimation(Animation , self.menu , QPoint(self.graphics.width() + 200 , 0) , 200)
         
         self.animation.start()
         
@@ -1296,7 +1290,7 @@ class doodleImage:
 
     def removeMenu(self, startAni):
         self.animation = Animation.movingAnimation(
-            Animation, self.menu, QPoint(2000, 0), 200
+            Animation, self.menu, QPoint(self.graphics.width() + 200, 0), 200
         )
         
         self.menu = QSliderMenu(self.parent)
@@ -1412,7 +1406,7 @@ class doodleImage:
 
         self.menu.show()
 
-        self.menu.move(QPoint(2000, 0))
+        self.menu.move(QPoint(self.graphics.width() + 200, 0))
 
         self.animation = Animation.movingAnimation(
             Animation, self.menu, QPoint(1900 - self.menu.width(), 0), 300

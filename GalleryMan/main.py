@@ -395,6 +395,17 @@ class Main:
     
     def cleanClose(self , event: QCloseEvent):
         return QMainWindow.closeEvent(self.window , event)
+    
+def checkIfInited():
+    for i in [os.path.join(os.path.expanduser("~") , ".config" , "galleryman" , "config.ini") , os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "trashLogs.txt") , os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "likedFolders.txt") , os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "scan_dirs.txt") , os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "galleryman.status")]:        
+        if(not os.path.isfile(i)):
+            print(bcolors.OKCYAN + "\n::" , bcolors.FAIL + "It Looks Like You Havnt Initialize GalleryMan")
+            
+            print(bcolors.OKCYAN + "\n::" , bcolors.OKGREEN + "HELP: Run `galleryman --init` To Initialize GalleryMan")
+            
+            exit(0)
+            
+            
         
 def main():
     app = Main()
@@ -431,12 +442,15 @@ def main():
         Initer().init()
         
     elif(args.show):
+        checkIfInited()
+        
         directory = os.path.abspath(args.show)
         
         if(os.path.isfile(directory)):        
             app.createApp(True , directory)
         else:
             print(bcolors.FAIL + "The path provided is not correct. Please check it again. \nExiting...")
+            
     
     elif(args.list):
         show_list()
@@ -477,4 +491,8 @@ def main():
         stickerManager().deletePack()
     
     else:
+        checkIfInited()
+        
         app.createApp()
+        
+        

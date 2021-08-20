@@ -1,3 +1,4 @@
+import urllib.request
 import os
 
 class bcolors:
@@ -48,11 +49,13 @@ class Initer:
                 pass
             
             with open(os.path.join(os.path.expanduser("~") , ".config" , "galleryman" , "config.ini") , "w") as f:
+                with urllib.request.urlopen('https://raw.githubusercontent.com/0xsapphir3/galleryman/main/GalleryMan/config.ini') as response:
+                
+                    f.write(bytes(response.read()).decode("utf-8"))
 
-                with open(os.path.join(os.path.abspath("."), "GalleryMan" , "config.ini")) as sample:    
-                    f.write(sample.read())
-        
+                        
             print("{} {}".format(bcolors.OKCYAN + bcolors.BOLD + "\n::" + bcolors.ENDC , bcolors.OKGREEN + "Config file is located at {}".format(os.path.join(os.path.expanduser("~") , ".config" , "galleryman" , "config.ini")) + bcolors.ENDC))
+        
         
         try:
             os.makedirs(os.path.join(os.path.expanduser("~") , ".galleryman" , "data"))

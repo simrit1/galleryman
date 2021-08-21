@@ -67,6 +67,12 @@ class Initer:
         except:
             pass
         
+        try:
+            os.makedirs(os.path.join(os.path.expanduser("~") , ".galleryman" , "stickers"))
+        except:
+            pass
+        
+        
         for files in [os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "trashLogs.txt") , os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "likedFolders.txt") , os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "scan_dirs.txt")]:
             with open(files , "w") as file:
                 file.write("[]")

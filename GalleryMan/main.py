@@ -167,9 +167,7 @@ class Main:
                 color: #88C0D0
             }}
         """
-        
-        self.window.emergenceSituation = pyqtSignal()
-        
+                
         self.window.closeEvent = self.cleanClose
         
         # Set window title
@@ -183,7 +181,8 @@ class Main:
         # Prevent exiting of the program when a error breaks
         def except_hook(cls, exception, traceback):
             # sys.__excepthook__(cls, exception, traceback)
-           raise AttributeError(exception).with_traceback(traceback)
+        #    raise AttributeError(exception).with_traceback(traceback)
+            pass
             
         # Use a custom function to handle errors
         sys.excepthook = except_hook
@@ -194,12 +193,12 @@ class Main:
         central.setGeometry(self.window.geometry())
         
         layout = QVBoxLayout(central)
+                
+        layout.setContentsMargins(0 , 0 , 0 , 0)
         
         # Main window should be a scrollable
         self.scrollArea = QScrollArea(central)
-        
-        # self.scrollArea.setStyleSheet("background-color: #88C0D0")
-        
+                
         # Add to screen
         layout.addWidget(self.scrollArea)
         
@@ -410,7 +409,7 @@ def main():
     
     parser.add_argument("--list" , dest="list" , action="store_true" , help="Show all the directories that are prevent to be scanned")
     
-    parser.add_argument("--add" , dest="add" , action="store_true" , help="Add A New Directory To the Scanning List")
+    parser.add_argument("--add" , dest="add", help="Add A New Directory To the Scanning List")
     
     parser.add_argument("--remove" , dest="remove" , help="Remove A New Directory To the Scanning List" , action="store_true")
                 

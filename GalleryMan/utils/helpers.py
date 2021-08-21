@@ -245,28 +245,24 @@ def show_list():
         for index , directory in enumerate(data):
             print("{}: {}".format(bcolors.OKCYAN + str(index) , bcolors.OKGREEN + directory))
 
-def addToScanDirectory(self):
-    print(bcolors.OKGREEN + "Enter the folder path (Press enter to select current directory): ", end="")
+def addToScanDirectory(dir):
     
-    directory = input()
-    
-    if(directory in ["." , ""]):
-        directory = os.getcwd()
+    directory = os.path.abspath(dir)
         
-    elif(directory == "~"):
-        directory= os.path.expanduser("~")
-        
-    print(bcolors.WARNING + "\nAdding {} to scanning list".format(directory))
+    print(bcolors.OKCYAN + bcolors.BOLD + "\n::" , bcolors.ENDC ,  bcolors.WARNING + "{} won't be scanned!".format(directory))
     
     with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "scan_dirs.txt")) as f:
         curr = loads(f.read())
         
     curr.append(directory)
     
-    print(bcolors.OKGREEN + "\nSuccessfully added to scanning list.")
+    with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "scan_dirs.txt") , "w") as f:
+        f.write(dumps(curr))
+    
+    print(bcolors.OKCYAN + bcolors.BOLD + "\n::" , bcolors.ENDC ,  bcolors.OKGREEN + "Done!")
     
 def removeFromScanDirectory(directory):
-    print(bcolors.OKGREEN + "Enter the folder path (Press enter to select current directory): ", end="")
+    print(bcolors.OKCYAN + bcolors.BOLD + "\n::" , bcolors.ENDC , bcolors.OKGREEN + "Enter the folder path (Press enter to select current directory): ", end="")
     
     directory = input()
     
@@ -276,20 +272,21 @@ def removeFromScanDirectory(directory):
     elif(directory == "~"):
         directory= os.path.expanduser("~")
         
-    print(bcolors.WARNING + "\nRemoving {} from scanning list".format(directory))
+    print(bcolors.OKCYAN + bcolors.BOLD + "\n::" , bcolors.ENDC , bcolors.WARNING + "{} now will be scanned!".format(directory))
     
     with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "scan_dirs.txt")) as f:
         curr = loads(f.read())
         
     try:
         curr.remove(directory)
-        
-        print(bcolors.OKGREEN + "\nSuccessfully added to scanning list.")
+    
     except:
         print(bcolors.FAIL + "\nCannot remove directory from the scanning list. Aborting...")
         
         print(bcolors.FAIL + "HELP: Directory not in scanning list")
-        
+    
+    with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "scan_dirs.txt")) as f:
+        f.write(dumps(curr))
         
     
 class LongProcessor(QObject):

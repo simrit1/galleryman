@@ -42,9 +42,13 @@ class FindAll(QObject):
     request_label = pyqtSignal(str)
     
     label = None
+    
 
     def run(self , inst , dirs , card_width , card_height , padding , color_mode , colors , x , y):
         # A variable to keep track of the number of cards
+        with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "scan_dirs.txt")) as f:
+            self.data = json.loads(f.read())
+            
         done = 0
         
         for i in dirs:     
@@ -62,6 +66,9 @@ class FindAll(QObject):
                 "jpeg",
             ]:
                 continue
+            
+            for pre in self.data:
+                if(pre in i): print("OH NO!")
                         
             # Add done
             done = done + 1
@@ -812,3 +819,10 @@ class singleFolderView():
         self.topbar.setParent(self.application)
 
         self.animations.start()
+        
+        try:
+            self.loader.setGeometry(self.application.geometry())
+            
+        except:
+            pass
+        

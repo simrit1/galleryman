@@ -47,6 +47,24 @@
 
 <hr>
 
+# Notes:
+
+- Notes on how to use doodle images: 
+
+     - Free hand - Drag the mouse to draw lines. Press Ctrl+S to save the drawing. Press Ctrl+Z and Ctrl+Y to undo and redo, respectively. 
+
+     - Rectangle - Drag the rectangle with your mouse and then place at your own position.
+
+     - Line - Everying is in the Menu. Press Ctrl+S to save.
+
+     - Circle - Same as that of line
+
+     - Line connection - Click on a point of init a line and move the mouse to increase the size. Rest will be displayed on the screen.
+
+# Screenshot:
+
+<img src="preview.png">   
+
 # Pull Requests
 
 - Pull Requests Are Welcome!

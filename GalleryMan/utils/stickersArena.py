@@ -312,6 +312,7 @@ class stickersViewer:
         if(not self.inGraphics):
             return
         
+        self.shortcut.setKey(QKeySequence())
         
         # Callback
         def callback():

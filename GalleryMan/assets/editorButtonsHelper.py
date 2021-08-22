@@ -163,11 +163,14 @@ class QEditorHelper:
         out_widget,
         callback,
         dir: str,
+        main_window: QLabel
     ) -> None:
         
+        # Make every args global
         self.callback = callback
         
-        # Make every args global
+        self.main_window = main_window
+        
         self.parent = parent
 
         self.application = application
@@ -409,7 +412,7 @@ class QEditorHelper:
         self.swapLayout(self.layout)
         
     def closeWithSave(self , directory):
-        dialog = QDialog(self.application)
+        self.dialog = QDialog(self.application)
         
         buttonsLayout = QHBoxLayout()
         
@@ -446,16 +449,21 @@ class QEditorHelper:
         
         buttonsLayout.addWidget(discard , Qt.AlignRight)
         
-        dialog.setLayout(buttonsLayout)
+        self.dialog.setLayout(buttonsLayout)
         
-        dialog.setFixedSize(500 , 100)
+        self.dialog.setFixedSize(500 , 100)
         
-        dialog.exec_()
+        self.dialog.exec_()
         
     def discard(self):
-        print(bcolors.WARNING + "Image from being saved was discarded. Exiting")
-        
-        exit(1)
+        if("--show" in sys.argv):
+            print(bcolors.WARNING + "Image from being saved was discarded. Exiting")
+            
+            exit(1)
+            
+        self.dialog.hide()
+            
+        self.callback()
         
     def save(self):
         parent = self.dir[:self.dir.rindex("/")]
@@ -464,9 +472,14 @@ class QEditorHelper:
         
         os.replace(os.path.join("GalleryMan" , "assets" , "processed_image.png" ) , os.path.join(parent , file))
         
-        print(bcolors.OKCYAN + "\nImage was saved as {}. Exiting...\n".format(os.path.join(parent , file)))
+        if("--show" in sys.argv):                
+            print(bcolors.OKCYAN + "\nImage was saved as {}. Exiting...\n".format(os.path.join(parent , file)))
+            
+            exit(1)
+            
+        self.dialog.hide()
         
-        exit(1)
+        self.callback()
 
 
 class ImageEditButtons:
@@ -1182,6 +1195,8 @@ class textInImage:
         self.animation.finished.connect(callback)
         
         self.animation.start()
+        
+        self.shortcut.setKey(QKeySequence())
 
     def manageMenu(self):
         stylesheet = """

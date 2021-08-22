@@ -180,9 +180,7 @@ class Main:
         
         # Prevent exiting of the program when a error breaks
         def except_hook(cls, exception, traceback):
-            # sys.__excepthook__(cls, exception, traceback)
-        #    raise AttributeError(exception).with_traceback(traceback)
-            pass
+            sys.__excepthook__(cls, exception, traceback)
             
         # Use a custom function to handle errors
         sys.excepthook = except_hook

@@ -82,9 +82,7 @@ class FirstPage:
         self.window = window
 
         application.resizeEvent = self.responser
-
-        self.frame = QLabel()
-
+        
         self.main_layout = QHBoxLayout()
 
         self.isdir_open = False
@@ -93,7 +91,6 @@ class FirstPage:
 
         self.scans = set()
 
-        self.frame.setGeometry(QRect(0, 0, 1980, 500))
 
         self.main_layout.setSpacing(4)
 
@@ -197,7 +194,7 @@ class FirstPage:
         )
 
         # Geometry and some stylings
-        self.more_text.setGeometry(QRect(550, 100, 1980, 100))
+        self.more_text.setGeometry(QRect(550, 100, self.application.height(), 100))
 
         self.more_text.setStyleSheet("font-size: 20px")
 

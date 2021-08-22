@@ -9,6 +9,7 @@ from PyQt5.QtCore import (
     QObject,
     QParallelAnimationGroup,
     QPoint,
+    QPointF,
     QRect,
     QRectF,
     QSize,
@@ -25,6 +26,7 @@ from PyQt5.QtGui import (
     QPainterPath,
     QPen,
     QPixmap,
+    QPolygonF,
 )
 from PyQt5.QtWidgets import (
     QCheckBox,
@@ -88,7 +90,7 @@ class doodleImageItems:
         
         self.graphics.horizontalScrollBar().valueChanged.connect(partial(self.handle , "horizontal"))
 
-        self.graphics.setGeometry(QRect(0 , 0 , 1980 , 1080))
+        self.graphics.setGeometry(QRect(0 , 0 , self.parent.width() , self.parent.height()))
         
         self.graphics.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         
@@ -113,6 +115,8 @@ class doodleImageItems:
         self.continueNext = QShortcut(QKeySequence("Ctrl+S") , self.parent)
                 
         self.graphics.show()
+        
+        self.menu.hide()
         
     def handle(self , scroll , value):
         if(scroll == "vertical"):
@@ -291,8 +295,10 @@ class doodleImageItems:
         return QGraphicsView.paintEvent(self.graphics , event)
     
 class doodleFreeHand(doodleImageItems):
-    def __init__(self, parent, renderArea, outParent):
+    def __init__(self, parent, renderArea, outParent , dir):
         super().__init__(parent, renderArea, outParent)
+        
+        self.dir = dir
         
     
     def showGraphics(self):
@@ -301,6 +307,8 @@ class doodleFreeHand(doodleImageItems):
         self.styles = []
         
         self.deleted = []
+                
+        self.continueNext.activated.connect(self.drawPointsOnImage)
         
         # Config to store all the details of the new drawing
         self.config = {
@@ -358,10 +366,9 @@ class doodleFreeHand(doodleImageItems):
         # Stop drawing when the user stops stops dragging
         self.graphics.mouseReleaseEvent = self._reset
         
-        self.continueNext.activated.connect(self.printOut)
-
+        # self.showHelp(withoutToolTip = True)
         
-        self.showHelp(withoutToolTip = True)
+        self.menu.hide()
             
     def _reset(self, _):
         self.pressed = False
@@ -494,49 +501,35 @@ class doodleFreeHand(doodleImageItems):
         
         return super().redoHandler()
     
-    def printOut(self):
-        drawing = ImageDraw.ImageDraw(self.image)
-    
-        for (
-            x,
-            y,
-            width,
-            height,
-            color,
-            outlineColor,
-            outlineWidth,
-            border_radius,
-        ) in self.styles:
-            
-            outlineWidth = 0 if int(outlineWidth) < 0 else int(outlineWidth)
-
-            x, y, width, height = int(x), int(y), int(width), int(height)
-
-            drawing.rounded_rectangle(
-                (x, y, x + width, y + height),
-                border_radius,
-                color,
-                outlineColor,
-                outlineWidth,
-            )
-
-        self.image.save(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png"))
-
-        self.renderArea.set_pixmap(QPixmap(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")))
-
-        self.animation = Animation.fadingAnimation(Animation, self.graphics, 300)
-
+    def drawPointsOnImage(self):
+        # Get the geometry
+        width , height = Image.open(self.dir).size
+        
+        print("LOLCAT")
+        
+        # Get the geometry
+        area = QRect(0 , 0 , width , height)
+        
+        # Parse the image 
+        image = QImage(area.size(), QImage.Format_ARGB32_Premultiplied)
+        
+        painter = QPainter(image)
+        
+        self.scene.render(painter, QRectF(image.rect()), QRectF(area))
+        
+        painter.end()
+        
+        image.save(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png"))
+        
+        self.animation = Animation.fadingAnimation(Animation , self.graphics , 200)
+        
         self.animation.finished.connect(self.graphics.hide)
-
+        
         self.animation.start()
         
-        # Reset Stylings
-        self.styles = {}
+        self.renderArea.set_pixmap(QPixmap(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")))
         
-        # Remove the shortcut
         self.continueNext.setKey(QKeySequence())
-        
-    
                 
 # Rect class
 class doodlerectItem(doodleImageItems):
@@ -598,9 +591,7 @@ class doodlerectItem(doodleImageItems):
         updateConfig("" , None)
         
         self.menu = QSliderMenu(self.graphics)
-        
-        self.continueNext.setKey(QKeySequence("Ctrl+S"))
-        
+                
         self.continueNext.activated.connect(partial(self.drawRectOnImage, self.rectangle))
         
         stylesheet = """
@@ -663,6 +654,8 @@ class doodlerectItem(doodleImageItems):
             self.graphics.hide()
             
             self.renderArea.set_pixmap(QPixmap(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")))
+            
+        self.startAni.hide()
             
         self.image = Image.open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")).convert("RGBA")
 
@@ -968,12 +961,10 @@ class doodleEllipse(doodleImageItems):
         self.pen = QPen(QColor(self.config["outline-color"]), int(self.config["outline-width"]), Qt.SolidLine)
 
         self.ecllipse = self.scene.addEllipse(
-            280, 125, self.config["radius"] * 2, self.config["radius"] * 2, self.pen
+            280, 125, self.config["radius"] * 2, self.config["radius"] * 2, self.pen, QColor(self.config["color"])
         )
         
         self.ecllipse.setFlag(QGraphicsItem.ItemIsMovable)
-
-        self.ecllipse.setBrush(QColor(self.config["color"]))
         
         crossLabel = QVBoxLayout()
         
@@ -1001,7 +992,7 @@ class doodleEllipse(doodleImageItems):
         
         self.menu.move(self.originalPos)
         
-        self.showHelp("Here is your circle")
+        # self.showHelp("Here is your circle")
         
         self.graphics.paintEvent = self.responser
     
@@ -1019,12 +1010,10 @@ class doodleEllipse(doodleImageItems):
         width , height = Image.open(self.dir).size
         
         size = QRect(0 , 0 , width , height)
-        
-        self.help.hide()
-        
+                
         self.menu.hide()
         
-        self.tooltip.hide()
+        # self.tooltip.hide()
         
         # Parse the image 
         image = QImage(size.size() , QImage.Format_ARGB32_Premultiplied)
@@ -1120,7 +1109,7 @@ class doodleImage:
 
         self.pixmap = self.scene.addPixmap(QPixmap(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")))
 
-        self.graphics.setGeometry(QRect(0, 0, 1980, 1080))
+        self.graphics.setGeometry(self.parent.geometry())
 
         self.config = {
             "width": 2,
@@ -1132,7 +1121,7 @@ class doodleImage:
         }
 
     def freeHand(self):
-        line = doodleFreeHand(self.parent , self.renderArea , self.outParent)
+        line = doodleFreeHand(self.parent , self.renderArea , self.outParent , self.dir)
         
         line.showGraphics()
 
@@ -1159,8 +1148,10 @@ class doodleImage:
         self.scene.clear()
 
         self.scene.addPixmap(QPixmap(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png")))
+        
+        self.graphics.show()
 
-        polygon = PolyGon(self.graphics , self.renderArea , self.dir)
+        polygon = PolyGon(self.graphics ,  self.renderArea , self.dir)
 
         self.graphics.show()
 
@@ -1452,6 +1443,8 @@ class doodleImage:
         self.animation.finished.connect(self.graphics.hide)
 
         self.animation.start()
+        
+        self.shortcut.setKey(QKeySequence())
 
 class floodFiller(QObject):
     finished = pyqtSignal()

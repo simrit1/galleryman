@@ -285,7 +285,7 @@ def removeFromScanDirectory(directory):
         
         print(bcolors.FAIL + "HELP: Directory not in scanning list")
     
-    with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "scan_dirs.txt")) as f:
+    with open(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "scan_dirs.txt") , "w") as f:
         f.write(dumps(curr))
         
     

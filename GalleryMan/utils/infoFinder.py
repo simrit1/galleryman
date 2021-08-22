@@ -134,16 +134,10 @@ class getMoreInfo:
         # Show the parent
         self.parent.show()
     
-    def castToScreen(self):
-        pass
-    
-    def searchGoogle(self):
-        pass
-    
     def showInFullScreen(self):
         self.graphics = QGraphicsView(self.application)
 
-        self.graphics.setGeometry(QRect(0 , 0 , 1980 , 1080))
+        self.graphics.setGeometry(self.application.geometry())
         
         self.graphics.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         

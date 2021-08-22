@@ -60,15 +60,24 @@ class FindAll(QObject):
             i = str(i)
             
             # Check if the image is a supported format
-            if os.path.isdir(i) or i[-3:] not in [
-                "png",
-                "jpg",
-                "jpeg",
+            if os.path.isdir(i) or i[-4:] not in [
+                ".png",
+                ".jpg",
+                ".jpeg",
             ]:
                 continue
+
+            
+            breakHere = False
             
             for pre in self.data:
-                if(pre in i): print("OH NO!")
+                if(pre in i): 
+                    breakHere = True
+                    
+                    break
+                
+            if(breakHere):
+                continue
                         
             # Add done
             done = done + 1
@@ -82,9 +91,9 @@ class FindAll(QObject):
             # Request label
             self.request_label.emit(i)
             
-            # Wait while the request is accepted
+            # Wait while the request is being accepted
             while not self.accepted:
-                self.test = True
+                pass
             
             # Create the card
             self.final(inst , i , card_width , card_height , padding , color_mode , colors , x , y)
@@ -618,7 +627,7 @@ class singleFolderView():
         i = 0
         
         # Main helper class
-        self.functional = QEditorHelper(self.app , self.application , self.central , self.config , self.scrollArea , self.image , self.main_window.hide , name)
+        self.functional = QEditorHelper(self.app , self.application , self.central , self.config , self.scrollArea , self.image , self.main_window.hide , name , self.main_window)
                 
         # respective functions
         functions = [

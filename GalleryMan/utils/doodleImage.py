@@ -4,7 +4,7 @@ import os
 from PIL import Image , ImageDraw
 from PyQt5.QtCore import QParallelAnimationGroup, QPoint, QPointF, QPropertyAnimation, QRect, QRectF, QTimer, Qt, pyqtBoundSignal, pyqtSignal 
 from PyQt5.QtGui import QColor, QFont, QImage, QKeySequence, QMouseEvent, QPainter, QPen, QPixmap, QPolygonF
-from PyQt5.QtWidgets import QCheckBox, QGraphicsLineItem, QGraphicsOpacityEffect, QGraphicsSimpleTextItem, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QScrollArea, QShortcut, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QCheckBox, QGraphicsLineItem, QGraphicsOpacityEffect, QGraphicsScene, QGraphicsSimpleTextItem, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QScrollArea, QShortcut, QVBoxLayout, QWidget
 from GalleryMan.assets.cropper import QRotateLabel
 
 class ClickableLabel(QLabel):
@@ -39,7 +39,7 @@ class doodleShape:
     
     def __init__(self , parent: QGraphicsView , renderArea: QRotateLabel , dir: str):
         self.parent = parent
-        
+         
         self.renderArea = renderArea
         
         self.areTheyShown = False
@@ -76,12 +76,6 @@ class doodleShape:
         self.draw = ImageDraw.ImageDraw(self.image)
         
         self.menu = QSliderMenu(self.parent)
-        
-        self.label = QLabel("Right click to connect to the starting point" , self.parent)
-        
-        self.label.setStyleSheet("font-size: 20px; color: white; background-color: transparent ")
-        
-        self.label.hide()
         
         self.lineLayersParent = QLabel(self.parent)
         
@@ -130,10 +124,8 @@ class doodleShape:
         self.lines: list[QGraphicsLineItem] = []
         
         self.poped = []
-        
-        self.label.setGeometry(QRect(0 , 0 , 1000 , 50))
-        
-        self.showHelp()
+
+        # self.showHelp()
         
         self.lineLayersParent.hide()
         
@@ -238,13 +230,6 @@ class doodleShape:
         self.line.setLine(self.line.line().x1() , self.line.line().y1() , x , y)
                 
         firstPointLocation = self.pointsLocation[0]
-                             
-        if(abs(x - firstPointLocation.x()) <= 10 or abs(y - firstPointLocation.y()) <= 10):            
-            self.label.move(x , y)            
-        else:
-            self.isHandleAvail = False
-            
-            self.label.hide()
         
     def updateSingleLine(self , line: QGraphicsLineItem):
         def run_second():
@@ -483,7 +468,7 @@ class doodleShape:
         
         self.details = QLabel()
                 
-        self.another = QShortcut(QKeySequence("Return") , self.parent)
+        self.another = QShortcut(QKeySequence("Ctrl+S") , self.parent.parent())
         
         self.another.activated.connect(self.savePronto)
         
@@ -539,6 +524,8 @@ class doodleShape:
         except:
             pass
         
+        print("REAN~~~")
+        
         self.help.hide()
         
         width , height = Image.open(self.dir).size
@@ -561,6 +548,8 @@ class doodleShape:
         self.parent.scene().render(painter, QRectF(image.rect()), QRectF(area))
         
         painter.end()
+        
+        
                         
         image.save(os.path.join(os.path.expanduser("~") , ".galleryman" , "data" , "processed_image.png") , quality=100)
         
@@ -600,6 +589,7 @@ class doodleShape:
 
 class PolyGon(doodleShape):
     def __init__(self , parent , renderArea , directory):
+        
         super().__init__(parent , renderArea , directory)
         
     def onClick(self, event: QMouseEvent):

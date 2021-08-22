@@ -125,7 +125,7 @@ class doodleShape:
         
         self.poped = []
 
-        # self.showHelp()
+        self.showHelp()
         
         self.lineLayersParent.hide()
         
@@ -468,7 +468,7 @@ class doodleShape:
         
         self.details = QLabel()
                 
-        self.another = QShortcut(QKeySequence("Ctrl+S") , self.parent.parent())
+        self.another = QShortcut(QKeySequence("Return") , self.parent)
         
         self.another.activated.connect(self.savePronto)
         
@@ -524,7 +524,6 @@ class doodleShape:
         except:
             pass
         
-        print("REAN~~~")
         
         self.help.hide()
         
@@ -588,7 +587,8 @@ class doodleShape:
         self.animation.start()
 
 class PolyGon(doodleShape):
-    def __init__(self , parent , renderArea , directory):
+    def __init__(self , parent: QGraphicsView , renderArea , directory):
+        parent.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         
         super().__init__(parent , renderArea , directory)
         

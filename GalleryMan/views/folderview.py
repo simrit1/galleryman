@@ -96,7 +96,6 @@ class Worker(QObject):
 
             # Check if the path is a folder and it is not in the prevent dirs
             if i == LIKED_FOLDERS or (os.path.isdir(curr) and i[0] != "." and curr not in inst.prevented_dirs):
-                # print(i)
                 if mode == "single":
                     color_rest = 0
                 elif mode == "random":
